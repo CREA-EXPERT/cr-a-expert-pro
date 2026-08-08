@@ -33,8 +33,12 @@ import {
   isEI,
   isSas,
   liberationMin,
+  minimumLegal,
+  rolesPour,
   type Forme,
 } from "@/lib/domain";
+import { AdresseSiege } from "@/components/AdresseSiege";
+
 import { construireDocuments, type Associe, type Dossier } from "@/lib/documents";
 import { analyserChecklist, piecesEnDrafts } from "@/lib/checklist";
 import { SituationChecklist } from "@/components/SituationChecklist";
