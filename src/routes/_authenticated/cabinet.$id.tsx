@@ -61,7 +61,10 @@ function CabinetDossier() {
       .from("documents")
       .update({ statut_document: statut, motif_rejet: statut === "rejete" ? (motif ?? null) : null })
       .eq("id", docId);
-    if (error) return toast.error("Mise à jour impossible.");
+    if (error) {
+      toast.error("Mise à jour impossible.");
+      return;
+    }
     const doc = data?.docs.find((d) => d.id === docId);
     await journaliser(
       statut === "valide" ? `Pièce validée par le cabinet : ${doc?.libelle}` : `Pièce rejetée : ${doc?.libelle}${motif ? ` — ${motif}` : ""}`,
@@ -77,7 +80,10 @@ function CabinetDossier() {
       patch['valide_le'] = new Date().toISOString();
     }
     const { error } = await supabase.from("dossiers").update(patch as never).eq("id", id);
-    if (error) return toast.error("Mise à jour impossible.");
+    if (error) {
+      toast.error("Mise à jour impossible.");
+      return;
+    }
     await journaliser(`Statut du dossier : ${STATUT_LABEL[statut] ?? statut}`);
     toast.success("Statut mis à jour.");
     qc.invalidateQueries({ queryKey: ["cabinet-dossier", id] });

@@ -21,6 +21,7 @@ import { Route as AuthenticatedCreationRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
 import { Route as AuthenticatedCabinetIndexRouteImport } from './routes/_authenticated/cabinet.index'
+import { Route as AuthenticatedCabinetIdRouteImport } from './routes/_authenticated/cabinet.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -83,6 +84,11 @@ const AuthenticatedCabinetIndexRoute =
     path: '/cabinet/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCabinetIdRoute = AuthenticatedCabinetIdRouteImport.update({
+  id: '/cabinet/$id',
+  path: '/cabinet/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/creation': typeof AuthenticatedCreationRoute
   '/documents': typeof AuthenticatedDocumentsRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/cabinet/': typeof AuthenticatedCabinetIndexRoute
 }
 export interface FileRoutesByTo {
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/creation': typeof AuthenticatedCreationRoute
   '/documents': typeof AuthenticatedDocumentsRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/cabinet': typeof AuthenticatedCabinetIndexRoute
 }
 export interface FileRoutesById {
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   '/_authenticated/creation': typeof AuthenticatedCreationRoute
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/_authenticated/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/_authenticated/cabinet/': typeof AuthenticatedCabinetIndexRoute
 }
 export interface FileRouteTypes {
@@ -138,6 +147,7 @@ export interface FileRouteTypes {
     | '/creation'
     | '/documents'
     | '/tableau-de-bord'
+    | '/cabinet/$id'
     | '/cabinet/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/creation'
     | '/documents'
     | '/tableau-de-bord'
+    | '/cabinet/$id'
     | '/cabinet'
   id:
     | '__root__'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/_authenticated/creation'
     | '/_authenticated/documents'
     | '/_authenticated/tableau-de-bord'
+    | '/_authenticated/cabinet/$id'
     | '/_authenticated/cabinet/'
   fileRoutesById: FileRoutesById
 }
@@ -265,6 +277,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCabinetIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cabinet/$id': {
+      id: '/_authenticated/cabinet/$id'
+      path: '/cabinet/$id'
+      fullPath: '/cabinet/$id'
+      preLoaderRoute: typeof AuthenticatedCabinetIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -272,6 +291,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCreationRoute: typeof AuthenticatedCreationRoute
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
   AuthenticatedTableauDeBordRoute: typeof AuthenticatedTableauDeBordRoute
+  AuthenticatedCabinetIdRoute: typeof AuthenticatedCabinetIdRoute
   AuthenticatedCabinetIndexRoute: typeof AuthenticatedCabinetIndexRoute
 }
 
@@ -279,6 +299,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCreationRoute: AuthenticatedCreationRoute,
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
   AuthenticatedTableauDeBordRoute: AuthenticatedTableauDeBordRoute,
+  AuthenticatedCabinetIdRoute: AuthenticatedCabinetIdRoute,
   AuthenticatedCabinetIndexRoute: AuthenticatedCabinetIndexRoute,
 }
 
@@ -298,13 +319,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
