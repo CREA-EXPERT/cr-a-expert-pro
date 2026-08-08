@@ -847,41 +847,90 @@ function Creation() {
                   {a.type === "personne_physique" ? (
                     <>
                       <AssocieIdentite associe={a} onChange={(v) => majAssocie(a.id, v)} />
+                      {estMineur(a) && <EncadreMineur signale />}
                       <div className="grid gap-3 sm:grid-cols-2">
-                        <select className={champ} value={a.situation_matrimoniale ?? ""} onChange={(e) => majAssocie(a.id, { situation_matrimoniale: e.target.value })}>
+                        <select className={champ} value={a.situation_matrimoniale ?? ""} onChange={(e) => majAssocie(a.id, { situation_matrimoniale: e.target.value, regime_matrimonial: "non_applicable", contrat_mariage: false })}>
                           <option value="">Situation matrimoniale…</option>
                           {SITUATIONS.map((s) => (
                             <option key={s.value} value={s.value}>{s.label}</option>
                           ))}
                         </select>
-                        {a.situation_matrimoniale === "marie" && (
-                          <select className={champ} value={a.regime_matrimonial ?? ""} onChange={(e) => majAssocie(a.id, { regime_matrimonial: e.target.value })}>
-                            <option value="">Régime matrimonial…</option>
-                            {REGIMES.map((r) => (
+                        {(a.situation_matrimoniale === "marie" || a.situation_matrimoniale === "pacse") && (
+                          <select
+                            className={champ}
+                            value={a.regime_matrimonial ?? ""}
+                            onChange={(e) =>
+                              majAssocie(a.id, {
+                                regime_matrimonial: e.target.value,
+                                contrat_mariage: REGIMES_AVEC_CONTRAT.includes(e.target.value),
+                              })
+                            }
+                          >
+                            <option value="">
+                              {a.situation_matrimoniale === "pacse" ? "Régime du PACS…" : "Régime matrimonial…"}
+                            </option>
+                            {(a.situation_matrimoniale === "pacse" ? REGIMES_PACS : REGIMES_MARIAGE).map((r) => (
                               <option key={r.value} value={r.value}>{r.label}</option>
                             ))}
                           </select>
                         )}
-                        {a.situation_matrimoniale === "marie" &&
+
+                        {(a.situation_matrimoniale === "marie" || a.situation_matrimoniale === "pacse") && (
+                          <div className="sm:col-span-2 space-y-2 rounded-md border border-border bg-muted/40 p-3">
+                            <div className="flex items-start gap-3">
+                              <Checkbox
+                                id={`ctr-${a.id}`}
+                                checked={a.contrat_mariage}
+                                onCheckedChange={(v) => majAssocie(a.id, { contrat_mariage: v === true })}
+                                className="mt-0.5"
+                              />
+                              <Label htmlFor={`ctr-${a.id}`} className="text-sm font-normal leading-relaxed">
+                                {a.situation_matrimoniale === "pacse"
+                                  ? "Une convention de PACS particulière a été signée (régime de l'indivision)."
+                                  : "Un contrat de mariage a été signé devant notaire."}
+                              </Label>
+                            </div>
+                            {a.contrat_mariage && (
+                              <Input
+                                maxLength={200}
+                                placeholder={
+                                  a.situation_matrimoniale === "pacse"
+                                    ? "Date de la convention et, le cas échéant, notaire"
+                                    : "Date du contrat et nom du notaire"
+                                }
+                                value={a.contrat_mariage_detail ?? ""}
+                                onChange={(e) => majAssocie(a.id, { contrat_mariage_detail: e.target.value })}
+                              />
+                            )}
+                            <p className="text-sm text-muted-foreground text-justify">
+                              {a.situation_matrimoniale === "pacse"
+                                ? "À défaut de convention particulière, le PACS relève de la séparation des patrimoines : chacun reste propriétaire de ce qu'il acquiert."
+                                : "À défaut de contrat de mariage, vous relevez de la communauté légale réduite aux acquêts : les biens et revenus acquis pendant le mariage sont communs."}
+                            </p>
+                          </div>
+                        )}
+
+                        {(a.situation_matrimoniale === "marie" || a.situation_matrimoniale === "pacse") &&
                           REGIMES_COMMUNAUTAIRES.includes(a.regime_matrimonial ?? "") &&
                           FORMES_COMMUNAUTE.includes(forme) && (
                             <div className="sm:col-span-2 space-y-2 rounded-md border border-border bg-muted/50 p-3">
                               <div className="flex items-start gap-3">
                                 <Checkbox id={`fc-${a.id}`} checked={a.apport_fonds_communs} onCheckedChange={(v) => majAssocie(a.id, { apport_fonds_communs: v === true })} className="mt-0.5" />
                                 <Label htmlFor={`fc-${a.id}`} className="text-sm font-normal">
-                                  L'apport provient de fonds communs du couple.
+                                  L'apport provient de fonds communs ou indivis du couple.
                                 </Label>
                               </div>
-                              <p className="text-sm">
-                                Dans ce cas, votre conjoint doit être informé de l'apport. Un courrier
-                                d'information sera généré et devra être signé avant la signature des
-                                statuts.
+                              <p className="text-sm text-justify">
+                                Dans ce cas, votre conjoint ou partenaire doit être informé de
+                                l'apport. Un courrier d'information sera généré et devra être signé
+                                avant la signature des statuts.
                               </p>
                             </div>
                           )}
                       </div>
                     </>
                   ) : (
+
                     <div className="grid gap-3 sm:grid-cols-2">
                       <Input placeholder="Dénomination" maxLength={120} value={a.denomination ?? ""} onChange={(e) => majAssocie(a.id, { denomination: e.target.value })} />
                       <Input placeholder="Forme" maxLength={40} value={a.forme ?? ""} onChange={(e) => majAssocie(a.id, { forme: e.target.value })} />
