@@ -22,6 +22,8 @@ export type Database = {
           adresse_ville: string | null
           apport_fonds_communs: boolean
           civilite: string | null
+          contrat_mariage: boolean
+          contrat_mariage_detail: string | null
           created_at: string
           date_naissance: string | null
           denomination: string | null
@@ -54,6 +56,8 @@ export type Database = {
           adresse_ville?: string | null
           apport_fonds_communs?: boolean
           civilite?: string | null
+          contrat_mariage?: boolean
+          contrat_mariage_detail?: string | null
           created_at?: string
           date_naissance?: string | null
           denomination?: string | null
@@ -86,6 +90,8 @@ export type Database = {
           adresse_ville?: string | null
           apport_fonds_communs?: boolean
           civilite?: string | null
+          contrat_mariage?: boolean
+          contrat_mariage_detail?: string | null
           created_at?: string
           date_naissance?: string | null
           denomination?: string | null
@@ -282,6 +288,7 @@ export type Database = {
           lettre_mission_nom: string | null
           moyen_de_paiement_enregistre: boolean
           objet_social: string | null
+          objets_social: string[]
           option_fiscale: string | null
           periodicite_tva: string | null
           pour_qui: string
@@ -294,6 +301,7 @@ export type Database = {
           siege_type: string | null
           sigle: string | null
           statut: string
+          telephone_contact: string | null
           updated_at: string
           user_id: string
           valeur_part: number
@@ -332,6 +340,7 @@ export type Database = {
           lettre_mission_nom?: string | null
           moyen_de_paiement_enregistre?: boolean
           objet_social?: string | null
+          objets_social?: string[]
           option_fiscale?: string | null
           periodicite_tva?: string | null
           pour_qui?: string
@@ -344,6 +353,7 @@ export type Database = {
           siege_type?: string | null
           sigle?: string | null
           statut?: string
+          telephone_contact?: string | null
           updated_at?: string
           user_id: string
           valeur_part?: number
@@ -382,6 +392,7 @@ export type Database = {
           lettre_mission_nom?: string | null
           moyen_de_paiement_enregistre?: boolean
           objet_social?: string | null
+          objets_social?: string[]
           option_fiscale?: string | null
           periodicite_tva?: string | null
           pour_qui?: string
@@ -394,6 +405,7 @@ export type Database = {
           siege_type?: string | null
           sigle?: string | null
           statut?: string
+          telephone_contact?: string | null
           updated_at?: string
           user_id?: string
           valeur_part?: number
@@ -489,6 +501,39 @@ export type Database = {
           nom?: string
           prenom?: string
           telephone?: string | null
+        }
+        Relationships: []
+      }
+      recommandations: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          message: string
+          page: string
+          traite: boolean
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          message: string
+          page?: string
+          traite?: boolean
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          message?: string
+          page?: string
+          traite?: boolean
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
