@@ -57,9 +57,14 @@ function CabinetDossier() {
   }
 
   async function majDocument(docId: string, statut: string, motif?: string) {
+    const motifNet = (motif ?? "").trim();
+    if (statut === "rejete" && motifNet.length < 5) {
+      toast.error("Le motif de rejet est obligatoire (5 caractères minimum).");
+      return;
+    }
     const { error } = await supabase
       .from("documents")
-      .update({ statut_document: statut, motif_rejet: statut === "rejete" ? (motif ?? null) : null })
+      .update({ statut_document: statut, motif_rejet: statut === "rejete" ? motifNet : null })
       .eq("id", docId);
     if (error) {
       toast.error("Mise à jour impossible.");
@@ -67,25 +72,55 @@ function CabinetDossier() {
     }
     const doc = data?.docs.find((d) => d.id === docId);
     await journaliser(
-      statut === "valide" ? `Pièce validée par le cabinet : ${doc?.libelle}` : `Pièce rejetée : ${doc?.libelle}${motif ? ` — ${motif}` : ""}`,
+      statut === "valide"
+        ? `Pièce validée par le cabinet : ${doc?.libelle}`
+        : `Pièce à corriger — ${doc?.libelle} : ${motifNet}`,
     );
+    if (statut === "rejete") setMotifs((m) => ({ ...m, [docId]: "" }));
     toast.success("Pièce mise à jour.");
     qc.invalidateQueries({ queryKey: ["cabinet-dossier", id] });
   }
 
-  async function majStatut(statut: string) {
-    const patch: Record<string, unknown> = { statut };
-    if (statut === "valide_cabinet") {
-      patch['valide_par'] = user?.email ?? "cabinet";
-      patch['valide_le'] = new Date().toISOString();
+  async function ouvrirPiece(chemin: string | null) {
+    if (!chemin) {
+      toast.error("Aucun fichier déposé pour cette pièce.");
+      return;
     }
-    const { error } = await supabase.from("dossiers").update(patch as never).eq("id", id);
+    const { data: signed, error } = await supabase.storage.from("documents").createSignedUrl(chemin, 300);
+    if (error || !signed) {
+      toast.error("Impossible d'ouvrir le fichier.");
+      return;
+    }
+    window.open(signed.signedUrl, "_blank", "noopener");
+  }
+
+  async function majStatut(statut: string) {
+    const { error } = await supabase.from("dossiers").update({ statut }).eq("id", id);
     if (error) {
       toast.error("Mise à jour impossible.");
       return;
     }
     await journaliser(`Statut du dossier : ${STATUT_LABEL[statut] ?? statut}`);
     toast.success("Statut mis à jour.");
+    qc.invalidateQueries({ queryKey: ["cabinet-dossier", id] });
+  }
+
+  async function validerDossier() {
+    const horodatage = new Date().toISOString();
+    const validateur = user?.email ?? "cabinet";
+    const { error } = await supabase
+      .from("dossiers")
+      .update({ statut: "valide_cabinet", valide_par: validateur, valide_le: horodatage })
+      .eq("id", id);
+    if (error) {
+      toast.error("Validation impossible.");
+      return;
+    }
+    await journaliser(
+      `Dossier validé par le cabinet — ${validateur}, le ${new Date(horodatage).toLocaleString("fr-FR")}. Les documents ne portent plus la mention « PROJET ».`,
+    );
+    setConfirmation(false);
+    toast.success("Dossier validé.");
     qc.invalidateQueries({ queryKey: ["cabinet-dossier", id] });
   }
 
