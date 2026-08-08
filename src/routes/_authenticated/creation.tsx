@@ -880,12 +880,48 @@ function Creation() {
           {cle === "options" && (
             <div className="mt-6 space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="cloture">Date de clôture de l'exercice</Label>
-                <Input id="cloture" maxLength={5} value={dossier.date_cloture_exercice} onChange={(e) => patch({ date_cloture_exercice: e.target.value })} />
+                <Label htmlFor="cloture">Mois de clôture de l'exercice</Label>
+                <select
+                  id="cloture"
+                  className={champ}
+                  value={String(dossier.cloture_mois)}
+                  onChange={(e) => {
+                    const m = Number(e.target.value);
+                    patch({ cloture_mois: m, date_cloture_exercice: dernierJourDuMois(m) });
+                  }}
+                >
+                  {MOIS.map((m, i) => (
+                    <option key={m} value={String(i + 1)}>
+                      {`${m} — clôture au ${dernierJourDuMois(i + 1).replace("/", "/")}`}
+                    </option>
+                  ))}
+                </select>
                 <p className="text-sm text-muted-foreground">
-                  Le premier exercice sera clos le {dossier.date_cloture_exercice} suivant l'immatriculation.
+                  Clôture retenue : le {dossier.date_cloture_exercice}, dernier jour du mois.
                 </p>
               </div>
+
+              <div className="space-y-2 rounded-md border border-border bg-surface p-4">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="etendu"
+                    checked={dossier.exercice_etendu}
+                    onCheckedChange={(v) => patch({ exercice_etendu: v === true })}
+                    className="mt-0.5"
+                  />
+                  <Label htmlFor="etendu" className="text-sm font-normal">
+                    Je souhaite un premier exercice étendu (plus de 12 mois).
+                  </Label>
+                </div>
+                <p className="text-sm leading-relaxed">
+                  Sans exercice étendu, le premier exercice est clos à la première échéance du{" "}
+                  {dossier.date_cloture_exercice} suivant l'immatriculation. Un exercice ne peut
+                  comporter qu'un seul franchissement du 31 décembre : sa durée ne peut donc pas
+                  dépasser 24 mois.
+                </p>
+              </div>
+
+              <EncadreCloture />
 
               <div className="space-y-2">
                 <Label>Option fiscale</Label>
@@ -909,6 +945,33 @@ function Creation() {
                 ))}
               </div>
 
+              {dossier.regime_tva && dossier.regime_tva !== "franchise" && (
+                <div className="space-y-2">
+                  <Label>Périodicité des déclarations de TVA</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { v: "mensuelle", t: "Mensuelle" },
+                      { v: "trimestrielle", t: "Trimestrielle" },
+                    ].map((o) => (
+                      <Button
+                        key={o.v}
+                        type="button"
+                        variant={dossier.periodicite_tva === o.v ? "default" : "outline"}
+                        onClick={() => patch({ periodicite_tva: o.v })}
+                      >
+                        {o.t}
+                      </Button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    La périodicité effective dépend du régime retenu et du montant de TVA due sur
+                    l'année ; elle est confirmée par l'administration.
+                  </p>
+                </div>
+              )}
+
+              <EncadreTva immobilier={isCivile(forme)} />
+
               <div className="space-y-2 rounded-md border border-border bg-muted/50 p-4">
                 <div className="flex items-start gap-3">
                   <Checkbox id="acre" checked={dossier.demande_acre} onCheckedChange={(v) => patch({ demande_acre: v === true })} className="mt-0.5" />
@@ -920,10 +983,28 @@ function Creation() {
                 </p>
               </div>
 
-              <p className="rounded-md border border-accent/40 bg-accent/8 p-3 text-sm font-medium">
-                Ces choix seront revus avec vous par l'expert-comptable.
-              </p>
-              <Disclaimer />
+              <div className="rounded-md border border-accent/40 bg-accent/10 p-4">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="relecture-options"
+                    checked={dossier.relecture_options}
+                    onCheckedChange={(v) =>
+                      patch({ relecture_options: v === true, ...(v === true ? { voie_validation: "cabinet" } : {}) })
+                    }
+                    className="mt-0.5"
+                  />
+                  <Label htmlFor="relecture-options" className="text-sm font-normal leading-relaxed">
+                    Ces choix, comme tous les autres et vos statuts, seront revus avec vous par
+                    l'expert-comptable si vous cochez cette case (coût : {euro(relectureOptionsHt)} HT,
+                    déductible du résultat de la société et récupérable par l'associé qui a avancé les
+                    fonds à la société) ; sinon, vous avancez par vous-même, sans frais additionnels.
+                  </Label>
+                </div>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  Information générale — ne constitue pas un conseil. Votre dossier peut être revu
+                  par un expert-comptable, si vous le souhaitez (option payante).
+                </p>
+              </div>
             </div>
           )}
 
