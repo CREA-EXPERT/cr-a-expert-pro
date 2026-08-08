@@ -250,12 +250,22 @@ function Creation() {
   }
 
   const totalApports = useMemo(
-
     () => associes.filter((a) => a.est_associe).reduce((s, a) => s + Number(a.montant_apport || 0), 0),
     [associes],
   );
+  const dirigeants = useMemo(() => associes.filter((a) => a.est_dirigeant), [associes]);
   const ei = dossier ? isEI(dossier.forme_juridique) : false;
+  const valeurPart = Math.max(0.01, Number(dossier?.valeur_part ?? 1));
   const capitalOk = dossier ? Math.abs(totalApports - Number(dossier.capital_montant)) < 0.01 : false;
+
+  /** En SAS et SASU, il ne peut y avoir qu'un seul président : la fonction est exclusive. */
+  async function choisirFonction(id: string, fonction: string) {
+    if (fonction === "president") {
+      const autres = associes.filter((a) => a.id !== id && a.fonction === "president");
+      for (const a of autres) await majAssocie(a.id, { fonction: null });
+    }
+    await majAssocie(id, { fonction: fonction || null });
+  }
 
   async function validerDossier() {
     if (!dossier || !rules) return;
