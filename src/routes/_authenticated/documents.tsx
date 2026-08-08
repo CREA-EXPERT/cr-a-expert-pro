@@ -8,6 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  EncadreJustificatifs,
+  EncadreSignatureElectronique,
+} from "@/components/EncadresPedago";
 import { genererPdf, telechargerPdf } from "@/lib/pdf";
 import { verifierDates, type Associe, type Dossier, type DocumentRow } from "@/lib/documents";
 import { Download, HelpCircle, Upload } from "lucide-react";
@@ -172,6 +176,12 @@ function Documents() {
         <p className="mt-2 text-sm text-muted-foreground">
           Formats acceptés : PDF, JPG, PNG. 10 Mo maximum par fichier.
         </p>
+
+        <div className="mt-6 space-y-5">
+          <EncadreJustificatifs />
+          <EncadreSignatureElectronique />
+        </div>
+
 
         <section className="mt-6 rounded-lg border border-border bg-surface p-5">
           <h2 className="font-serif text-xl">Dates du dossier</h2>

@@ -320,3 +320,63 @@ export function EncadreTva({ immobilier }: { immobilier: boolean }) {
     </div>
   );
 }
+
+/** Rappel des justificatifs légaux à déposer avant tout dépôt du dossier. */
+export function EncadreJustificatifs() {
+  return (
+    <div className="rounded-lg border border-border bg-muted/40 p-4 text-sm leading-relaxed text-justify">
+      <p className="font-semibold">Encadré pédagogique — les justificatifs à déposer</p>
+      <p className="mt-2">
+        Tous les justificatifs légaux applicables à votre situation doivent être déposés dans
+        « Mes documents » <strong>avant</strong> que votre dossier puisse être déposé. Un dossier
+        incomplet est systématiquement rejeté par le greffe, ce qui fait perdre du temps et peut
+        obliger à republier certaines formalités.
+      </p>
+      <p className="mt-2">
+        <strong>Justificatif de domicile du siège.</strong> Il doit dater de{" "}
+        <strong>moins de trois mois</strong>, à l'exception de l'avis de taxe foncière, admis pour
+        l'année en cours. Sont valables : une facture d'énergie (électricité, gaz), une facture
+        d'eau, une facture de téléphonie fixe ou mobile ou d'accès à internet, un avis d'imposition
+        ou de taxe foncière, une quittance de loyer émise par un bailleur professionnel, ou une
+        attestation d'assurance habitation. Les factures d'achat, les relevés bancaires et les
+        courriers publicitaires ne sont pas acceptés.
+      </p>
+      <p className="mt-2">
+        <strong>Pièces d'identité des associés et dirigeants.</strong> Il faut une copie{" "}
+        <strong>recto-verso</strong>, en cours de validité, entièrement lisible (carte nationale
+        d'identité, passeport ou titre de séjour), portant la mention manuscrite{" "}
+        <strong>« certifiée conforme à l'original »</strong> suivie de la date et de la{" "}
+        <strong>signature</strong> du titulaire. Une copie tronquée, floue ou expirée entraîne le
+        rejet du dossier.
+      </p>
+      <MentionPro />
+    </div>
+  );
+}
+
+/** Documents que la plateforme fera signer électroniquement (fonction à venir). */
+export function EncadreSignatureElectronique() {
+  return (
+    <div className="rounded-lg border border-accent/40 bg-accent/8 p-4 text-sm leading-relaxed text-justify">
+      <p className="font-semibold">Documents signés électroniquement — envoyés par nos soins</p>
+      <p className="mt-2">
+        Vous n'avez pas à les rédiger : nous les préparons à partir de vos réponses et nous vous les
+        adresserons pour signature électronique (DocuSign). Vous recevrez un lien par courriel ; la
+        signature vaut engagement et la preuve est conservée dans votre dossier.
+      </p>
+      <ul className="mt-2 list-disc space-y-1 pl-5">
+        <li>l'attestation de non-condamnation et de filiation de chaque dirigeant ;</li>
+        <li>l'attestation de domiciliation du siège social ;</li>
+        <li>la demande de confidentialité de l'adresse personnelle des associés ;</li>
+        <li>
+          le mandat autorisant le dépôt du dossier sur le guichet unique (accès seul, limité à cette
+          formalité).
+        </li>
+      </ul>
+      <p className="mt-2 text-muted-foreground">
+        Signature électronique — bientôt disponible. En attendant, ces documents vous sont fournis à
+        imprimer et à signer.
+      </p>
+    </div>
+  );
+}

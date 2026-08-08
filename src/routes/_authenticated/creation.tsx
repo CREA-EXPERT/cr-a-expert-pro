@@ -53,10 +53,12 @@ import {
   EncadreCompositionForme,
   EncadreDemembrement,
   EncadreGouvernance,
+  EncadreJustificatifs,
   EncadreMineur,
   EncadreRegimes,
   EncadreRelectureLimites,
   EncadreResponsabilite,
+  EncadreSignatureElectronique,
   EncadreTva,
 } from "@/components/EncadresPedago";
 import { estCodeReglemente } from "@/lib/naf-reglemente";
@@ -167,6 +169,7 @@ function Creation() {
   const [associes, setAssocies] = useState<Associe[]>([]);
   const [etape, setEtape] = useState(1);
   const [certifie, setCertifie] = useState(false);
+  const [piecesOk, setPiecesOk] = useState(false);
   const [busy, setBusy] = useState(false);
   const [nomAcceptation, setNomAcceptation] = useState("");
   const [lueMission, setLueMission] = useState(false);
@@ -318,6 +321,16 @@ function Creation() {
     if (!dossier || !rules) return;
     if (!certifie) {
       toast.error("Vous devez certifier l'exactitude des informations.");
+      return;
+    }
+    if (!piecesOk) {
+      toast.error(
+        "Vous devez vous engager à déposer tous les justificatifs légaux applicables avant le dépôt du dossier.",
+      );
+      return;
+    }
+    if (!dossier.telephone_contact?.trim()) {
+      toast.error("Le numéro de téléphone est obligatoire avant la signature de la lettre de mission.");
       return;
     }
     if (mineurs.length > 0) {
@@ -1327,7 +1340,9 @@ function Creation() {
                   <div className="space-y-3 rounded-lg border border-border bg-surface p-5 text-sm leading-relaxed text-justify">
                     <p><strong>Client.</strong> {dossier.denomination} ({dossier.forme_juridique} en cours de constitution){dossier.siege_adresse ? `, siège : ${dossier.siege_adresse}` : ""}.</p>
                     <p><strong>Activité.</strong> {dossier.objet_social?.slice(0, 300) || "À compléter à l'étape « Objet social »."}{dossier.code_naf ? ` (code d'activité ${dossier.code_naf})` : ""}</p>
-                    <p><strong>Régimes fiscaux retenus.</strong> {dossier.option_fiscale ?? REGIME_DEFAUT[dossier.forme_juridique]} — TVA : {TVA_OPTIONS.find((t) => t.value === dossier.regime_tva)?.label ?? "à préciser"}{dossier.periodicite_tva ? ` (déclaration ${dossier.periodicite_tva})` : ""}. Clôture au {dossier.date_cloture_exercice}.</p>
+                    <p><strong>Exercice social.</strong> Clôture au {dossier.date_cloture_exercice}{dossier.exercice_etendu ? " — premier exercice étendu (plus de 12 mois, un seul franchissement du 31 décembre)" : ""}.</p>
+                    <p><strong>Imposition des bénéfices.</strong> {dossier.option_fiscale?.trim() || "Impôt sur les sociétés (IS), régime réel simplifié par défaut"}{!dossier.option_fiscale?.trim() ? ` — régime de droit commun de la forme choisie : ${REGIME_DEFAUT[dossier.forme_juridique]}` : ""}</p>
+                    <p><strong>Taxe sur la valeur ajoutée.</strong> {TVA_OPTIONS.find((t) => t.value === dossier.regime_tva)?.label ?? "Régime réel simplifié (régime par défaut)"} — déclaration {dossier.periodicite_tva ?? "trimestrielle (périodicité par défaut du réel simplifié)"}.</p>
                     <p><strong>Objet.</strong> Mission de présentation des comptes annuels réalisée par le cabinet d'expertise comptable partenaire, inscrit à l'Ordre : tenue, comptes annuels, déclarations fiscales courantes et conseil au fil de l'eau.</p>
                     <p><strong>Honoraires.</strong> {euro(missionMensuelleHt(tarifs))} HT par mois, TVA de 20 % en sus.</p>
                     <p><strong>Durée et résiliation.</strong> Engagement initial de trois mois, puis résiliation libre par chaque partie, sans frais ni justification.</p>
@@ -1345,19 +1360,23 @@ function Creation() {
                   ) : (
                     <div className="space-y-4">
                       <div className="space-y-2 sm:max-w-sm">
-                        <Label htmlFor="tel-contact">Numéro de téléphone</Label>
+                        <Label htmlFor="tel-contact">
+                          Numéro de téléphone <span className="text-destructive">(obligatoire)</span>
+                        </Label>
                         <Input
                           id="tel-contact"
                           type="tel"
+                          required
+                          aria-required="true"
                           maxLength={20}
                           placeholder="06 12 34 56 78"
                           value={dossier.telephone_contact ?? ""}
                           onChange={(e) => patch({ telephone_contact: e.target.value })}
                         />
                         <p className="text-sm text-muted-foreground text-justify">
-                          Nécessaire avant la signature : le cabinet doit pouvoir vous joindre pour
-                          la mission comptable et, le cas échéant, pour la relecture de votre
-                          dossier.
+                          Ce numéro est obligatoire avant la signature de la lettre de mission : le
+                          cabinet doit pouvoir vous joindre pour la mission comptable et, le cas
+                          échéant, pour la relecture de votre dossier.
                         </p>
                       </div>
                       <div className="flex items-start gap-3">
@@ -1444,12 +1463,12 @@ function Creation() {
             <div className="mt-6 space-y-5">
               <dl className="divide-y divide-border rounded-lg border border-border bg-surface">
                 {[
-                  ["Honoraires de création", "0 € — offerts en contrepartie de la mission comptable de 3 mois à " + euro(missionMensuelleHt(tarifs)) + " HT/mois"],
-                  ["Annonce légale", ei ? "Sans objet (aucune annonce en entreprise individuelle)" : euro(cout.annonceTtc)],
-                  ["Greffe", euro(cout.greffeTtc)],
-                  ["Bénéficiaires effectifs", ei ? "Sans objet" : euro(cout.benefTtc)],
-                  ["Relecture par l'expert-comptable", relecture ? euro(relecture) + " TTC" : "Non demandée"],
-                  ["Total dû aujourd'hui", euro(cout.totalTtc + relecture)],
+                  ["Honoraires de création", "0 € HT (0 € TTC) — offerts en contrepartie de la mission comptable de 3 mois à " + euro(missionMensuelleHt(tarifs)) + " HT/mois (soit " + euro(missionMensuelleHt(tarifs) * 1.2) + " TTC/mois)"],
+                  ["Annonce légale", ei ? "Sans objet (aucune annonce en entreprise individuelle)" : `${euro(cout.annonceTtc / 1.2)} HT — soit ${euro(cout.annonceTtc)} TTC (TVA 20 %)`],
+                  ["Greffe", `${euro(cout.greffeTtc)} TTC — tarif réglementé, taxes comprises`],
+                  ["Bénéficiaires effectifs", ei ? "Sans objet" : `${euro(cout.benefTtc)} TTC — tarif réglementé, taxes comprises`],
+                  ["Relecture par l'expert-comptable", relecture ? `${euro(relectureHt)} HT — soit ${euro(relecture)} TTC (TVA 20 %)` : "Non demandée"],
+                  ["Total dû aujourd'hui", `${euro(cout.totalTtc + relecture)} TTC`],
                 ].map(([k, v]) => (
                   <div key={k} className="grid gap-1 p-3 sm:grid-cols-[16rem_1fr]">
                     <dt className="text-sm text-muted-foreground">{k}</dt>
@@ -1457,9 +1476,12 @@ function Creation() {
                   </div>
                 ))}
               </dl>
-              <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
-                Les frais légaux sont refacturés à l'euro près, sans marge. Ils sont dus quelle que
-                soit la solution retenue pour créer votre société.
+              <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed text-justify">
+                Chaque montant ci-dessus précise s'il est exprimé hors taxes (HT) ou toutes taxes
+                comprises (TTC). Les tarifs du greffe et des bénéficiaires effectifs sont des tarifs
+                réglementés, exprimés taxes comprises. Les frais légaux sont refacturés à l'euro
+                près, sans marge. Ils sont dus quelle que soit la solution retenue pour créer votre
+                société.
               </p>
               {dossier.moyen_de_paiement_enregistre ? (
                 <p className="rounded-md border border-success/40 bg-success/8 p-3 text-sm">
@@ -1522,12 +1544,27 @@ function Creation() {
                 ))}
               </dl>
 
+              <EncadreJustificatifs />
+              <EncadreSignatureElectronique />
+
               <div className="flex items-start gap-3">
                 <Checkbox id="certif" checked={certifie} onCheckedChange={(v) => setCertifie(v === true)} className="mt-0.5" />
                 <Label htmlFor="certif" className="text-sm font-normal">
                   Je certifie l'exactitude des informations saisies.
                 </Label>
               </div>
+
+              <div className="flex items-start gap-3">
+                <Checkbox id="pieces" checked={piecesOk} onCheckedChange={(v) => setPiecesOk(v === true)} className="mt-0.5" />
+                <Label htmlFor="pieces" className="text-sm font-normal text-justify">
+                  Je m'engage à déposer, dans « Mes documents », tous les justificatifs légaux
+                  applicables à ma situation avant le dépôt du dossier : justificatif de domicile de
+                  moins de trois mois (sauf taxe foncière) et copie recto-verso lisible et valide de
+                  la pièce d'identité de chaque associé et dirigeant, portant la mention manuscrite
+                  « certifiée conforme à l'original », datée et signée.
+                </Label>
+              </div>
+
 
               <Button size="lg" onClick={validerDossier} disabled={busy}>
                 {busy ? "Validation…" : "Valider mon dossier"}
