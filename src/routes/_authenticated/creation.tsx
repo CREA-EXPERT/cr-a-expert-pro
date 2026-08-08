@@ -119,7 +119,7 @@ const TITRES: Record<Cle, string> = {
   siege: "Siège social",
   objet: "Objet social",
   capital: "Capital",
-  associes: "Associés",
+  associes: "Associés et gérance",
   direction: "Direction",
   options: "Options fiscales et sociales",
   mission: "Lettre de mission",
