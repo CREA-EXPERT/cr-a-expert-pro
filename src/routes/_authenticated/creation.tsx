@@ -368,12 +368,12 @@ function Creation() {
                 <Input id="sigle" maxLength={40} value={dossier.sigle ?? ""} onChange={(e) => patch({ sigle: e.target.value })} />
               </div>
               <div className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed">
-                <p className="font-medium">Vérifiez que ce nom est disponible en tant que marque</p>
+                <p className="font-medium">Vérifiez que ce nom est disponible</p>
                 <p className="mt-2">
-                  Une dénomination identique ou similaire à une marque déjà déposée pour des
-                  produits ou services proches expose à une action en contrefaçon et à
-                  l'interdiction d'utiliser le nom, même après immatriculation. La vérification se
-                  fait gratuitement dans la base des marques de l'INPI.
+                  Un nom identique ou similaire à une marque déjà déposée pour des produits ou
+                  services proches expose à une action en contrefaçon et à l'interdiction d'utiliser
+                  le nom, même après immatriculation. La recherche est gratuite dans la base des
+                  marques de l'INPI.
                 </p>
                 <p className="mt-2">
                   <a
@@ -387,15 +387,11 @@ function Creation() {
                   </a>
                 </p>
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Textes applicables : articles L. 713-2 à L. 713-6 du code de la propriété
-                  intellectuelle. L'article L. 713-2 interdit, sans autorisation du titulaire,
-                  l'usage d'un signe identique à la marque pour des produits ou services
-                  identiques, ainsi que l'usage d'un signe identique ou similaire pour des produits
-                  ou services identiques ou similaires s'il existe un risque de confusion dans
-                  l'esprit du public. Les articles L. 713-3 à L. 713-5 étendent cette protection aux
-                  marques renommées et à certains usages, et l'article L. 713-6 réserve les
-                  exceptions, notamment l'usage de son nom patronymique de bonne foi et l'usage
-                  antérieur d'un signe local.
+                  Articles L. 713-2 à L. 713-6 du code de la propriété intellectuelle : usage
+                  interdit d'un signe identique à une marque pour des produits ou services
+                  identiques, et d'un signe identique ou similaire s'il existe un risque de
+                  confusion ; protection étendue aux marques renommées, sous réserve de l'usage de
+                  bonne foi de son nom patronymique et de l'usage antérieur d'un signe local.
                 </p>
               </div>
               <div className="flex items-start gap-3">
@@ -405,6 +401,7 @@ function Creation() {
                   l'usage de ce nom, et j'en assume la responsabilité. (obligatoire)
                 </Label>
               </div>
+
 
             </div>
           )}
