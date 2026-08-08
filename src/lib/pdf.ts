@@ -478,3 +478,45 @@ export function telechargerPdf(octets: Uint8Array, nom: string) {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+/* --------------- GABARIT — MENTION MANUSCRITE D'IDENTITÉ --------------- */
+
+/** Feuille-modèle à imprimer : mention manuscrite « certifiée conforme à l'original ». */
+export async function genererGabaritIdentite(
+  d: Dossier,
+  associes: Associe[],
+): Promise<Uint8Array> {
+  RENDU = { filigrane: false, pied: "Gabarit fourni à titre d'aide au dépôt — CREA EXPERT" };
+  const ctx = await creerCtx(
+    "Gabarit — copie de pièce d'identité certifiée conforme",
+    d.denomination || "Dossier de création",
+  );
+
+  titre(ctx, "Comment procéder, étape par étape");
+  ecrire(ctx, "1. Photocopiez ou scannez votre pièce d'identité en cours de validité, recto ET verso, en couleur, sans rien masquer et sans reflet.");
+  ecrire(ctx, "2. Sur la copie elle-même, dans une zone blanche, recopiez à la main la mention ci-dessous, en toutes lettres et de façon lisible.");
+  ecrire(ctx, "3. Ajoutez la date du jour, puis signez à la main juste en dessous de la mention.");
+  ecrire(ctx, "4. Scannez ou photographiez la copie ainsi annotée, puis déposez-la dans « Mes documents ». Formats acceptés : PDF, JPG ou PNG, 10 Mo maximum.");
+
+  titre(ctx, "Mention manuscrite à recopier mot pour mot");
+  ecrire(ctx, "« Je soussigné(e) [prénom NOM], certifie la présente copie conforme à l'original de ma pièce d'identité. »", { bold: true });
+  ecrire(ctx, "Fait à [ville], le [jour/mois/année]");
+  ecrire(ctx, "Signature :");
+  espace(ctx, 26);
+
+  titre(ctx, "Pièces acceptées");
+  ecrire(ctx, "Carte nationale d'identité (recto-verso), passeport (pages d'identité), ou titre de séjour en cours de validité (recto-verso). Un permis de conduire n'est pas accepté pour les formalités d'immatriculation.");
+
+  titre(ctx, "Erreurs qui entraînent un rejet");
+  ecrire(ctx, "Copie expirée, illisible ou tronquée ; verso manquant ; mention absente, incomplète ou dactylographiée ; absence de date ou de signature ; document photographié de biais ou trop sombre.");
+
+  const physiques = associes.filter((a) => a.type === "personne_physique");
+  if (physiques.length > 0) {
+    titre(ctx, "Personnes concernées dans votre dossier");
+    for (const a of physiques) {
+      ecrire(ctx, `— ${nomComplet(a) || "Associé"}${a.est_dirigeant ? " (dirigeant)" : ""}`);
+    }
+  }
+
+  return fin(ctx);
+}
