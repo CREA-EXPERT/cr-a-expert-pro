@@ -225,19 +225,27 @@ function CabinetDossier() {
             <ul className="mt-4 space-y-3">
               {(data?.docs ?? []).map((d) => (
                 <li key={d.id} className="rounded-md border border-border p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-medium">{d.libelle}</p>
                       <p className="text-xs text-muted-foreground">
                         {d.origine === "genere" ? "Généré par la plateforme" : "À fournir par le client"} ·{" "}
-                        {d.obligatoire ? "Obligatoire" : "Facultative"} · {d.statut_document}
+                        {d.obligatoire ? "Obligatoire" : "Facultative"} · {STATUT_PIECE[d.statut_document] ?? d.statut_document}
                       </p>
                       {d.motif_rejet && <p className="mt-1 text-xs text-destructive">Motif : {d.motif_rejet}</p>}
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={!d.fichier_url}
+                        onClick={() => ouvrirPiece(d.fichier_url)}
+                      >
+                        {d.fichier_url ? "Voir la pièce" : "Non déposée"}
+                      </Button>
                       <Input
                         className="h-9 w-48"
-                        placeholder="Motif de rejet"
+                        placeholder="Motif de rejet (obligatoire)"
                         value={motifs[d.id] ?? ""}
                         onChange={(e) => setMotifs((m) => ({ ...m, [d.id]: e.target.value }))}
                       />
