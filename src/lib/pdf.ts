@@ -418,9 +418,18 @@ export async function genererLettreMission(
 
   titre(ctx, "Honoraires de création offerts sous condition");
   ecrire(ctx, `En cas de non-respect de l'engagement de 3 mois ou de défaut de paiement, les honoraires de création, offerts sous condition, deviennent exigibles à hauteur de ${euro(penaliteHt)} HT.`);
+  ecrire(ctx, "Réciproquement, si le cabinet n'exécute pas la mission comptable convenue, le client est libéré de son engagement de 3 mois et les honoraires de création ne deviennent pas exigibles.");
+  ecrire(ctx, "Si la création n'aboutit pas, les sommes versées sont intégralement remboursées, hors frais déjà réglés pour votre compte à des tiers, toujours annoncés avant engagement.");
+
+  titre(ctx, "Droit de rétractation");
+  ecrire(ctx, "Le client dispose en principe d'un délai de rétractation de quatorze jours (art. L. 221-18 du code de la consommation). S'il demande expressément que l'exécution commence avant l'expiration de ce délai, il perd son droit de rétractation une fois la prestation pleinement exécutée et doit, s'il se rétracte avant, le prix correspondant au service déjà fourni (art. L. 221-25 et L. 221-28, 1° du même code).");
+  if (d.renonciation_retractation_le) {
+    ecrire(ctx, `Demande expresse d'exécution immédiate recueillie en ligne le ${new Date(d.renonciation_retractation_le).toLocaleString("fr-FR")}.`);
+  }
 
   titre(ctx, "Frais légaux");
   ecrire(ctx, "Les frais légaux (annonce légale, greffe, bénéficiaires effectifs) sont refacturés à l'euro près, sans marge. Les frais payés dans l'intérêt de la société créée peuvent être remboursés par celle-ci à la personne qui a avancé les fonds.");
+
 
   espace(ctx, 20);
   ecrire(ctx, `Acceptation : ${d.lettre_mission_nom ?? "[nom complet du client]"}`, { bold: true });

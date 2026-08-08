@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useRoles, type Role } from "@/hooks/useAuth";
@@ -12,7 +13,10 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Tarif } from "@/lib/tarifs";
+import { tarifAVerifier } from "@/lib/tarifs";
 import type { DocumentRule } from "@/lib/documents";
+import { champsIncomplets, mentionsLegalesCompletes } from "@/lib/editeur";
+import { etatServices } from "@/lib/services.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
@@ -68,11 +72,15 @@ function Admin() {
           Paramètres applicatifs : frais légaux, règles documentaires et rôles des utilisateurs.
         </p>
 
+        <BandeauMentionsLegales />
+        <BandeauServices />
+
         <Tabs defaultValue="tarifs" className="mt-8">
           <TabsList>
             <TabsTrigger value="tarifs">Frais légaux</TabsTrigger>
             <TabsTrigger value="regles">Règles documentaires</TabsTrigger>
             <TabsTrigger value="roles">Rôles</TabsTrigger>
+            <TabsTrigger value="signatures">Signatures</TabsTrigger>
           </TabsList>
           <TabsContent value="tarifs" className="mt-6">
             <OngletTarifs />
@@ -83,9 +91,44 @@ function Admin() {
           <TabsContent value="roles" className="mt-6">
             <OngletRoles currentUserId={user?.id ?? null} />
           </TabsContent>
+          <TabsContent value="signatures" className="mt-6">
+            <OngletSignatures />
+          </TabsContent>
         </Tabs>
       </div>
     </PageShell>
+  );
+}
+
+function BandeauMentionsLegales() {
+  if (mentionsLegalesCompletes()) return null;
+  const manquants = champsIncomplets();
+  return (
+    <div className="mt-6 rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-destructive">
+      <p className="font-medium">
+        Mentions légales incomplètes — publication interdite en l'état (art. 6, III LCEN)
+      </p>
+      <ul className="mt-2 list-inside list-disc text-sm">
+        {manquants.map((champ) => (
+          <li key={champ}>{champ}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function BandeauServices() {
+  const appelerEtatServices = useServerFn(etatServices);
+  const { data } = useQuery({
+    queryKey: ["admin-etat-services"],
+    queryFn: () => appelerEtatServices(),
+  });
+
+  return (
+    <p className="mt-3 text-xs text-muted-foreground">
+      Service email : {data?.email ? "configuré" : "non configuré"} · Enregistrement du moyen de paiement :{" "}
+      {data?.paiement ? "configuré" : "non configuré"}
+    </p>
   );
 }
 
@@ -101,7 +144,7 @@ function OngletTarifs() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("params_tarifs")
-        .select("id, cle, libelle, montant_ht, montant_ttc")
+        .select("id, cle, libelle, montant_ht, montant_ttc, source, verifie_le")
         .order("cle");
       if (error) throw error;
       return (data ?? []) as Tarif[];
@@ -110,10 +153,12 @@ function OngletTarifs() {
 
   const valeur = (t: Tarif, champ: keyof Tarif) => (brouillons[t.id]?.[champ] ?? t[champ]) as string | number | null;
 
+  const CHAMPS_TEXTE: (keyof Tarif)[] = ["libelle", "cle", "source", "verifie_le"];
+
   function maj(id: string, champ: keyof Tarif, v: string) {
     setBrouillons((b) => ({
       ...b,
-      [id]: { ...b[id], [champ]: champ === "libelle" || champ === "cle" ? v : v === "" ? null : Number(v) },
+      [id]: { ...b[id], [champ]: CHAMPS_TEXTE.includes(champ) ? (v === "" ? null : v) : v === "" ? null : Number(v) },
     }));
   }
 
@@ -193,6 +238,31 @@ function OngletTarifs() {
               />
             </div>
           </div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor={`src-${t.id}`}>Source du barème</Label>
+              <Input
+                id={`src-${t.id}`}
+                value={String(valeur(t, "source") ?? "")}
+                onChange={(e) => maj(t.id, "source", e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor={`ver-${t.id}`}>Vérifié le</Label>
+              <Input
+                id={`ver-${t.id}`}
+                type="date"
+                value={String(valeur(t, "verifie_le") ?? "")}
+                onChange={(e) => maj(t.id, "verifie_le", e.target.value)}
+              />
+            </div>
+          </div>
+          {tarifAVerifier(t) && (
+            <p className="mt-3 rounded-md border border-warning/40 bg-warning/10 p-3 text-sm text-foreground">
+              Montant non vérifié contre le barème en vigueur — la promesse de refacturation à l'euro près impose
+              une vérification annuelle (les tarifs sont révisés en principe au 1er janvier).
+            </p>
+          )}
           <div className="mt-3 flex gap-2">
             <Button size="sm" onClick={() => enregistrer(t)} disabled={!brouillons[t.id]}>
               Enregistrer
@@ -510,6 +580,79 @@ function OngletRoles({ currentUserId }: { currentUserId: string | null }) {
               <tr>
                 <td className="p-3 text-muted-foreground" colSpan={4}>
                   Aucun utilisateur.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- Signatures électroniques ---------------- */
+
+type SignatureLigne = {
+  id: string;
+  provider: string | null;
+  provider_ref: string | null;
+  signe_le: string | null;
+  statut: string | null;
+  libelle: string | null;
+  dossier_id: string | null;
+  dossiers: { denomination: string | null } | null;
+};
+
+function OngletSignatures() {
+  const { data: signatures = [], isLoading } = useQuery({
+    queryKey: ["admin-signatures"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("signatures_electroniques")
+        .select("id, provider, provider_ref, signe_le, statut, libelle, dossier_id, dossiers(denomination)")
+        .order("signe_le", { ascending: false, nullsFirst: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as SignatureLigne[];
+    },
+  });
+
+  if (isLoading) return <p className="text-muted-foreground">Chargement…</p>;
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        La signature électronique sera disponible ultérieurement.
+      </p>
+
+      <div className="overflow-x-auto rounded-lg border border-border bg-surface">
+        <table className="w-full text-sm">
+          <thead className="border-b border-border text-left text-muted-foreground">
+            <tr>
+              <th className="p-3 font-medium">Dossier</th>
+              <th className="p-3 font-medium">Document</th>
+              <th className="p-3 font-medium">Statut</th>
+              <th className="p-3 font-medium">Prestataire</th>
+              <th className="p-3 font-medium">Référence</th>
+              <th className="p-3 font-medium">Signé le</th>
+            </tr>
+          </thead>
+          <tbody>
+            {signatures.map((s) => (
+              <tr key={s.id} className="border-b border-border/60 last:border-0">
+                <td className="p-3">{s.dossiers?.denomination ?? "—"}</td>
+                <td className="p-3">{s.libelle ?? "—"}</td>
+                <td className="p-3">{s.statut ?? "—"}</td>
+                <td className="p-3">{s.provider ?? "—"}</td>
+                <td className="p-3">{s.provider_ref ?? "—"}</td>
+                <td className="p-3 whitespace-nowrap text-muted-foreground">
+                  {s.signe_le ? new Date(s.signe_le).toLocaleDateString("fr-FR") : "—"}
+                </td>
+              </tr>
+            ))}
+            {signatures.length === 0 && (
+              <tr>
+                <td className="p-3 text-muted-foreground" colSpan={6}>
+                  Aucune signature enregistrée.
                 </td>
               </tr>
             )}

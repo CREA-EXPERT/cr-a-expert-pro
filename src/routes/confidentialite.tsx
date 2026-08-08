@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageShell } from "@/components/layout/PageShell";
+import { EDITEUR } from "@/lib/editeur";
 
 export const Route = createFileRoute("/confidentialite")({
   head: () => ({
@@ -26,16 +27,18 @@ function Confidentialite() {
       <article className="container-page max-w-3xl space-y-8 py-12">
         <header>
           <h1 className="font-serif text-4xl">Politique de confidentialité</h1>
-          <p className="mt-3 text-sm text-muted-foreground">
-            Document provisoire — les éléments balisés [À COMPLÉTER] doivent être renseignés avant
-            toute mise en ligne publique.
-          </p>
         </header>
 
         <section className="space-y-2">
           <h2 className="font-serif text-2xl">1. Responsable de traitement</h2>
-          <p>[À COMPLÉTER — dénomination, siège, contact]</p>
-          <p>Délégué à la protection des données : [À COMPLÉTER]</p>
+          <p>
+            {EDITEUR.denomination}, {EDITEUR.formeJuridique}, dont le siège social est situé{" "}
+            {EDITEUR.siegeAdresse}, est responsable du traitement des données personnelles collectées
+            sur ce site. Contact : {EDITEUR.emailContact}.
+          </p>
+          <p>
+            Délégué à la protection des données : {EDITEUR.delegueProtectionDonnees.email}
+          </p>
         </section>
 
         <section className="space-y-2">
@@ -64,22 +67,30 @@ function Confidentialite() {
           <h2 className="font-serif text-2xl">4. Destinataires</h2>
           <p>
             Vos données sont accessibles à vous-même, aux personnels habilités de l'éditeur et au
-            cabinet d'expertise comptable partenaire en charge de votre dossier. [À COMPLÉTER — liste
-            des sous-traitants]
+            cabinet d'expertise comptable partenaire ({EDITEUR.cabinetPartenaire.nom}) en charge de
+            votre dossier, ainsi qu'à l'hébergeur ({EDITEUR.hebergeur.nom}) et, le cas échéant, aux
+            prestataires techniques strictement nécessaires au fonctionnement du site, tenus aux
+            mêmes obligations de confidentialité.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="font-serif text-2xl">5. Localisation et transferts</h2>
           <p>
-            Les données et les pièces justificatives sont hébergées dans l'Union européenne. Aucun
-            transfert de données hors Union européenne n'est réalisé.
+            Les données et les pièces justificatives sont hébergées dans l'Union européenne, chez{" "}
+            {EDITEUR.hebergeur.nom}. Aucun transfert de données hors Union européenne n'est réalisé.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="font-serif text-2xl">6. Durées de conservation</h2>
-          <p>[À COMPLÉTER — durées par catégorie de données]</p>
+          <p>
+            Les données relatives à votre dossier de création sont conservées pendant la durée de la
+            relation contractuelle, puis archivées pour la durée des obligations légales et
+            comptables applicables (notamment les délais de prescription commerciale et fiscale). Les
+            données de simulation non suivies d'un dossier sont conservées pour une durée limitée,
+            nécessaire à la relance commerciale, avant suppression ou anonymisation.
+          </p>
         </section>
 
         <section className="space-y-2">
@@ -88,14 +99,19 @@ function Confidentialite() {
             Vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation,
             d'opposition et à la portabilité de vos données, ainsi que du droit de définir des
             directives relatives à leur sort après votre décès. Vous pouvez les exercer à l'adresse
-            suivante : [À COMPLÉTER]. Vous pouvez également introduire une réclamation auprès de la
-            CNIL.
+            suivante : {EDITEUR.delegueProtectionDonnees.email}. Vous pouvez également introduire une
+            réclamation auprès de la CNIL.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="font-serif text-2xl">8. Cookies</h2>
-          <p>[À COMPLÉTER — cookies strictement nécessaires, mesure d'audience, consentement]</p>
+          <p>
+            Le site utilise des cookies strictement nécessaires à son fonctionnement (authentification,
+            sécurité, mémorisation de vos préférences). Des cookies de mesure d'audience peuvent être
+            déposés, sous réserve de votre consentement, afin d'améliorer le service. Vous pouvez à
+            tout moment gérer vos préférences depuis les paramètres de votre navigateur.
+          </p>
         </section>
       </article>
     </PageShell>

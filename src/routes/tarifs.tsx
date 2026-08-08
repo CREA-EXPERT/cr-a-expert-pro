@@ -34,9 +34,10 @@ function Tarifs() {
         <h1 className="font-serif text-4xl">Ce que vous payez, exactement</h1>
         <p className="mt-4 text-lg leading-relaxed">
           Les honoraires de création sont de 0 €. En contrepartie, vous vous engagez sur une mission
-          comptable de 3 mois à {euro(mission)} HT/mois auprès du cabinet d'expertise comptable
-          partenaire. Les frais légaux ci-dessous sont incompressibles et vous sont refacturés à
-          l'euro près.
+          comptable de 3 mois à {euro(mission)} HT/mois, soit {euro(mission * 1.2)} TTC/mois (TVA 20 %
+          en sus), auprès du cabinet d'expertise comptable partenaire. Les frais légaux ci-dessous
+          sont incompressibles, à tarif réglementé, taxes comprises, et vous sont refacturés à l'euro
+          près.
         </p>
 
         <div className="mt-8">
@@ -109,16 +110,25 @@ function Tarifs() {
         <div className="mt-8 space-y-4 rounded-lg border border-border bg-surface p-6">
           <h2 className="font-serif text-2xl">Détail de la grille</h2>
           <ul className="space-y-2 text-base">
-            {(tarifs ?? []).map((t) => (
-              <li key={t.id} className="flex flex-wrap justify-between gap-2 border-b border-border py-2">
-                <span>{t.libelle}</span>
-                <span className="font-medium tabular-nums">
-                  {t.montant_ht !== null && `${euro(Number(t.montant_ht))} HT`}
-                  {t.montant_ht !== null && t.montant_ttc !== null && " — "}
-                  {t.montant_ttc !== null && `${euro(Number(t.montant_ttc))} TTC`}
-                </span>
-              </li>
-            ))}
+            {(tarifs ?? []).map((t) => {
+              const estReglemente = t.cle.startsWith("greffe_") || t.cle === "benef_effectifs";
+              return (
+                <li key={t.id} className="flex flex-wrap justify-between gap-2 border-b border-border py-2">
+                  <span>{t.libelle}</span>
+                  <span className="text-right">
+                    <span className="font-medium tabular-nums">
+                      {t.montant_ht !== null && `${euro(Number(t.montant_ht))} HT`}
+                      {t.montant_ht !== null && t.montant_ttc !== null && " — "}
+                      {t.montant_ttc !== null && `${euro(Number(t.montant_ttc))} TTC`}
+                    </span>
+                    <span className="block text-xs text-muted-foreground">
+                      {t.montant_ht !== null && "TVA 20 % en sus"}
+                      {estReglemente && "tarif réglementé, taxes comprises"}
+                    </span>
+                  </span>
+                </li>
+              );
+            })}
           </ul>
           <p className="legal-note">
             Montants applicables en France métropolitaine. Les tarifs réglementés et forfaitaires
