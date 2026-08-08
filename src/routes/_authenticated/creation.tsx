@@ -1309,60 +1309,99 @@ function Creation() {
           {/* LETTRE DE MISSION */}
           {cle === "mission" && (
             <div className="mt-6 space-y-5">
-              <p className="text-base leading-relaxed">
-                La mission comptable est la contrepartie des honoraires de création offerts. Lisez
-                la lettre de mission, puis acceptez-la en indiquant votre nom complet.
+              <p className="text-base leading-relaxed text-justify">
+                La mission comptable est la contrepartie des honoraires de création offerts. La
+                lettre de mission comporte des mentions obligatoires : l'identité de la société,
+                son activité, son adresse et les régimes fiscaux retenus. Elle ne peut donc être
+                établie qu'une fois ces informations renseignées.
               </p>
-              <div className="space-y-3 rounded-lg border border-border bg-surface p-5 text-sm leading-relaxed">
-                <p><strong>Objet.</strong> Mission de présentation des comptes annuels réalisée par le cabinet d'expertise comptable partenaire, inscrit à l'Ordre : tenue, comptes annuels, déclarations fiscales courantes et conseil au fil de l'eau.</p>
-                <p><strong>Honoraires.</strong> {euro(missionMensuelleHt(tarifs))} HT par mois, TVA de 20 % en sus.</p>
-                <p><strong>Durée et résiliation.</strong> Engagement initial de trois mois, puis résiliation libre par chaque partie, sans frais ni justification.</p>
-                <p><strong>Honoraires de création offerts sous condition.</strong> En cas de non-respect de l'engagement de 3 mois ou de défaut de paiement, les honoraires de création deviennent exigibles à hauteur de {euro(penaliteCreationHt(tarifs))} HT.</p>
-                <p><strong>Frais légaux.</strong> Annonce légale, greffe et bénéficiaires effectifs sont refacturés à l'euro près, sans marge.</p>
-              </div>
 
-              {dossier.lettre_mission_acceptee_le ? (
-                <p className="rounded-md border border-success/40 bg-success/8 p-3 text-sm">
-                  Lettre de mission acceptée par {dossier.lettre_mission_nom} le{" "}
-                  {new Date(dossier.lettre_mission_acceptee_le).toLocaleString("fr-FR")}.
+              {!dossier.denomination.trim() ? (
+                <p className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm leading-relaxed text-justify">
+                  La dénomination de votre société n'est pas renseignée. Revenez à l'étape
+                  « Dénomination » : sans nom de société, la lettre de mission ne peut pas
+                  mentionner l'identité du client et n'est pas valable.
                 </p>
               ) : (
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <Checkbox id="lue" checked={lueMission} onCheckedChange={(v) => setLueMission(v === true)} className="mt-0.5" />
-                    <Label htmlFor="lue" className="text-sm font-normal leading-relaxed">
-                      J'ai lu la lettre de mission et j'accepte la mission comptable de 3 mois à{" "}
-                      {euro(missionMensuelleHt(tarifs))} HT/mois, contrepartie des honoraires de
-                      création offerts.
-                    </Label>
+                <>
+                  <div className="space-y-3 rounded-lg border border-border bg-surface p-5 text-sm leading-relaxed text-justify">
+                    <p><strong>Client.</strong> {dossier.denomination} ({dossier.forme_juridique} en cours de constitution){dossier.siege_adresse ? `, siège : ${dossier.siege_adresse}` : ""}.</p>
+                    <p><strong>Activité.</strong> {dossier.objet_social?.slice(0, 300) || "À compléter à l'étape « Objet social »."}{dossier.code_naf ? ` (code d'activité ${dossier.code_naf})` : ""}</p>
+                    <p><strong>Régimes fiscaux retenus.</strong> {dossier.option_fiscale ?? REGIME_DEFAUT[dossier.forme_juridique]} — TVA : {TVA_OPTIONS.find((t) => t.value === dossier.regime_tva)?.label ?? "à préciser"}{dossier.periodicite_tva ? ` (déclaration ${dossier.periodicite_tva})` : ""}. Clôture au {dossier.date_cloture_exercice}.</p>
+                    <p><strong>Objet.</strong> Mission de présentation des comptes annuels réalisée par le cabinet d'expertise comptable partenaire, inscrit à l'Ordre : tenue, comptes annuels, déclarations fiscales courantes et conseil au fil de l'eau.</p>
+                    <p><strong>Honoraires.</strong> {euro(missionMensuelleHt(tarifs))} HT par mois, TVA de 20 % en sus.</p>
+                    <p><strong>Durée et résiliation.</strong> Engagement initial de trois mois, puis résiliation libre par chaque partie, sans frais ni justification.</p>
+                    <p><strong>Honoraires de création offerts sous condition.</strong> En cas de non-respect de l'engagement de 3 mois ou de défaut de paiement, les honoraires de création deviennent exigibles à hauteur de {euro(penaliteCreationHt(tarifs))} HT.</p>
+                    <p><strong>Frais légaux.</strong> Annonce légale, greffe et bénéficiaires effectifs sont refacturés à l'euro près, sans marge.</p>
                   </div>
-                  <div className="space-y-2 sm:max-w-sm">
-                    <Label htmlFor="nom-accept">Nom complet (valant acceptation)</Label>
-                    <Input id="nom-accept" maxLength={120} value={nomAcceptation} onChange={(e) => setNomAcceptation(e.target.value)} />
-                  </div>
-                  <Button
-                    onClick={() => {
-                      if (!lueMission || nomAcceptation.trim().length < 3) {
-                        toast.error("Cochez la case et indiquez votre nom complet.");
-                        return;
-                      }
-                      patch({
-                        lettre_mission_nom: nomAcceptation.trim(),
-                        lettre_mission_acceptee_le: new Date().toISOString(),
-                      });
-                      toast.success("Lettre de mission acceptée.");
-                    }}
-                  >
-                    Accepter la lettre de mission
-                  </Button>
-                </div>
+
+                  <EncadreResponsabilite />
+
+                  {dossier.lettre_mission_acceptee_le ? (
+                    <p className="rounded-md border border-success/40 bg-success/8 p-3 text-sm">
+                      Lettre de mission acceptée par {dossier.lettre_mission_nom} le{" "}
+                      {new Date(dossier.lettre_mission_acceptee_le).toLocaleString("fr-FR")}.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="space-y-2 sm:max-w-sm">
+                        <Label htmlFor="tel-contact">Numéro de téléphone</Label>
+                        <Input
+                          id="tel-contact"
+                          type="tel"
+                          maxLength={20}
+                          placeholder="06 12 34 56 78"
+                          value={dossier.telephone_contact ?? ""}
+                          onChange={(e) => patch({ telephone_contact: e.target.value })}
+                        />
+                        <p className="text-sm text-muted-foreground text-justify">
+                          Nécessaire avant la signature : le cabinet doit pouvoir vous joindre pour
+                          la mission comptable et, le cas échéant, pour la relecture de votre
+                          dossier.
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Checkbox id="lue" checked={lueMission} onCheckedChange={(v) => setLueMission(v === true)} className="mt-0.5" />
+                        <Label htmlFor="lue" className="text-sm font-normal leading-relaxed">
+                          J'ai lu la lettre de mission et j'accepte la mission comptable de 3 mois à{" "}
+                          {euro(missionMensuelleHt(tarifs))} HT/mois, contrepartie des honoraires de
+                          création offerts.
+                        </Label>
+                      </div>
+                      <div className="space-y-2 sm:max-w-sm">
+                        <Label htmlFor="nom-accept">Nom complet (valant acceptation)</Label>
+                        <Input id="nom-accept" maxLength={120} value={nomAcceptation} onChange={(e) => setNomAcceptation(e.target.value)} />
+                      </div>
+                      <Button
+                        onClick={() => {
+                          if (!lueMission || nomAcceptation.trim().length < 3) {
+                            toast.error("Cochez la case et indiquez votre nom complet.");
+                            return;
+                          }
+                          if ((dossier.telephone_contact ?? "").replace(/\D/g, "").length < 9) {
+                            toast.error("Indiquez un numéro de téléphone valide avant d'accepter.");
+                            return;
+                          }
+                          patch({
+                            lettre_mission_nom: nomAcceptation.trim(),
+                            lettre_mission_acceptee_le: new Date().toISOString(),
+                          });
+                          toast.success("Lettre de mission acceptée.");
+                        }}
+                      >
+                        Accepter la lettre de mission
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground text-justify">
                 La signature électronique sera disponible ultérieurement ; l'acceptation en ligne est
                 horodatée et conservée dans votre dossier.
               </p>
             </div>
           )}
+
 
           {/* VOIE DE VALIDATION */}
           {cle === "validation" && (
