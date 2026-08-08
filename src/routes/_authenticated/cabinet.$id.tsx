@@ -13,6 +13,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Disclaimer } from "@/components/Disclaimer";
 import { STATUTS, STATUT_LABEL, euro } from "@/lib/domain";
 import type { Associe, DocumentRow, Dossier } from "@/lib/documents";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+const STATUT_PIECE: Record<string, string> = {
+  a_fournir: "À fournir",
+  recu: "Reçue, à contrôler",
+  valide: "Validée",
+  rejete: "À corriger",
+};
 
 export const Route = createFileRoute("/_authenticated/cabinet/$id")({
   head: () => ({
