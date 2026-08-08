@@ -17,6 +17,9 @@ export type Database = {
       associes: {
         Row: {
           adresse: string | null
+          adresse_code_postal: string | null
+          adresse_pays: string | null
+          adresse_ville: string | null
           apport_fonds_communs: boolean
           civilite: string | null
           created_at: string
@@ -36,6 +39,7 @@ export type Database = {
           nom: string | null
           nom_naissance: string | null
           prenom: string | null
+          prenoms: string[]
           regime_matrimonial: string | null
           representant: string | null
           siege: string | null
@@ -45,6 +49,9 @@ export type Database = {
         }
         Insert: {
           adresse?: string | null
+          adresse_code_postal?: string | null
+          adresse_pays?: string | null
+          adresse_ville?: string | null
           apport_fonds_communs?: boolean
           civilite?: string | null
           created_at?: string
@@ -64,6 +71,7 @@ export type Database = {
           nom?: string | null
           nom_naissance?: string | null
           prenom?: string | null
+          prenoms?: string[]
           regime_matrimonial?: string | null
           representant?: string | null
           siege?: string | null
@@ -73,6 +81,9 @@ export type Database = {
         }
         Update: {
           adresse?: string | null
+          adresse_code_postal?: string | null
+          adresse_pays?: string | null
+          adresse_ville?: string | null
           apport_fonds_communs?: boolean
           civilite?: string | null
           created_at?: string
@@ -92,6 +103,7 @@ export type Database = {
           nom?: string | null
           nom_naissance?: string | null
           prenom?: string | null
+          prenoms?: string[]
           regime_matrimonial?: string | null
           representant?: string | null
           siege?: string | null
@@ -246,6 +258,7 @@ export type Database = {
           autovalidation_le: string | null
           capital_liberation: number
           capital_montant: number
+          cloture_mois: number
           code_naf: string | null
           code_naf_libelle: string | null
           created_at: string
@@ -260,6 +273,7 @@ export type Database = {
           domiciliataire_nom: string | null
           duree_annees: number
           etape_courante: number
+          exercice_etendu: boolean
           forme_juridique: string
           id: string
           justificatif_detail: string | null
@@ -269,8 +283,12 @@ export type Database = {
           moyen_de_paiement_enregistre: boolean
           objet_social: string | null
           option_fiscale: string | null
+          periodicite_tva: string | null
+          pour_qui: string
           regime_tva: string | null
+          relecture_options: boolean
           relecture_statut: string
+          role_demandeur: string | null
           routage_cabinet: boolean
           siege_adresse: string | null
           siege_type: string | null
@@ -278,6 +296,7 @@ export type Database = {
           statut: string
           updated_at: string
           user_id: string
+          valeur_part: number
           valide_le: string | null
           valide_par: string | null
           voie_validation: string | null
@@ -289,6 +308,7 @@ export type Database = {
           autovalidation_le?: string | null
           capital_liberation?: number
           capital_montant?: number
+          cloture_mois?: number
           code_naf?: string | null
           code_naf_libelle?: string | null
           created_at?: string
@@ -303,6 +323,7 @@ export type Database = {
           domiciliataire_nom?: string | null
           duree_annees?: number
           etape_courante?: number
+          exercice_etendu?: boolean
           forme_juridique?: string
           id?: string
           justificatif_detail?: string | null
@@ -312,8 +333,12 @@ export type Database = {
           moyen_de_paiement_enregistre?: boolean
           objet_social?: string | null
           option_fiscale?: string | null
+          periodicite_tva?: string | null
+          pour_qui?: string
           regime_tva?: string | null
+          relecture_options?: boolean
           relecture_statut?: string
+          role_demandeur?: string | null
           routage_cabinet?: boolean
           siege_adresse?: string | null
           siege_type?: string | null
@@ -321,6 +346,7 @@ export type Database = {
           statut?: string
           updated_at?: string
           user_id: string
+          valeur_part?: number
           valide_le?: string | null
           valide_par?: string | null
           voie_validation?: string | null
@@ -332,6 +358,7 @@ export type Database = {
           autovalidation_le?: string | null
           capital_liberation?: number
           capital_montant?: number
+          cloture_mois?: number
           code_naf?: string | null
           code_naf_libelle?: string | null
           created_at?: string
@@ -346,6 +373,7 @@ export type Database = {
           domiciliataire_nom?: string | null
           duree_annees?: number
           etape_courante?: number
+          exercice_etendu?: boolean
           forme_juridique?: string
           id?: string
           justificatif_detail?: string | null
@@ -355,8 +383,12 @@ export type Database = {
           moyen_de_paiement_enregistre?: boolean
           objet_social?: string | null
           option_fiscale?: string | null
+          periodicite_tva?: string | null
+          pour_qui?: string
           regime_tva?: string | null
+          relecture_options?: boolean
           relecture_statut?: string
+          role_demandeur?: string | null
           routage_cabinet?: boolean
           siege_adresse?: string | null
           siege_type?: string | null
@@ -364,6 +396,7 @@ export type Database = {
           statut?: string
           updated_at?: string
           user_id?: string
+          valeur_part?: number
           valide_le?: string | null
           valide_par?: string | null
           voie_validation?: string | null

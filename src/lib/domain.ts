@@ -181,3 +181,49 @@ export const DISCLAIMER =
 
 export const euro = (n: number | null | undefined) =>
   typeof n === "number" ? n.toLocaleString("fr-FR", { style: "currency", currency: "EUR" }) : "—";
+
+export const CIVILITES = [
+  { value: "Monsieur", label: "Monsieur" },
+  { value: "Madame", label: "Madame" },
+];
+
+export const MOIS = [
+  "janvier",
+  "février",
+  "mars",
+  "avril",
+  "mai",
+  "juin",
+  "juillet",
+  "août",
+  "septembre",
+  "octobre",
+  "novembre",
+  "décembre",
+];
+
+/** Dernier jour du mois, au format JJ/MM. */
+export const dernierJourDuMois = (mois: number) => {
+  const jours = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return `${String(jours[mois - 1]).padStart(2, "0")}/${String(mois).padStart(2, "0")}`;
+};
+
+export const PAYS = [
+  "France",
+  "Allemagne",
+  "Belgique",
+  "Canada",
+  "Espagne",
+  "États-Unis",
+  "Italie",
+  "Luxembourg",
+  "Maroc",
+  "Pays-Bas",
+  "Portugal",
+  "Royaume-Uni",
+  "Suisse",
+  "Tunisie",
+  "Autre",
+];
+
+export const NB_PRENOMS_MAX = 9;
