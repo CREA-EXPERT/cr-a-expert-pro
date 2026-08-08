@@ -177,7 +177,7 @@ export const TVA_OPTIONS = [
 ];
 
 export const DISCLAIMER =
-  "Information générale — ne constitue pas un conseil. Votre dossier sera revu par un expert-comptable.";
+  "Information générale — ne constitue pas un conseil. Votre dossier peut être revu par un expert-comptable, si vous le souhaitez (option payante).";
 
 export const euro = (n: number | null | undefined) =>
   typeof n === "number" ? n.toLocaleString("fr-FR", { style: "currency", currency: "EUR" }) : "—";
