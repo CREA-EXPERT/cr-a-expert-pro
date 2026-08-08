@@ -16,22 +16,40 @@ import { CallbackDialog } from "@/components/CallbackDialog";
 import {
   FORMES,
   FORMES_COMMUNAUTE,
+  MOIS,
   OBJETS_TYPES,
   REGIMES,
   REGIMES_COMMUNAUTAIRES,
   REGIME_DEFAUT,
   SITUATIONS,
   TVA_OPTIONS,
+  dernierJourDuMois,
   euro,
   fonctionsPour,
+  isCivile,
   isEI,
   isSas,
   liberationMin,
   type Forme,
 } from "@/lib/domain";
 import { construireDocuments, type Associe, type Dossier } from "@/lib/documents";
-import { coutParForme, missionMensuelleHt, penaliteCreationHt, prixRelectureHt, useTarifs } from "@/lib/tarifs";
+import {
+  coutParForme,
+  missionMensuelleHt,
+  penaliteCreationHt,
+  prixRelectureHt,
+  tarifMap,
+  useTarifs,
+} from "@/lib/tarifs";
 import { NafSelect } from "@/components/NafSelect";
+import { AssocieIdentite } from "@/components/AssocieIdentite";
+import {
+  EncadreCloture,
+  EncadreCompositionForme,
+  EncadreDemembrement,
+  EncadreGouvernance,
+  EncadreTva,
+} from "@/components/EncadresPedago";
 import { estCodeReglemente } from "@/lib/naf-reglemente";
 import { redigerObjetSocial } from "@/lib/objet-social.functions";
 import { z } from "zod";
