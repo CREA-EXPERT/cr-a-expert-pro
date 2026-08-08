@@ -595,16 +595,18 @@ function Creation() {
               </div>
 
               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground text-justify">
                   Partez d'un objet type, ou décrivez votre activité et laissez l'assistant en
-                  proposer une rédaction que vous pourrez modifier librement.
+                  proposer une rédaction que vous pourrez modifier librement. Vous pouvez cumuler
+                  plusieurs objets et en modifier l'ordre : le premier cité est considéré comme
+                  l'activité principale.
                 </p>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {OBJETS_TYPES.map((o) => (
                     <button
                       key={o.titre}
                       type="button"
-                      onClick={() => patch({ objet_social: o.texte })}
+                      onClick={() => majObjets([...objets, o.texte])}
                       className="rounded-md border border-border bg-surface px-3 py-2.5 text-left text-sm hover:border-accent"
                     >
                       {o.titre}
@@ -643,9 +645,80 @@ function Creation() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="objet">Objet social</Label>
-                <Textarea id="objet" rows={6} maxLength={1500} value={dossier.objet_social ?? ""} onChange={(e) => patch({ objet_social: e.target.value })} />
+              <VerifReglementation
+                activite={descriptionActivite}
+                naf={dossier.code_naf ? `${dossier.code_naf} — ${dossier.code_naf_libelle ?? ""}` : null}
+                onResultat={(reglementee, resume) => {
+                  if (!reglementee) return;
+                  patch({
+                    activite_reglementee: true,
+                    routage_cabinet: true,
+                    ...(dossier.justificatif_detail ? {} : { justificatif_detail: resume.slice(0, 500) }),
+                  });
+                }}
+              />
+
+              <div className="space-y-3">
+                <Label>Objet(s) social(aux)</Label>
+                {objets.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Aucun objet pour l'instant : ajoutez-en un ci-dessous.
+                  </p>
+                )}
+                {objets.map((texte, i) => (
+                  <div key={i} className="rounded-md border border-border bg-surface p-3">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {i === 0 ? "Activité principale" : `Activité complémentaire ${i}`}
+                      </span>
+                      <div className="flex gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Monter cet objet"
+                          disabled={i === 0}
+                          onClick={() => majObjets(deplacer(objets, i, i - 1))}
+                        >
+                          <ArrowUp strokeWidth={1.5} />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Descendre cet objet"
+                          disabled={i === objets.length - 1}
+                          onClick={() => majObjets(deplacer(objets, i, i + 1))}
+                        >
+                          <ArrowDown strokeWidth={1.5} />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Supprimer cet objet"
+                          onClick={() => majObjets(objets.filter((_, k) => k !== i))}
+                        >
+                          <Trash2 strokeWidth={1.5} />
+                        </Button>
+                      </div>
+                    </div>
+                    <Textarea
+                      rows={4}
+                      maxLength={1000}
+                      value={texte}
+                      onChange={(e) => majObjets(objets.map((t, k) => (k === i ? e.target.value : t)))}
+                    />
+                  </div>
+                ))}
+                <Button type="button" variant="outline" size="sm" onClick={() => majObjets([...objets, ""])}>
+                  <Plus strokeWidth={1.5} /> Ajouter un objet social
+                </Button>
+                {objets.length > 1 && (
+                  <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed text-justify">
+                    Objet social retenu dans vos statuts, dans cet ordre : {objets.filter(Boolean).join(" ")}
+                  </p>
+                )}
               </div>
 
               <div className="flex items-start gap-3">
@@ -657,6 +730,7 @@ function Creation() {
                 />
                 <Label htmlFor="regl" className="text-sm font-normal">Mon activité est réglementée.</Label>
               </div>
+
 
               {dossier.activite_reglementee ? (
                 <div className="space-y-4">
