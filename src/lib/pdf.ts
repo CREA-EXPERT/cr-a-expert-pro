@@ -365,6 +365,29 @@ async function declarationEi(d: Dossier, associes: Associe[]) {
 
 /* ----------------------- LETTRE DE MISSION ----------------------- */
 
+/** Régime d'imposition des bénéfices ; à défaut de choix, l'IS au réel simplifié. */
+function regimeBeneficesTexte(d: Dossier) {
+  return (
+    d.option_fiscale?.trim() ||
+    "impôt sur les sociétés (IS), régime réel simplifié par défaut"
+  );
+}
+
+/** Régime et périodicité de TVA retenus. */
+function regimeTvaTexte(d: Dossier) {
+  const label =
+    TVA_OPTIONS.find((t) => t.value === d.regime_tva)?.label ??
+    "régime réel simplifié (régime par défaut)";
+  const periodicite =
+    d.periodicite_tva === "mensuelle"
+      ? " — déclaration mensuelle"
+      : d.periodicite_tva === "trimestrielle"
+        ? " — déclaration trimestrielle"
+        : "";
+  return `${label}${periodicite}`;
+}
+
+
 export async function genererLettreMission(
   d: Dossier,
   missionHt: number,
