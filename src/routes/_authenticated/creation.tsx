@@ -53,10 +53,12 @@ import {
   EncadreCompositionForme,
   EncadreDemembrement,
   EncadreGouvernance,
+  EncadreJustificatifs,
   EncadreMineur,
   EncadreRegimes,
   EncadreRelectureLimites,
   EncadreResponsabilite,
+  EncadreSignatureElectronique,
   EncadreTva,
 } from "@/components/EncadresPedago";
 import { estCodeReglemente } from "@/lib/naf-reglemente";
