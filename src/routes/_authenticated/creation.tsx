@@ -1801,7 +1801,7 @@ function Creation() {
 
           )}
 
-          {/* PAIEMENT SIMULE */}
+          {/* FRAIS LÉGAUX ET MOYEN DE PAIEMENT */}
           {cle === "paiement" && (
             <div className="mt-6 space-y-5">
               <dl className="divide-y divide-border rounded-lg border border-border bg-surface">
@@ -1810,7 +1810,7 @@ function Creation() {
                   ["Annonce légale", ei ? "Sans objet (aucune annonce en entreprise individuelle)" : `${euro(cout.annonceTtc / 1.2)} HT — soit ${euro(cout.annonceTtc)} TTC (TVA 20 %)`],
                   ["Greffe", `${euro(cout.greffeTtc)} TTC — tarif réglementé, taxes comprises`],
                   ["Bénéficiaires effectifs", ei ? "Sans objet" : `${euro(cout.benefTtc)} TTC — tarif réglementé, taxes comprises`],
-                  ["Relecture par l'expert-comptable", relecture ? `${euro(relectureHt)} HT — soit ${euro(relecture)} TTC (TVA 20 %)` : "Non demandée"],
+                  ["Relecture complète du dossier par un expert-comptable", relecture ? `${euro(relectureHt)} HT — soit ${euro(relecture)} TTC (TVA 20 %)` : "Non demandée"],
                   ["Total dû aujourd'hui", `${euro(cout.totalTtc + relecture)} TTC`],
                 ].map(([k, v]) => (
                   <div key={k} className="grid gap-1 p-3 sm:grid-cols-[16rem_1fr]">
@@ -1826,29 +1826,57 @@ function Creation() {
                 près, sans marge. Ils sont dus quelle que soit la solution retenue pour créer votre
                 société.
               </p>
+              <p className="rounded-md border border-border bg-surface p-4 text-sm leading-relaxed text-justify">
+                Aucun prélèvement n'est effectué aujourd'hui. Votre carte est enregistrée en garantie
+                de l'engagement de 3 mois de la mission comptable ; les frais légaux et, le cas
+                échéant, la relecture vous seront facturés séparément et toujours annoncés avant tout
+                débit.
+              </p>
               {dossier.moyen_de_paiement_enregistre ? (
                 <p className="rounded-md border border-success/40 bg-success/8 p-3 text-sm">
-                  Moyen de paiement enregistré (simulation — aucun prélèvement n'est effectué).
+                  Moyen de paiement enregistré le{" "}
+                  {dossier.moyen_de_paiement_enregistre_le
+                    ? new Date(dossier.moyen_de_paiement_enregistre_le).toLocaleString("fr-FR")
+                    : "—"}
+                  . Aucun montant n'a été prélevé.
                 </p>
               ) : (
                 <div className="space-y-3">
-                  <Button
-                    onClick={() => {
-                      patch({ moyen_de_paiement_enregistre: true });
-                      toast.success("Moyen de paiement enregistré (simulation).");
-                    }}
-                  >
-                    Enregistrer mon moyen de paiement (simulation)
-                  </Button>
-                  <p className="text-sm text-muted-foreground">
-                    Le paiement réel par carte bancaire sera activé ultérieurement. Aucune donnée
-                    bancaire n'est collectée à ce stade.
+                  <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
+                    L'enregistrement du moyen de paiement sera activé à l'ouverture du service.
                   </p>
+                  {isAdmin && (
+                    <div className="rounded-md border border-warning/50 bg-warning/10 p-3">
+                      <p className="text-sm font-medium">Administration — mode test interne</p>
+                      <Button
+                        className="mt-2"
+                        variant="outline"
+                        onClick={async () => {
+                          await patch({
+                            moyen_de_paiement_enregistre: true,
+                            moyen_de_paiement_enregistre_le: new Date().toISOString(),
+                          });
+                          await supabase.from("events_dossier").insert({
+                            dossier_id: dossier.id,
+                            type_event: "paiement_mode_test",
+                            message:
+                              "Moyen de paiement marqué comme enregistré en mode test interne par un administrateur. Aucune carte bancaire n'a été collectée.",
+                          });
+                          toast.success("Marqué comme enregistré (mode test interne).");
+                        }}
+                      >
+                        Marquer comme enregistré (mode test interne)
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
-              <Button variant="outline" disabled>
-                Payer par carte bancaire — bientôt disponible
-              </Button>
+              {isAdmin && (
+                <p className="text-xs text-muted-foreground">
+                  Service de paiement : {services?.paiement ? "configuré" : "non configuré"}.
+                </p>
+              )}
+
             </div>
           )}
 
