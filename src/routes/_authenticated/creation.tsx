@@ -36,6 +36,7 @@ import {
   type Forme,
 } from "@/lib/domain";
 import { construireDocuments, type Associe, type Dossier } from "@/lib/documents";
+import { construireSignatures } from "@/lib/signatures";
 import {
   coutParForme,
   missionMensuelleHt,
