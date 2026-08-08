@@ -242,6 +242,19 @@ function Creation() {
     await supabase.from("associes").delete().eq("id", id);
   }
 
+  const objets: string[] = dossier
+    ? dossier.objets_social && dossier.objets_social.length > 0
+      ? dossier.objets_social
+      : dossier.objet_social
+        ? [dossier.objet_social]
+        : []
+    : [];
+
+  /** Enregistre la liste d'objets et reconstitue l'objet social consolidé des statuts. */
+  async function majObjets(liste: string[]) {
+    await patch({ objets_social: liste, objet_social: liste.map((t) => t.trim()).filter(Boolean).join(" ") });
+  }
+
   async function proposerObjet() {
     if (!dossier) return;
     setRedaction(true);
@@ -257,7 +270,7 @@ function Creation() {
       });
 
       if (res?.texte) {
-        await patch({ objet_social: res.texte });
+        await majObjets([...objets, res.texte]);
         toast.success("Proposition rédigée. Relisez-la et adaptez-la si nécessaire.");
       } else {
         toast.error(res?.erreur ?? "Aucune proposition n'a pu être générée.");
@@ -268,6 +281,7 @@ function Creation() {
       setRedaction(false);
     }
   }
+
 
   const totalApports = useMemo(
     () => associes.filter((a) => a.est_associe).reduce((s, a) => s + Number(a.montant_apport || 0), 0),
