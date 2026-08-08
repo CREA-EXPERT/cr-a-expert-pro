@@ -1,6 +1,129 @@
 import { CallbackDialog } from "@/components/CallbackDialog";
+import { CABINET, RELECTURE_LIMITES } from "@/lib/domain";
 
-const CADRE = "rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed";
+const CADRE = "rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed text-justify";
+
+/** Rappel de responsabilité : sans recours à un professionnel, l'utilisateur assume seul. */
+export function EncadreResponsabilite({ compact = false }: { compact?: boolean }) {
+  if (compact) {
+    return (
+      <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed text-justify">
+        En l'absence de recours à un professionnel, les choix effectués et les documents produits
+        relèvent de votre seule responsabilité : ni CREA EXPERT, ni {CABINET.mention}, ne peuvent en
+        répondre.
+      </p>
+    );
+  }
+  return (
+    <div className={CADRE}>
+      <p className="font-medium">Qui est responsable de quoi</p>
+      <p className="mt-2">
+        CREA EXPERT met à votre disposition un outil de saisie, des informations générales et des
+        modèles de documents. Tant que vous ne sollicitez pas la relecture d'un professionnel, les
+        réponses saisies, les options retenues et les documents générés relèvent de votre{" "}
+        <strong>seule responsabilité</strong> : ni CREA EXPERT, ni {CABINET.mention}, ne peuvent
+        voir leur responsabilité engagée à ce titre.
+      </p>
+      <p className="mt-2">
+        Dès lors que vous demandez la relecture, l'expert-comptable examine votre dossier et engage
+        sa responsabilité professionnelle dans les limites de la lettre de mission acceptée.
+      </p>
+    </div>
+  );
+}
+
+/** Associé mineur : hors périmètre, orientation vers le cabinet. */
+export function EncadreMineur({ signale = false }: { signale?: boolean }) {
+  return (
+    <div
+      className={`rounded-md border p-4 text-sm leading-relaxed text-justify ${signale ? "border-destructive/50 bg-destructive/10" : "border-border bg-muted/50"}`}
+    >
+      <p className="font-medium">
+        {signale
+          ? "Un associé mineur a été détecté : ce parcours ne peut pas aboutir en ligne"
+          : "Associé mineur : des obligations particulières s'appliquent"}
+      </p>
+      <p className="mt-2">
+        Un mineur peut détenir des parts ou des actions, mais il ne peut pas les souscrire seul :
+      </p>
+      <ul className="mt-2 space-y-1 pl-5 [&>li]:list-disc">
+        <li>
+          <strong>Mineur non émancipé</strong> : la souscription est faite par ses représentants
+          légaux (administration légale) ; leur accord conjoint est requis.
+        </li>
+        <li>
+          Dans une société à risque illimité (SCI, SNC), la prise de participation est un acte de
+          disposition qui suppose l'<strong>autorisation du juge des tutelles</strong>, car le
+          mineur y répondrait des dettes sociales.
+        </li>
+        <li>
+          Le mineur ne peut être ni gérant, ni président : le mandat social est réservé aux
+          personnes capables, sauf mineur <strong>émancipé</strong> et dans les limites propres à
+          chaque forme (l'émancipé ne peut être commerçant que sur autorisation).
+        </li>
+        <li>
+          Les apports, la répartition des titres et les conventions ultérieures peuvent relever du{" "}
+          <strong>contrôle du juge</strong> et, en cas de donation ou de démembrement, de
+          l'intervention d'un notaire.
+        </li>
+      </ul>
+      <p className="mt-2">
+        Par protection des personnes concernées, <strong>CREA EXPERT ne prend pas en charge</strong>{" "}
+        les créations comportant un associé mineur. Nous vous invitons à faire appel à un
+        expert-comptable : {CABINET.mention}.
+      </p>
+      <div className="mt-3">
+        <CallbackDialog label="Être rappelé par un expert-comptable" size="sm" />
+      </div>
+    </div>
+  );
+}
+
+/** Régimes matrimoniaux et PACS : contrat ou non, conséquences sur les apports. */
+export function EncadreRegimes() {
+  return (
+    <div className={CADRE}>
+      <p className="font-medium">Mariage, PACS et contrat : pourquoi la question est posée</p>
+      <p className="mt-2">
+        À défaut de contrat de mariage, les époux sont soumis à la{" "}
+        <strong>communauté légale réduite aux acquêts</strong> : les biens acquis et les revenus
+        perçus pendant le mariage sont communs. Avec un contrat reçu par notaire, ils peuvent
+        retenir la <strong>séparation de biens</strong>, la{" "}
+        <strong>participation aux acquêts</strong>, la <strong>communauté universelle</strong> ou
+        une séparation assortie d'une <strong>société d'acquêts</strong>. Les mariages anciens
+        peuvent relever de la communauté de meubles et acquêts, et un mariage célébré à l'étranger
+        d'un régime étranger.
+      </p>
+      <p className="mt-2">
+        Pour le <strong>PACS</strong>, le régime légal est la{" "}
+        <strong>séparation des patrimoines</strong> ; les partenaires peuvent lui préférer, par
+        convention, le régime de l'<strong>indivision</strong> des biens acquis ensemble.
+      </p>
+      <p className="mt-2">
+        Ces éléments déterminent l'origine des fonds apportés : lorsqu'un apport provient d'une masse
+        commune ou indivise, le conjoint ou le partenaire doit être informé et peut, dans certaines
+        formes de sociétés, revendiquer la qualité d'associé. C'est pourquoi le régime exact et
+        l'existence d'un contrat sont demandés ici.
+      </p>
+      <MentionPro />
+    </div>
+  );
+}
+
+/** Limites de la prestation de relecture par l'expert-comptable. */
+export function EncadreRelectureLimites() {
+  return (
+    <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed text-justify">
+      Pour que les échanges restent efficaces et que votre création aboutisse rapidement, la
+      relecture comprend jusqu'à <strong>{RELECTURE_LIMITES.appels} entretiens téléphoniques</strong>{" "}
+      et <strong>{RELECTURE_LIMITES.mails} échanges par courriel</strong>. C'est très largement
+      suffisant pour arrêter les choix d'une création courante : préparez vos questions, l'objectif
+      est de décider vite et bien. Au-delà, l'accompagnement se poursuit dans le cadre de la mission
+      comptable.
+    </p>
+  );
+}
+
 
 function MentionPro() {
   return (
