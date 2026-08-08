@@ -32,6 +32,45 @@ export const fonctionsPour = (f: string) =>
       ]
     : [{ value: "gerant", label: "Gérant" }];
 
+/** Rôles que le demandeur peut occuper, selon le minimum légal propre à la forme. */
+export const rolesPour = (f: string): { v: string; t: string }[] => {
+  if (isEI(f)) return [];
+  if (f === "SASU") return [{ v: "gerant", t: "Je serai président" }, { v: "aucun", t: "Je ne serai pas président" }];
+  if (f === "SAS")
+    return [
+      { v: "gerant", t: "Je serai président" },
+      { v: "cogerant", t: "Je serai directeur général" },
+      { v: "aucun", t: "Je ne dirigerai pas la société" },
+    ];
+  if (f === "EURL") return [{ v: "gerant", t: "Je serai gérant" }, { v: "aucun", t: "Je ne serai pas gérant" }];
+  return [
+    { v: "gerant", t: "Je serai gérant" },
+    { v: "cogerant", t: "Je serai co-gérant" },
+    { v: "aucun", t: "Je ne serai pas gérant" },
+  ];
+};
+
+/** Rappel du minimum légal de direction pour la forme choisie. */
+export const minimumLegal = (f: string): string => {
+  switch (f) {
+    case "EI":
+      return "L'entreprise individuelle n'a pas de dirigeant à nommer : l'entrepreneur exerce en son nom propre.";
+    case "SASU":
+      return "La SASU est dirigée par un président unique, personne physique ou morale, associé ou non. D'autres dirigeants (directeur général) peuvent être prévus par les statuts.";
+    case "SAS":
+      return "La SAS doit obligatoirement avoir un président ; les statuts peuvent créer d'autres organes de direction, notamment un ou plusieurs directeurs généraux.";
+    case "EURL":
+      return "L'EURL est dirigée par un gérant unique, nécessairement une personne physique, associé ou non.";
+    case "SARL":
+      return "La SARL est dirigée par un ou plusieurs gérants, nécessairement des personnes physiques, associés ou non.";
+    case "SCI":
+      return "La SCI est dirigée par un ou plusieurs gérants, personnes physiques ou morales, associés ou non.";
+    default:
+      return "";
+  }
+};
+
+
 export const REGIME_DEFAUT: Record<string, string> = {
   SASU: "Impôt sur les sociétés (IS) par défaut.",
   SAS: "Impôt sur les sociétés (IS) par défaut.",

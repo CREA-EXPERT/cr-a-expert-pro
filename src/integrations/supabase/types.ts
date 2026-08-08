@@ -335,8 +335,14 @@ export type Database = {
           routage_cabinet: boolean
           sans_interdiction_gerer: boolean
           siege_adresse: string | null
+          siege_adresse_verifiee: boolean
+          siege_code_postal: string | null
+          siege_complement: string | null
           siege_heberge: boolean
+          siege_pays: string
           siege_type: string | null
+          siege_ville: string | null
+          siege_voie: string | null
           sigle: string | null
           siren_existant: string | null
           statut: string
@@ -396,8 +402,14 @@ export type Database = {
           routage_cabinet?: boolean
           sans_interdiction_gerer?: boolean
           siege_adresse?: string | null
+          siege_adresse_verifiee?: boolean
+          siege_code_postal?: string | null
+          siege_complement?: string | null
           siege_heberge?: boolean
+          siege_pays?: string
           siege_type?: string | null
+          siege_ville?: string | null
+          siege_voie?: string | null
           sigle?: string | null
           siren_existant?: string | null
           statut?: string
@@ -457,8 +469,14 @@ export type Database = {
           routage_cabinet?: boolean
           sans_interdiction_gerer?: boolean
           siege_adresse?: string | null
+          siege_adresse_verifiee?: boolean
+          siege_code_postal?: string | null
+          siege_complement?: string | null
           siege_heberge?: boolean
+          siege_pays?: string
           siege_type?: string | null
+          siege_ville?: string | null
+          siege_voie?: string | null
           sigle?: string | null
           siren_existant?: string | null
           statut?: string
