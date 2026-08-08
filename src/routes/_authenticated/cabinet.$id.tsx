@@ -307,9 +307,34 @@ function CabinetDossier() {
                 filigrane « PROJET » des documents générés.
               </p>
             )}
-            <Button className="mt-4 w-full" onClick={() => majStatut("valide_cabinet")}>
-              Valider le dossier
-            </Button>
+            {dossier.valide_le ? (
+              <p className="mt-4 rounded-md border border-border bg-muted p-3 text-sm">
+                Dossier validé par {dossier.valide_par} le{" "}
+                {new Date(dossier.valide_le).toLocaleString("fr-FR")}.
+              </p>
+            ) : (
+              <Button className="mt-4 w-full" onClick={() => setConfirmation(true)}>
+                VALIDER LE DOSSIER
+              </Button>
+            )}
+            <AlertDialog open={confirmation} onOpenChange={setConfirmation}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Valider définitivement ce dossier ?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    La validation est horodatée et enregistrée à votre nom ({user?.email}). Elle retire la mention
+                    « PROJET » des documents générés et en informe le client dans son suivi.
+                    {manquantes.length > 0
+                      ? ` ${manquantes.length} pièce(s) obligatoire(s) ne sont pas encore validées.`
+                      : ""}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction onClick={validerDossier}>Valider le dossier</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <div className="mt-4">
               <Disclaimer />
             </div>
