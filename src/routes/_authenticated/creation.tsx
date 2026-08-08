@@ -1162,8 +1162,10 @@ function Creation() {
                 </p>
               )}
               {mineurs.length > 0 && <EncadreMineur signale />}
-
+              {ei && (
+                <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed text-justify">
                   L'entreprise individuelle n'a ni capital social, ni associé : seules vos
+
                   informations personnelles sont nécessaires. Depuis le 15 mai 2022, votre
                   patrimoine personnel est de plein droit distinct de votre patrimoine
                   professionnel.
