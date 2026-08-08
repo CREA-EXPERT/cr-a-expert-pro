@@ -197,7 +197,10 @@ export type Database = {
         Row: {
           aide_client: string | null
           associe_id: string | null
+          atteste_conforme: boolean
+          atteste_le: string | null
           created_at: string
+          depose_le: string | null
           dossier_id: string
           fichier_url: string | null
           id: string
@@ -208,11 +211,15 @@ export type Database = {
           statut_document: string
           type_document: string
           updated_at: string
+          valide_le: string | null
         }
         Insert: {
           aide_client?: string | null
           associe_id?: string | null
+          atteste_conforme?: boolean
+          atteste_le?: string | null
           created_at?: string
+          depose_le?: string | null
           dossier_id: string
           fichier_url?: string | null
           id?: string
@@ -223,11 +230,15 @@ export type Database = {
           statut_document?: string
           type_document: string
           updated_at?: string
+          valide_le?: string | null
         }
         Update: {
           aide_client?: string | null
           associe_id?: string | null
+          atteste_conforme?: boolean
+          atteste_le?: string | null
           created_at?: string
+          depose_le?: string | null
           dossier_id?: string
           fichier_url?: string | null
           id?: string
@@ -238,6 +249,7 @@ export type Database = {
           statut_document?: string
           type_document?: string
           updated_at?: string
+          valide_le?: string | null
         }
         Relationships: [
           {
@@ -536,6 +548,56 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      signatures_electroniques: {
+        Row: {
+          aide_client: string | null
+          created_at: string
+          dossier_id: string
+          envoye_le: string | null
+          id: string
+          libelle: string
+          ordre: number
+          signe_le: string | null
+          statut: string
+          type_document: string
+          updated_at: string
+        }
+        Insert: {
+          aide_client?: string | null
+          created_at?: string
+          dossier_id: string
+          envoye_le?: string | null
+          id?: string
+          libelle: string
+          ordre?: number
+          signe_le?: string | null
+          statut?: string
+          type_document: string
+          updated_at?: string
+        }
+        Update: {
+          aide_client?: string | null
+          created_at?: string
+          dossier_id?: string
+          envoye_le?: string | null
+          id?: string
+          libelle?: string
+          ordre?: number
+          signe_le?: string | null
+          statut?: string
+          type_document?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signatures_electroniques_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       simulations: {
         Row: {
