@@ -660,8 +660,24 @@ function Creation() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cap">Montant du capital social (minimum 1 €)</Label>
-                <Input id="cap" type="number" min={1} step="1" value={dossier.capital_montant} onChange={(e) => patch({ capital_montant: Number(e.target.value) })} />
+                <Input id="cap" type="number" min={1} step="1" value={dossier.capital_montant} onChange={(e) => patch({ capital_montant: Math.max(1, Number(e.target.value) || 1) })} />
                 <p className="text-xs text-muted-foreground">Valeur suggérée : 1 000 €.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="valpart">Valeur nominale d'une part ou action (€)</Label>
+                <Input
+                  id="valpart"
+                  type="number"
+                  min={0.01}
+                  step="0.01"
+                  value={Number(dossier.valeur_part)}
+                  onChange={(e) => patch({ valeur_part: Math.max(0.01, Number(e.target.value) || 1) })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  1 € par défaut : le nombre de titres est alors égal au montant apporté, ce qui
+                  simplifie les répartitions ultérieures. Aucun montant négatif n'est accepté.
+                  Le capital retenu représente {Math.floor(Number(dossier.capital_montant) / Math.max(0.01, Number(dossier.valeur_part)))} titres au total.
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lib">Libération à la constitution (%)</Label>
