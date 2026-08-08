@@ -17,9 +17,12 @@ import { Route as ConfidentialiteRouteImport } from './routes/confidentialite'
 import { Route as MentionsLegalesRouteImport } from './routes/mentions-legales'
 import { Route as SimulateurRouteImport } from './routes/simulateur'
 import { Route as TarifsRouteImport } from './routes/tarifs'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedCreationRouteImport } from './routes/_authenticated/creation'
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
+import { Route as AuthenticatedCabinetIndexRouteImport } from './routes/_authenticated/cabinet.index'
+import { Route as AuthenticatedCabinetIdRouteImport } from './routes/_authenticated/cabinet.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -60,6 +63,11 @@ const TarifsRoute = TarifsRouteImport.update({
   path: '/tarifs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCreationRoute = AuthenticatedCreationRouteImport.update({
   id: '/creation',
   path: '/creation',
@@ -76,6 +84,17 @@ const AuthenticatedTableauDeBordRoute =
     path: '/tableau-de-bord',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCabinetIndexRoute =
+  AuthenticatedCabinetIndexRouteImport.update({
+    id: '/cabinet/',
+    path: '/cabinet/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCabinetIdRoute = AuthenticatedCabinetIdRouteImport.update({
+  id: '/cabinet/$id',
+  path: '/cabinet/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -85,9 +104,12 @@ export interface FileRoutesByFullPath {
   '/mentions-legales': typeof MentionsLegalesRoute
   '/simulateur': typeof SimulateurRoute
   '/tarifs': typeof TarifsRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/creation': typeof AuthenticatedCreationRoute
   '/documents': typeof AuthenticatedDocumentsRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
+  '/cabinet/': typeof AuthenticatedCabinetIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -97,9 +119,12 @@ export interface FileRoutesByTo {
   '/mentions-legales': typeof MentionsLegalesRoute
   '/simulateur': typeof SimulateurRoute
   '/tarifs': typeof TarifsRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/creation': typeof AuthenticatedCreationRoute
   '/documents': typeof AuthenticatedDocumentsRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
+  '/cabinet': typeof AuthenticatedCabinetIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -111,9 +136,12 @@ export interface FileRoutesById {
   '/mentions-legales': typeof MentionsLegalesRoute
   '/simulateur': typeof SimulateurRoute
   '/tarifs': typeof TarifsRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/creation': typeof AuthenticatedCreationRoute
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/_authenticated/cabinet/$id': typeof AuthenticatedCabinetIdRoute
+  '/_authenticated/cabinet/': typeof AuthenticatedCabinetIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -125,9 +153,12 @@ export interface FileRouteTypes {
     | '/mentions-legales'
     | '/simulateur'
     | '/tarifs'
+    | '/admin'
     | '/creation'
     | '/documents'
     | '/tableau-de-bord'
+    | '/cabinet/$id'
+    | '/cabinet/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -137,9 +168,12 @@ export interface FileRouteTypes {
     | '/mentions-legales'
     | '/simulateur'
     | '/tarifs'
+    | '/admin'
     | '/creation'
     | '/documents'
     | '/tableau-de-bord'
+    | '/cabinet/$id'
+    | '/cabinet'
   id:
     | '__root__'
     | '/'
@@ -150,9 +184,12 @@ export interface FileRouteTypes {
     | '/mentions-legales'
     | '/simulateur'
     | '/tarifs'
+    | '/_authenticated/admin'
     | '/_authenticated/creation'
     | '/_authenticated/documents'
     | '/_authenticated/tableau-de-bord'
+    | '/_authenticated/cabinet/$id'
+    | '/_authenticated/cabinet/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -224,6 +261,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TarifsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/creation': {
       id: '/_authenticated/creation'
       path: '/creation'
@@ -245,19 +289,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTableauDeBordRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cabinet/': {
+      id: '/_authenticated/cabinet/'
+      path: '/cabinet'
+      fullPath: '/cabinet/'
+      preLoaderRoute: typeof AuthenticatedCabinetIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/cabinet/$id': {
+      id: '/_authenticated/cabinet/$id'
+      path: '/cabinet/$id'
+      fullPath: '/cabinet/$id'
+      preLoaderRoute: typeof AuthenticatedCabinetIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedCreationRoute: typeof AuthenticatedCreationRoute
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
   AuthenticatedTableauDeBordRoute: typeof AuthenticatedTableauDeBordRoute
+  AuthenticatedCabinetIdRoute: typeof AuthenticatedCabinetIdRoute
+  AuthenticatedCabinetIndexRoute: typeof AuthenticatedCabinetIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedCreationRoute: AuthenticatedCreationRoute,
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
   AuthenticatedTableauDeBordRoute: AuthenticatedTableauDeBordRoute,
+  AuthenticatedCabinetIdRoute: AuthenticatedCabinetIdRoute,
+  AuthenticatedCabinetIndexRoute: AuthenticatedCabinetIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
