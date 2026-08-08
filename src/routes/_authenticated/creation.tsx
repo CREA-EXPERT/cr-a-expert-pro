@@ -14,11 +14,14 @@ import { Badge } from "@/components/ui/badge";
 import { Disclaimer } from "@/components/Disclaimer";
 import { CallbackDialog } from "@/components/CallbackDialog";
 import {
+  CABINET,
   FORMES,
   FORMES_COMMUNAUTE,
   MOIS,
   OBJETS_TYPES,
-  REGIMES,
+  REGIMES_AVEC_CONTRAT,
+  REGIMES_MARIAGE,
+  REGIMES_PACS,
   REGIMES_COMMUNAUTAIRES,
   REGIME_DEFAUT,
   SITUATIONS,
@@ -43,17 +46,24 @@ import {
 } from "@/lib/tarifs";
 import { NafSelect } from "@/components/NafSelect";
 import { AssocieIdentite } from "@/components/AssocieIdentite";
+import { VerifReglementation } from "@/components/VerifReglementation";
+import { RecommandationDialog } from "@/components/RecommandationDialog";
 import {
   EncadreCloture,
   EncadreCompositionForme,
   EncadreDemembrement,
   EncadreGouvernance,
+  EncadreMineur,
+  EncadreRegimes,
+  EncadreRelectureLimites,
+  EncadreResponsabilite,
   EncadreTva,
 } from "@/components/EncadresPedago";
 import { estCodeReglemente } from "@/lib/naf-reglemente";
 import { redigerObjetSocial } from "@/lib/objet-social.functions";
 import { z } from "zod";
-import { ArrowLeft, ExternalLink, Plus, Sparkle, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, ExternalLink, Plus, Sparkle, Trash2 } from "lucide-react";
+
 
 
 const searchSchema = z.object({ forme: z.string().optional() });
@@ -129,6 +139,25 @@ const TITRES: Record<Cle, string> = {
 };
 
 const champ = "h-10 w-full rounded-md border border-input bg-surface px-3 text-sm";
+
+/** Déplace un élément d'une liste, sans la modifier sur place. */
+function deplacer<T>(liste: T[], de: number, vers: number) {
+  const copie = [...liste];
+  const [item] = copie.splice(de, 1);
+  copie.splice(vers, 0, item as T);
+  return copie;
+}
+
+
+/** Un associé est mineur si sa date de naissance situe ses 18 ans dans le futur. */
+function estMineur(a: Associe) {
+  if (a.type !== "personne_physique" || !a.date_naissance) return false;
+  const n = new Date(a.date_naissance);
+  if (Number.isNaN(n.getTime())) return false;
+  const majorite = new Date(n.getFullYear() + 18, n.getMonth(), n.getDate());
+  return majorite > new Date();
+}
+
 
 function Creation() {
   const navigate = useNavigate();
@@ -222,6 +251,19 @@ function Creation() {
     await supabase.from("associes").delete().eq("id", id);
   }
 
+  const objets: string[] = dossier
+    ? dossier.objets_social && dossier.objets_social.length > 0
+      ? dossier.objets_social
+      : dossier.objet_social
+        ? [dossier.objet_social]
+        : []
+    : [];
+
+  /** Enregistre la liste d'objets et reconstitue l'objet social consolidé des statuts. */
+  async function majObjets(liste: string[]) {
+    await patch({ objets_social: liste, objet_social: liste.map((t) => t.trim()).filter(Boolean).join(" ") });
+  }
+
   async function proposerObjet() {
     if (!dossier) return;
     setRedaction(true);
@@ -237,7 +279,7 @@ function Creation() {
       });
 
       if (res?.texte) {
-        await patch({ objet_social: res.texte });
+        await majObjets([...objets, res.texte]);
         toast.success("Proposition rédigée. Relisez-la et adaptez-la si nécessaire.");
       } else {
         toast.error(res?.erreur ?? "Aucune proposition n'a pu être générée.");
@@ -249,6 +291,7 @@ function Creation() {
     }
   }
 
+
   const totalApports = useMemo(
     () => associes.filter((a) => a.est_associe).reduce((s, a) => s + Number(a.montant_apport || 0), 0),
     [associes],
@@ -257,6 +300,10 @@ function Creation() {
   const ei = dossier ? isEI(dossier.forme_juridique) : false;
   const valeurPart = Math.max(0.01, Number(dossier?.valeur_part ?? 1));
   const capitalOk = dossier ? Math.abs(totalApports - Number(dossier.capital_montant)) < 0.01 : false;
+  const sas = dossier ? isSas(dossier.forme_juridique) : false;
+  /** En SAS et SASU, un président est obligatoire : sans lui, aucune immatriculation possible. */
+  const presidentDesigne = associes.some((a) => a.est_dirigeant && a.fonction === "president");
+  const mineurs = useMemo(() => associes.filter(estMineur), [associes]);
 
   /** En SAS et SASU, il ne peut y avoir qu'un seul président : la fonction est exclusive. */
   async function choisirFonction(id: string, fonction: string) {
@@ -273,8 +320,20 @@ function Creation() {
       toast.error("Vous devez certifier l'exactitude des informations.");
       return;
     }
+    if (mineurs.length > 0) {
+      toast.error(`Un associé mineur est renseigné : cette création doit être confiée à ${CABINET.nom}.`);
+      return;
+    }
     if (!ei && !capitalOk) {
       toast.error("Le total des apports doit être égal au capital social.");
+      return;
+    }
+    if (sas && !presidentDesigne) {
+      toast.error("Une SAS ou une SASU ne peut pas être créée sans président.");
+      return;
+    }
+    if (!ei && !sas && dirigeants.length === 0) {
+      toast.error("Votre société doit avoir au moins un gérant.");
       return;
     }
     if (!dossier.lettre_mission_acceptee_le) {
@@ -285,6 +344,7 @@ function Creation() {
       toast.error("Choisissez la voie de validation de votre dossier.");
       return;
     }
+
     setBusy(true);
     const auto = dossier.voie_validation === "auto";
     const drafts = construireDocuments(dossier, associes, rules);
@@ -558,16 +618,18 @@ function Creation() {
               </div>
 
               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground text-justify">
                   Partez d'un objet type, ou décrivez votre activité et laissez l'assistant en
-                  proposer une rédaction que vous pourrez modifier librement.
+                  proposer une rédaction que vous pourrez modifier librement. Vous pouvez cumuler
+                  plusieurs objets et en modifier l'ordre : le premier cité est considéré comme
+                  l'activité principale.
                 </p>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {OBJETS_TYPES.map((o) => (
                     <button
                       key={o.titre}
                       type="button"
-                      onClick={() => patch({ objet_social: o.texte })}
+                      onClick={() => majObjets([...objets, o.texte])}
                       className="rounded-md border border-border bg-surface px-3 py-2.5 text-left text-sm hover:border-accent"
                     >
                       {o.titre}
@@ -606,9 +668,80 @@ function Creation() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="objet">Objet social</Label>
-                <Textarea id="objet" rows={6} maxLength={1500} value={dossier.objet_social ?? ""} onChange={(e) => patch({ objet_social: e.target.value })} />
+              <VerifReglementation
+                activite={descriptionActivite}
+                naf={dossier.code_naf ? `${dossier.code_naf} — ${dossier.code_naf_libelle ?? ""}` : null}
+                onResultat={(reglementee, resume) => {
+                  if (!reglementee) return;
+                  patch({
+                    activite_reglementee: true,
+                    routage_cabinet: true,
+                    ...(dossier.justificatif_detail ? {} : { justificatif_detail: resume.slice(0, 500) }),
+                  });
+                }}
+              />
+
+              <div className="space-y-3">
+                <Label>Objet(s) social(aux)</Label>
+                {objets.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Aucun objet pour l'instant : ajoutez-en un ci-dessous.
+                  </p>
+                )}
+                {objets.map((texte, i) => (
+                  <div key={i} className="rounded-md border border-border bg-surface p-3">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {i === 0 ? "Activité principale" : `Activité complémentaire ${i}`}
+                      </span>
+                      <div className="flex gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Monter cet objet"
+                          disabled={i === 0}
+                          onClick={() => majObjets(deplacer(objets, i, i - 1))}
+                        >
+                          <ArrowUp strokeWidth={1.5} />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Descendre cet objet"
+                          disabled={i === objets.length - 1}
+                          onClick={() => majObjets(deplacer(objets, i, i + 1))}
+                        >
+                          <ArrowDown strokeWidth={1.5} />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Supprimer cet objet"
+                          onClick={() => majObjets(objets.filter((_, k) => k !== i))}
+                        >
+                          <Trash2 strokeWidth={1.5} />
+                        </Button>
+                      </div>
+                    </div>
+                    <Textarea
+                      rows={4}
+                      maxLength={1000}
+                      value={texte}
+                      onChange={(e) => majObjets(objets.map((t, k) => (k === i ? e.target.value : t)))}
+                    />
+                  </div>
+                ))}
+                <Button type="button" variant="outline" size="sm" onClick={() => majObjets([...objets, ""])}>
+                  <Plus strokeWidth={1.5} /> Ajouter un objet social
+                </Button>
+                {objets.length > 1 && (
+                  <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed text-justify">
+                    Objet social retenu dans vos statuts, dans cet ordre : {objets.filter(Boolean).join(" ")}
+                  </p>
+                )}
               </div>
 
               <div className="flex items-start gap-3">
@@ -620,6 +753,7 @@ function Creation() {
                 />
                 <Label htmlFor="regl" className="text-sm font-normal">Mon activité est réglementée.</Label>
               </div>
+
 
               {dossier.activite_reglementee ? (
                 <div className="space-y-4">
@@ -811,6 +945,9 @@ function Creation() {
                   <EncadreDemembrement />
                 </>
               )}
+              <EncadreRegimes />
+              <EncadreMineur />
+
 
               <div className="flex flex-wrap gap-2">
                 {(!ei || associes.length === 0) && (
@@ -837,41 +974,90 @@ function Creation() {
                   {a.type === "personne_physique" ? (
                     <>
                       <AssocieIdentite associe={a} onChange={(v) => majAssocie(a.id, v)} />
+                      {estMineur(a) && <EncadreMineur signale />}
                       <div className="grid gap-3 sm:grid-cols-2">
-                        <select className={champ} value={a.situation_matrimoniale ?? ""} onChange={(e) => majAssocie(a.id, { situation_matrimoniale: e.target.value })}>
+                        <select className={champ} value={a.situation_matrimoniale ?? ""} onChange={(e) => majAssocie(a.id, { situation_matrimoniale: e.target.value, regime_matrimonial: "non_applicable", contrat_mariage: false })}>
                           <option value="">Situation matrimoniale…</option>
                           {SITUATIONS.map((s) => (
                             <option key={s.value} value={s.value}>{s.label}</option>
                           ))}
                         </select>
-                        {a.situation_matrimoniale === "marie" && (
-                          <select className={champ} value={a.regime_matrimonial ?? ""} onChange={(e) => majAssocie(a.id, { regime_matrimonial: e.target.value })}>
-                            <option value="">Régime matrimonial…</option>
-                            {REGIMES.map((r) => (
+                        {(a.situation_matrimoniale === "marie" || a.situation_matrimoniale === "pacse") && (
+                          <select
+                            className={champ}
+                            value={a.regime_matrimonial ?? ""}
+                            onChange={(e) =>
+                              majAssocie(a.id, {
+                                regime_matrimonial: e.target.value,
+                                contrat_mariage: REGIMES_AVEC_CONTRAT.includes(e.target.value),
+                              })
+                            }
+                          >
+                            <option value="">
+                              {a.situation_matrimoniale === "pacse" ? "Régime du PACS…" : "Régime matrimonial…"}
+                            </option>
+                            {(a.situation_matrimoniale === "pacse" ? REGIMES_PACS : REGIMES_MARIAGE).map((r) => (
                               <option key={r.value} value={r.value}>{r.label}</option>
                             ))}
                           </select>
                         )}
-                        {a.situation_matrimoniale === "marie" &&
+
+                        {(a.situation_matrimoniale === "marie" || a.situation_matrimoniale === "pacse") && (
+                          <div className="sm:col-span-2 space-y-2 rounded-md border border-border bg-muted/40 p-3">
+                            <div className="flex items-start gap-3">
+                              <Checkbox
+                                id={`ctr-${a.id}`}
+                                checked={a.contrat_mariage}
+                                onCheckedChange={(v) => majAssocie(a.id, { contrat_mariage: v === true })}
+                                className="mt-0.5"
+                              />
+                              <Label htmlFor={`ctr-${a.id}`} className="text-sm font-normal leading-relaxed">
+                                {a.situation_matrimoniale === "pacse"
+                                  ? "Une convention de PACS particulière a été signée (régime de l'indivision)."
+                                  : "Un contrat de mariage a été signé devant notaire."}
+                              </Label>
+                            </div>
+                            {a.contrat_mariage && (
+                              <Input
+                                maxLength={200}
+                                placeholder={
+                                  a.situation_matrimoniale === "pacse"
+                                    ? "Date de la convention et, le cas échéant, notaire"
+                                    : "Date du contrat et nom du notaire"
+                                }
+                                value={a.contrat_mariage_detail ?? ""}
+                                onChange={(e) => majAssocie(a.id, { contrat_mariage_detail: e.target.value })}
+                              />
+                            )}
+                            <p className="text-sm text-muted-foreground text-justify">
+                              {a.situation_matrimoniale === "pacse"
+                                ? "À défaut de convention particulière, le PACS relève de la séparation des patrimoines : chacun reste propriétaire de ce qu'il acquiert."
+                                : "À défaut de contrat de mariage, vous relevez de la communauté légale réduite aux acquêts : les biens et revenus acquis pendant le mariage sont communs."}
+                            </p>
+                          </div>
+                        )}
+
+                        {(a.situation_matrimoniale === "marie" || a.situation_matrimoniale === "pacse") &&
                           REGIMES_COMMUNAUTAIRES.includes(a.regime_matrimonial ?? "") &&
                           FORMES_COMMUNAUTE.includes(forme) && (
                             <div className="sm:col-span-2 space-y-2 rounded-md border border-border bg-muted/50 p-3">
                               <div className="flex items-start gap-3">
                                 <Checkbox id={`fc-${a.id}`} checked={a.apport_fonds_communs} onCheckedChange={(v) => majAssocie(a.id, { apport_fonds_communs: v === true })} className="mt-0.5" />
                                 <Label htmlFor={`fc-${a.id}`} className="text-sm font-normal">
-                                  L'apport provient de fonds communs du couple.
+                                  L'apport provient de fonds communs ou indivis du couple.
                                 </Label>
                               </div>
-                              <p className="text-sm">
-                                Dans ce cas, votre conjoint doit être informé de l'apport. Un courrier
-                                d'information sera généré et devra être signé avant la signature des
-                                statuts.
+                              <p className="text-sm text-justify">
+                                Dans ce cas, votre conjoint ou partenaire doit être informé de
+                                l'apport. Un courrier d'information sera généré et devra être signé
+                                avant la signature des statuts.
                               </p>
                             </div>
                           )}
                       </div>
                     </>
                   ) : (
+
                     <div className="grid gap-3 sm:grid-cols-2">
                       <Input placeholder="Dénomination" maxLength={120} value={a.denomination ?? ""} onChange={(e) => majAssocie(a.id, { denomination: e.target.value })} />
                       <Input placeholder="Forme" maxLength={40} value={a.forme ?? ""} onChange={(e) => majAssocie(a.id, { forme: e.target.value })} />
@@ -962,13 +1148,24 @@ function Creation() {
                 </p>
               )}
               {!ei && dirigeants.length === 0 && (
-                <p className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm">
+                <p className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm text-justify">
                   Aucun dirigeant n'est désigné : {isSas(forme) ? "une SAS ou une SASU doit avoir un président." : "votre société doit avoir au moins un gérant."}
                 </p>
               )}
+              {sas && !presidentDesigne && (
+                <p className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm leading-relaxed text-justify">
+                  <strong>Condition obligatoire :</strong> une SAS ou une SASU doit obligatoirement
+                  avoir un président, personne physique ou personne morale. Sans président désigné,
+                  les statuts sont incomplets et le greffe rejette l'immatriculation : la validation
+                  du dossier restera bloquée tant que la fonction n'est pas attribuée à l'un des
+                  associés ou dirigeants renseignés ci-dessus.
+                </p>
+              )}
+              {mineurs.length > 0 && <EncadreMineur signale />}
               {ei && (
-                <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
+                <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed text-justify">
                   L'entreprise individuelle n'a ni capital social, ni associé : seules vos
+
                   informations personnelles sont nécessaires. Depuis le 15 mai 2022, votre
                   patrimoine personnel est de plein droit distinct de votre patrimoine
                   professionnel.
@@ -1112,60 +1309,99 @@ function Creation() {
           {/* LETTRE DE MISSION */}
           {cle === "mission" && (
             <div className="mt-6 space-y-5">
-              <p className="text-base leading-relaxed">
-                La mission comptable est la contrepartie des honoraires de création offerts. Lisez
-                la lettre de mission, puis acceptez-la en indiquant votre nom complet.
+              <p className="text-base leading-relaxed text-justify">
+                La mission comptable est la contrepartie des honoraires de création offerts. La
+                lettre de mission comporte des mentions obligatoires : l'identité de la société,
+                son activité, son adresse et les régimes fiscaux retenus. Elle ne peut donc être
+                établie qu'une fois ces informations renseignées.
               </p>
-              <div className="space-y-3 rounded-lg border border-border bg-surface p-5 text-sm leading-relaxed">
-                <p><strong>Objet.</strong> Mission de présentation des comptes annuels réalisée par le cabinet d'expertise comptable partenaire, inscrit à l'Ordre : tenue, comptes annuels, déclarations fiscales courantes et conseil au fil de l'eau.</p>
-                <p><strong>Honoraires.</strong> {euro(missionMensuelleHt(tarifs))} HT par mois, TVA de 20 % en sus.</p>
-                <p><strong>Durée et résiliation.</strong> Engagement initial de trois mois, puis résiliation libre par chaque partie, sans frais ni justification.</p>
-                <p><strong>Honoraires de création offerts sous condition.</strong> En cas de non-respect de l'engagement de 3 mois ou de défaut de paiement, les honoraires de création deviennent exigibles à hauteur de {euro(penaliteCreationHt(tarifs))} HT.</p>
-                <p><strong>Frais légaux.</strong> Annonce légale, greffe et bénéficiaires effectifs sont refacturés à l'euro près, sans marge.</p>
-              </div>
 
-              {dossier.lettre_mission_acceptee_le ? (
-                <p className="rounded-md border border-success/40 bg-success/8 p-3 text-sm">
-                  Lettre de mission acceptée par {dossier.lettre_mission_nom} le{" "}
-                  {new Date(dossier.lettre_mission_acceptee_le).toLocaleString("fr-FR")}.
+              {!dossier.denomination.trim() ? (
+                <p className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm leading-relaxed text-justify">
+                  La dénomination de votre société n'est pas renseignée. Revenez à l'étape
+                  « Dénomination » : sans nom de société, la lettre de mission ne peut pas
+                  mentionner l'identité du client et n'est pas valable.
                 </p>
               ) : (
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <Checkbox id="lue" checked={lueMission} onCheckedChange={(v) => setLueMission(v === true)} className="mt-0.5" />
-                    <Label htmlFor="lue" className="text-sm font-normal leading-relaxed">
-                      J'ai lu la lettre de mission et j'accepte la mission comptable de 3 mois à{" "}
-                      {euro(missionMensuelleHt(tarifs))} HT/mois, contrepartie des honoraires de
-                      création offerts.
-                    </Label>
+                <>
+                  <div className="space-y-3 rounded-lg border border-border bg-surface p-5 text-sm leading-relaxed text-justify">
+                    <p><strong>Client.</strong> {dossier.denomination} ({dossier.forme_juridique} en cours de constitution){dossier.siege_adresse ? `, siège : ${dossier.siege_adresse}` : ""}.</p>
+                    <p><strong>Activité.</strong> {dossier.objet_social?.slice(0, 300) || "À compléter à l'étape « Objet social »."}{dossier.code_naf ? ` (code d'activité ${dossier.code_naf})` : ""}</p>
+                    <p><strong>Régimes fiscaux retenus.</strong> {dossier.option_fiscale ?? REGIME_DEFAUT[dossier.forme_juridique]} — TVA : {TVA_OPTIONS.find((t) => t.value === dossier.regime_tva)?.label ?? "à préciser"}{dossier.periodicite_tva ? ` (déclaration ${dossier.periodicite_tva})` : ""}. Clôture au {dossier.date_cloture_exercice}.</p>
+                    <p><strong>Objet.</strong> Mission de présentation des comptes annuels réalisée par le cabinet d'expertise comptable partenaire, inscrit à l'Ordre : tenue, comptes annuels, déclarations fiscales courantes et conseil au fil de l'eau.</p>
+                    <p><strong>Honoraires.</strong> {euro(missionMensuelleHt(tarifs))} HT par mois, TVA de 20 % en sus.</p>
+                    <p><strong>Durée et résiliation.</strong> Engagement initial de trois mois, puis résiliation libre par chaque partie, sans frais ni justification.</p>
+                    <p><strong>Honoraires de création offerts sous condition.</strong> En cas de non-respect de l'engagement de 3 mois ou de défaut de paiement, les honoraires de création deviennent exigibles à hauteur de {euro(penaliteCreationHt(tarifs))} HT.</p>
+                    <p><strong>Frais légaux.</strong> Annonce légale, greffe et bénéficiaires effectifs sont refacturés à l'euro près, sans marge.</p>
                   </div>
-                  <div className="space-y-2 sm:max-w-sm">
-                    <Label htmlFor="nom-accept">Nom complet (valant acceptation)</Label>
-                    <Input id="nom-accept" maxLength={120} value={nomAcceptation} onChange={(e) => setNomAcceptation(e.target.value)} />
-                  </div>
-                  <Button
-                    onClick={() => {
-                      if (!lueMission || nomAcceptation.trim().length < 3) {
-                        toast.error("Cochez la case et indiquez votre nom complet.");
-                        return;
-                      }
-                      patch({
-                        lettre_mission_nom: nomAcceptation.trim(),
-                        lettre_mission_acceptee_le: new Date().toISOString(),
-                      });
-                      toast.success("Lettre de mission acceptée.");
-                    }}
-                  >
-                    Accepter la lettre de mission
-                  </Button>
-                </div>
+
+                  <EncadreResponsabilite />
+
+                  {dossier.lettre_mission_acceptee_le ? (
+                    <p className="rounded-md border border-success/40 bg-success/8 p-3 text-sm">
+                      Lettre de mission acceptée par {dossier.lettre_mission_nom} le{" "}
+                      {new Date(dossier.lettre_mission_acceptee_le).toLocaleString("fr-FR")}.
+                    </p>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="space-y-2 sm:max-w-sm">
+                        <Label htmlFor="tel-contact">Numéro de téléphone</Label>
+                        <Input
+                          id="tel-contact"
+                          type="tel"
+                          maxLength={20}
+                          placeholder="06 12 34 56 78"
+                          value={dossier.telephone_contact ?? ""}
+                          onChange={(e) => patch({ telephone_contact: e.target.value })}
+                        />
+                        <p className="text-sm text-muted-foreground text-justify">
+                          Nécessaire avant la signature : le cabinet doit pouvoir vous joindre pour
+                          la mission comptable et, le cas échéant, pour la relecture de votre
+                          dossier.
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Checkbox id="lue" checked={lueMission} onCheckedChange={(v) => setLueMission(v === true)} className="mt-0.5" />
+                        <Label htmlFor="lue" className="text-sm font-normal leading-relaxed">
+                          J'ai lu la lettre de mission et j'accepte la mission comptable de 3 mois à{" "}
+                          {euro(missionMensuelleHt(tarifs))} HT/mois, contrepartie des honoraires de
+                          création offerts.
+                        </Label>
+                      </div>
+                      <div className="space-y-2 sm:max-w-sm">
+                        <Label htmlFor="nom-accept">Nom complet (valant acceptation)</Label>
+                        <Input id="nom-accept" maxLength={120} value={nomAcceptation} onChange={(e) => setNomAcceptation(e.target.value)} />
+                      </div>
+                      <Button
+                        onClick={() => {
+                          if (!lueMission || nomAcceptation.trim().length < 3) {
+                            toast.error("Cochez la case et indiquez votre nom complet.");
+                            return;
+                          }
+                          if ((dossier.telephone_contact ?? "").replace(/\D/g, "").length < 9) {
+                            toast.error("Indiquez un numéro de téléphone valide avant d'accepter.");
+                            return;
+                          }
+                          patch({
+                            lettre_mission_nom: nomAcceptation.trim(),
+                            lettre_mission_acceptee_le: new Date().toISOString(),
+                          });
+                          toast.success("Lettre de mission acceptée.");
+                        }}
+                      >
+                        Accepter la lettre de mission
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground text-justify">
                 La signature électronique sera disponible ultérieurement ; l'acceptation en ligne est
                 horodatée et conservée dans votre dossier.
               </p>
             </div>
           )}
+
 
           {/* VOIE DE VALIDATION */}
           {cle === "validation" && (
@@ -1196,8 +1432,11 @@ function Creation() {
                   <span className="mt-1 block text-sm text-muted-foreground">{o.d}</span>
                 </button>
               ))}
+              {dossier.voie_validation === "cabinet" && <EncadreRelectureLimites />}
+              {dossier.voie_validation === "auto" && <EncadreResponsabilite />}
               <Disclaimer />
             </div>
+
           )}
 
           {/* PAIEMENT SIMULE */}
@@ -1299,6 +1538,8 @@ function Creation() {
           <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-border pt-6">
             {cle !== "recap" && <Button onClick={() => allerA(etape + 1)}>Continuer</Button>}
             <CallbackDialog variant="ghost" />
+            <RecommandationDialog variant="ghost" />
+
           </div>
         </div>
 

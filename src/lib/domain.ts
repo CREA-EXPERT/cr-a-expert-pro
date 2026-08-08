@@ -147,16 +147,53 @@ export const SITUATIONS = [
 ];
 
 export const REGIMES = [
-  { value: "communaute_legale", label: "Communauté légale (réduite aux acquêts)" },
-  { value: "communaute_universelle", label: "Communauté universelle" },
-  { value: "separation_biens", label: "Séparation de biens" },
-  { value: "participation_acquets", label: "Participation aux acquêts" },
-  { value: "indivision_pacs", label: "PACS — indivision" },
-  { value: "separation_pacs", label: "PACS — séparation de patrimoines" },
+  { value: "communaute_legale", label: "Communauté légale (réduite aux acquêts) — sans contrat de mariage" },
+  { value: "communaute_universelle", label: "Communauté universelle (avec contrat)" },
+  { value: "communaute_meubles_acquets", label: "Communauté de meubles et acquêts (ancien régime légal, avant 1966)" },
+  { value: "separation_biens", label: "Séparation de biens (avec contrat)" },
+  { value: "separation_societe_acquets", label: "Séparation de biens avec société d'acquêts (avec contrat)" },
+  { value: "participation_acquets", label: "Participation aux acquêts (avec contrat)" },
+  { value: "regime_etranger", label: "Régime matrimonial étranger" },
+  { value: "indivision_pacs", label: "PACS — indivision (avec convention)" },
+  { value: "separation_pacs", label: "PACS — séparation de patrimoines (régime légal, sans convention particulière)" },
   { value: "non_applicable", label: "Non applicable" },
 ];
 
-export const REGIMES_COMMUNAUTAIRES = ["communaute_legale", "communaute_universelle"];
+/** Régimes proposés aux personnes mariées. */
+export const REGIMES_MARIAGE = REGIMES.filter(
+  (r) => !r.value.endsWith("_pacs") && r.value !== "non_applicable",
+);
+
+/** Régimes proposés aux personnes pacsées. */
+export const REGIMES_PACS = REGIMES.filter((r) => r.value.endsWith("_pacs"));
+
+/** Régimes impliquant une masse commune : l'apport peut provenir de fonds communs. */
+export const REGIMES_COMMUNAUTAIRES = [
+  "communaute_legale",
+  "communaute_universelle",
+  "communaute_meubles_acquets",
+  "separation_societe_acquets",
+  "indivision_pacs",
+];
+
+/** Régimes qui supposent nécessairement un contrat ou une convention. */
+export const REGIMES_AVEC_CONTRAT = [
+  "communaute_universelle",
+  "separation_biens",
+  "separation_societe_acquets",
+  "participation_acquets",
+  "indivision_pacs",
+];
+
+/** Cabinet d'expertise comptable partenaire. */
+export const CABINET = {
+  nom: "ODEON",
+  mention: "ODEON, cabinet inscrit à l'Ordre des experts-comptables du Grand Est",
+};
+
+/** Limites de la prestation de relecture par l'expert-comptable. */
+export const RELECTURE_LIMITES = { appels: 3, mails: 3 };
+
 
 export const TVA_OPTIONS = [
   {
