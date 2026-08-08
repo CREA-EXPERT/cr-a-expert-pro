@@ -1555,6 +1555,36 @@ function Creation() {
                 ))}
               </dl>
 
+              <section className="rounded-lg border border-border bg-surface p-5">
+                <h3 className="font-serif text-xl">Les justificatifs qui vous seront demandés</h3>
+                <p className="mt-1 text-sm text-muted-foreground text-justify">
+                  Cette liste est construite à partir de vos réponses : elle change si votre
+                  situation change. Après validation, elle apparaîtra dans « Mes documents » et le
+                  dossier ne pourra pas être transmis au cabinet tant que chaque pièce obligatoire
+                  n'aura pas été déposée puis attestée conforme.
+                </p>
+                <ul className="mt-4 space-y-2 text-sm">
+                  {apercuChecklist.length === 0 && (
+                    <li className="text-muted-foreground">Complétez vos réponses pour voir la liste.</li>
+                  )}
+                  {apercuChecklist.map((d, i) => (
+                    <li key={`${d.type_document}-${i}`} className="flex items-start gap-2">
+                      <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" />
+                      <span>
+                        {d.libelle}
+                        {!d.obligatoire && (
+                          <span className="text-muted-foreground"> — facultatif</span>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-4 text-sm text-muted-foreground text-justify">
+                  S'y ajoutent {apercuSignatures.length} document(s) que nous préparons et vous
+                  ferons signer électroniquement : {apercuSignatures.map((s) => s.libelle).join(", ")}.
+                </p>
+              </section>
+
               <EncadreJustificatifs />
               <EncadreSignatureElectronique />
 
