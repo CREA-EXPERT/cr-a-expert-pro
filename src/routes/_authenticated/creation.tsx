@@ -1432,8 +1432,11 @@ function Creation() {
                   <span className="mt-1 block text-sm text-muted-foreground">{o.d}</span>
                 </button>
               ))}
+              {dossier.voie_validation === "cabinet" && <EncadreRelectureLimites />}
+              {dossier.voie_validation === "auto" && <EncadreResponsabilite />}
               <Disclaimer />
             </div>
+
           )}
 
           {/* PAIEMENT SIMULE */}
