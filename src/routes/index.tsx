@@ -112,9 +112,10 @@ function Accueil() {
           <p className="font-serif text-sm font-semibold uppercase tracking-[0.2em] text-accent">
             CREA EXPERT
           </p>
-          <h1 className="mt-3 max-w-4xl font-serif text-4xl leading-tight text-balance sm:text-5xl">
+          <h1 className="mt-3 max-w-4xl font-serif text-3xl leading-tight text-balance sm:text-4xl lg:text-5xl">
             Créez votre société en ligne. Honoraires offerts*.
           </h1>
+
 
           <ul className="mt-7 grid gap-3 sm:grid-cols-3">
             {BADGES.map((b) => (
