@@ -22,6 +22,8 @@ export type Database = {
           adresse_ville: string | null
           apport_fonds_communs: boolean
           civilite: string | null
+          conjoint_statut: string | null
+          conjoint_travaille: boolean
           contrat_mariage: boolean
           contrat_mariage_detail: string | null
           created_at: string
@@ -35,6 +37,8 @@ export type Database = {
           forme: string | null
           id: string
           lieu_naissance: string | null
+          mesure_protection: string
+          mineur_emancipe: boolean
           montant_apport: number
           nationalite: string | null
           nb_titres: number
@@ -44,10 +48,12 @@ export type Database = {
           prenoms: string[]
           regime_matrimonial: string | null
           representant: string | null
+          reside_en_france: boolean
           siege: string | null
           siren: string | null
           situation_matrimoniale: string | null
           type: string
+          zone_nationalite: string
         }
         Insert: {
           adresse?: string | null
@@ -56,6 +62,8 @@ export type Database = {
           adresse_ville?: string | null
           apport_fonds_communs?: boolean
           civilite?: string | null
+          conjoint_statut?: string | null
+          conjoint_travaille?: boolean
           contrat_mariage?: boolean
           contrat_mariage_detail?: string | null
           created_at?: string
@@ -69,6 +77,8 @@ export type Database = {
           forme?: string | null
           id?: string
           lieu_naissance?: string | null
+          mesure_protection?: string
+          mineur_emancipe?: boolean
           montant_apport?: number
           nationalite?: string | null
           nb_titres?: number
@@ -78,10 +88,12 @@ export type Database = {
           prenoms?: string[]
           regime_matrimonial?: string | null
           representant?: string | null
+          reside_en_france?: boolean
           siege?: string | null
           siren?: string | null
           situation_matrimoniale?: string | null
           type?: string
+          zone_nationalite?: string
         }
         Update: {
           adresse?: string | null
@@ -90,6 +102,8 @@ export type Database = {
           adresse_ville?: string | null
           apport_fonds_communs?: boolean
           civilite?: string | null
+          conjoint_statut?: string | null
+          conjoint_travaille?: boolean
           contrat_mariage?: boolean
           contrat_mariage_detail?: string | null
           created_at?: string
@@ -103,6 +117,8 @@ export type Database = {
           forme?: string | null
           id?: string
           lieu_naissance?: string | null
+          mesure_protection?: string
+          mineur_emancipe?: boolean
           montant_apport?: number
           nationalite?: string | null
           nb_titres?: number
@@ -112,10 +128,12 @@ export type Database = {
           prenoms?: string[]
           regime_matrimonial?: string | null
           representant?: string | null
+          reside_en_france?: boolean
           siege?: string | null
           siren?: string | null
           situation_matrimoniale?: string | null
           type?: string
+          zone_nationalite?: string
         }
         Relationships: [
           {
@@ -270,7 +288,9 @@ export type Database = {
       }
       dossiers: {
         Row: {
+          activite_artisanale: boolean
           activite_reglementee: boolean
+          apport_immeuble: boolean
           apport_industrie: boolean
           apport_nature: boolean
           autovalidation_le: string | null
@@ -287,11 +307,15 @@ export type Database = {
           demande_acre: boolean
           denomination: string
           denomination_verifiee: boolean
+          dirigeant_deja_immatricule: boolean
+          dirigeant_nomme_statuts: boolean
+          dispense_commissaire_apports: boolean
           domiciliataire_agrement: string | null
           domiciliataire_nom: string | null
           duree_annees: number
           etape_courante: number
           exercice_etendu: boolean
+          fonds_commerce: string
           forme_juridique: string
           id: string
           justificatif_detail: string | null
@@ -309,9 +333,12 @@ export type Database = {
           relecture_statut: string
           role_demandeur: string | null
           routage_cabinet: boolean
+          sans_interdiction_gerer: boolean
           siege_adresse: string | null
+          siege_heberge: boolean
           siege_type: string | null
           sigle: string | null
+          siren_existant: string | null
           statut: string
           telephone_contact: string | null
           updated_at: string
@@ -322,7 +349,9 @@ export type Database = {
           voie_validation: string | null
         }
         Insert: {
+          activite_artisanale?: boolean
           activite_reglementee?: boolean
+          apport_immeuble?: boolean
           apport_industrie?: boolean
           apport_nature?: boolean
           autovalidation_le?: string | null
@@ -339,11 +368,15 @@ export type Database = {
           demande_acre?: boolean
           denomination?: string
           denomination_verifiee?: boolean
+          dirigeant_deja_immatricule?: boolean
+          dirigeant_nomme_statuts?: boolean
+          dispense_commissaire_apports?: boolean
           domiciliataire_agrement?: string | null
           domiciliataire_nom?: string | null
           duree_annees?: number
           etape_courante?: number
           exercice_etendu?: boolean
+          fonds_commerce?: string
           forme_juridique?: string
           id?: string
           justificatif_detail?: string | null
@@ -361,9 +394,12 @@ export type Database = {
           relecture_statut?: string
           role_demandeur?: string | null
           routage_cabinet?: boolean
+          sans_interdiction_gerer?: boolean
           siege_adresse?: string | null
+          siege_heberge?: boolean
           siege_type?: string | null
           sigle?: string | null
+          siren_existant?: string | null
           statut?: string
           telephone_contact?: string | null
           updated_at?: string
@@ -374,7 +410,9 @@ export type Database = {
           voie_validation?: string | null
         }
         Update: {
+          activite_artisanale?: boolean
           activite_reglementee?: boolean
+          apport_immeuble?: boolean
           apport_industrie?: boolean
           apport_nature?: boolean
           autovalidation_le?: string | null
@@ -391,11 +429,15 @@ export type Database = {
           demande_acre?: boolean
           denomination?: string
           denomination_verifiee?: boolean
+          dirigeant_deja_immatricule?: boolean
+          dirigeant_nomme_statuts?: boolean
+          dispense_commissaire_apports?: boolean
           domiciliataire_agrement?: string | null
           domiciliataire_nom?: string | null
           duree_annees?: number
           etape_courante?: number
           exercice_etendu?: boolean
+          fonds_commerce?: string
           forme_juridique?: string
           id?: string
           justificatif_detail?: string | null
@@ -413,9 +455,12 @@ export type Database = {
           relecture_statut?: string
           role_demandeur?: string | null
           routage_cabinet?: boolean
+          sans_interdiction_gerer?: boolean
           siege_adresse?: string | null
+          siege_heberge?: boolean
           siege_type?: string | null
           sigle?: string | null
+          siren_existant?: string | null
           statut?: string
           telephone_contact?: string | null
           updated_at?: string
