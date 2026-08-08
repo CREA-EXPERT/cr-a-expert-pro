@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/documents")({
       { property: "og:description", content: "Checklist personnalisée des pièces de votre dossier." },
     ],
   }),
-  component: Documents;
+  component: Documents,
 });
 
 const STATUT_BADGE: Record<string, { label: string; cls: string }> = {
