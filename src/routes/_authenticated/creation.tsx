@@ -1544,12 +1544,27 @@ function Creation() {
                 ))}
               </dl>
 
+              <EncadreJustificatifs />
+              <EncadreSignatureElectronique />
+
               <div className="flex items-start gap-3">
                 <Checkbox id="certif" checked={certifie} onCheckedChange={(v) => setCertifie(v === true)} className="mt-0.5" />
                 <Label htmlFor="certif" className="text-sm font-normal">
                   Je certifie l'exactitude des informations saisies.
                 </Label>
               </div>
+
+              <div className="flex items-start gap-3">
+                <Checkbox id="pieces" checked={piecesOk} onCheckedChange={(v) => setPiecesOk(v === true)} className="mt-0.5" />
+                <Label htmlFor="pieces" className="text-sm font-normal text-justify">
+                  Je m'engage à déposer, dans « Mes documents », tous les justificatifs légaux
+                  applicables à ma situation avant le dépôt du dossier : justificatif de domicile de
+                  moins de trois mois (sauf taxe foncière) et copie recto-verso lisible et valide de
+                  la pièce d'identité de chaque associé et dirigeant, portant la mention manuscrite
+                  « certifiée conforme à l'original », datée et signée.
+                </Label>
+              </div>
+
 
               <Button size="lg" onClick={validerDossier} disabled={busy}>
                 {busy ? "Validation…" : "Valider mon dossier"}
