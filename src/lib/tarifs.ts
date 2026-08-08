@@ -8,6 +8,8 @@ export type Tarif = {
   libelle: string;
   montant_ht: number | null;
   montant_ttc: number | null;
+  source: string | null;
+  verifie_le: string | null;
 };
 
 export const tarifsQuery = {
@@ -15,7 +17,7 @@ export const tarifsQuery = {
   queryFn: async (): Promise<Tarif[]> => {
     const { data, error } = await supabase
       .from("params_tarifs")
-      .select("id, cle, libelle, montant_ht, montant_ttc")
+      .select("id, cle, libelle, montant_ht, montant_ttc, source, verifie_le")
       .order("cle");
     if (error) throw error;
     return (data ?? []) as Tarif[];
@@ -98,5 +100,15 @@ export function greffeEtBenefSociete(tarifs: Tarif[] | undefined) {
 
 export function greffeEi(tarifs: Tarif[] | undefined) {
   return tarifMap(tarifs).get("greffe_EI")?.montant_ttc ?? 0;
+}
+
+/** Vrai si le tarif n'a jamais été vérifié ou si la vérification date de plus de 12 mois. */
+export function tarifAVerifier(t: Tarif): boolean {
+  if (!t.verifie_le) return true;
+  const verifie = new Date(t.verifie_le);
+  if (Number.isNaN(verifie.getTime())) return true;
+  const limite = new Date(verifie);
+  limite.setFullYear(limite.getFullYear() + 1);
+  return limite.getTime() < Date.now();
 }
 

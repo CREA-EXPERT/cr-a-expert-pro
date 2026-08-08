@@ -2,7 +2,6 @@ import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { PageShell } from "@/components/layout/PageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { Disclaimer } from "@/components/Disclaimer";
 import { CallbackDialog } from "@/components/CallbackDialog";
 import { corpsEmail, restitution, NOTE_REMBOURSEMENT, type Restitution } from "@/lib/restitution";
+import { enregistrerSimulation } from "@/lib/public-forms.functions";
 import { ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/simulateur")({
@@ -36,6 +36,8 @@ export const Route = createFileRoute("/simulateur")({
 });
 
 type Reponses = Record<string, string>;
+
+const TURNSTILE_SITE_KEY = import.meta.env["VITE_TURNSTILE_SITE_KEY"] as string | undefined;
 
 const QUESTIONS = [
   {
@@ -86,8 +88,14 @@ const QUESTIONS = [
   },
 ] as const;
 
+function immobilierSolo(r: Reponses): boolean {
+  return r["activite"] === "immobilier" && r["seul"] === "seul";
+}
+
 function tendance(r: Reponses, res: Restitution): string {
-  if (r["activite"] === "immobilier") return "SCI";
+  if (r["activite"] === "immobilier") {
+    return r["seul"] === "seul" ? "immobilier_solo" : "SCI";
+  }
   const versSas =
     r["priorite"] === "protection" ||
     r["priorite"] === "flexibilite" ||
@@ -102,12 +110,15 @@ function Simulateur() {
   const [prenom, setPrenom] = useState("");
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
+  const [societeWeb, setSocieteWeb] = useState("");
   const [resultat, setResultat] = useState<string | null>(null);
+  const [emailEnvoye, setEmailEnvoye] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const total = QUESTIONS.length + 1;
   const res = restitution(reponses["seul"] !== "plusieurs");
   const immobilier = reponses["activite"] === "immobilier";
+  const solo = immobilierSolo(reponses);
 
   function repondre(id: string, v: string) {
     setReponses((r) => ({ ...r, [id]: v }));
@@ -127,19 +138,32 @@ function Simulateur() {
     }
     setBusy(true);
     const t = tendance(reponses, res);
-    const { error } = await supabase.from("simulations").insert({
-      email: parsed.data,
-      prenom: prenom.trim() || null,
-      reponses,
-      resultat: t,
-      corps_email: corpsEmail(prenom.trim(), res),
-    });
-    setBusy(false);
-    if (error) {
+    try {
+      const reponseServeur = await enregistrerSimulation({
+        data: {
+          email: parsed.data,
+          prenom: prenom.trim() || undefined,
+          reponses,
+          resultat: t,
+          corps_email: corpsEmail(prenom.trim(), res),
+          piege: societeWeb || undefined,
+        },
+      });
+      setBusy(false);
+      if (!reponseServeur.ok) {
+        if (reponseServeur.raison === "trop_de_demandes") {
+          toast.error("Trop de demandes envoyées depuis cet appareil. Réessayez dans une heure.");
+        } else {
+          toast.error("L'enregistrement de la simulation a échoué.");
+        }
+        return;
+      }
+      setEmailEnvoye(Boolean(reponseServeur.emailEnvoye));
+      setResultat(t);
+    } catch {
+      setBusy(false);
       toast.error("L'enregistrement de la simulation a échoué.");
-      return;
     }
-    setResultat(t);
   }
 
   const question = QUESTIONS[etape];
@@ -224,6 +248,19 @@ function Simulateur() {
                 required
               />
             </div>
+            <input
+              type="text"
+              name="societe_web"
+              value={societeWeb}
+              onChange={(e) => setSocieteWeb(e.target.value)}
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              className="absolute left-[-9999px] h-0 w-0 opacity-0"
+            />
+            {TURNSTILE_SITE_KEY && (
+              <div className="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY} />
+            )}
             <div className="flex items-start gap-3 rounded-md border border-border bg-muted/50 p-3">
               <Checkbox
                 id="sim-consent"
@@ -246,10 +283,76 @@ function Simulateur() {
           </form>
         )}
 
-        {resultat && (
+        {resultat && solo && (
           <div className="space-y-6">
             <p className="rounded-md border border-success/40 bg-success/8 px-3 py-2 text-sm">
-              Résultat envoyé à votre adresse email.
+              {emailEnvoye
+                ? "Résultat envoyé à votre adresse email."
+                : "Votre résultat s'affiche ci-dessous ; l'envoi par email sera activé prochainement."}
+            </p>
+
+            <h1 className="font-serif text-3xl leading-snug">Immobilier en solo</h1>
+
+            <p className="rounded-md border border-border bg-muted/50 p-4 text-base leading-relaxed">
+              La société civile immobilière (SCI) n'est pas possible seul(e) : elle exige au moins
+              deux associés (article 1832 du code civil).
+            </p>
+
+            <p className="text-base leading-relaxed">
+              Pour porter un projet immobilier seul(e), trois voies existent, à égalité :
+            </p>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-lg border border-border bg-surface p-4">
+                <h2 className="font-serif text-lg">Détention en direct</h2>
+                <p className="mt-2 text-sm leading-relaxed">
+                  Location meublée ou nue en nom propre, le cas échéant sous forme d'entreprise
+                  individuelle.
+                </p>
+              </div>
+              <div className="rounded-lg border border-border bg-surface p-4">
+                <h2 className="font-serif text-lg">SASU ou EURL à l'IS</h2>
+                <p className="mt-2 text-sm leading-relaxed">
+                  Pour une activité immobilière à caractère commercial, exercée à l'impôt sur les
+                  sociétés.
+                </p>
+              </div>
+              <div className="rounded-lg border border-border bg-surface p-4">
+                <h2 className="font-serif text-lg">SCI à plusieurs</h2>
+                <p className="mt-2 text-sm leading-relaxed">
+                  En s'associant avec un proche, même très minoritaire, pour réunir les deux
+                  associés requis.
+                </p>
+              </div>
+            </div>
+
+            <p className="rounded-md border border-accent/40 bg-accent/8 p-3 text-base font-medium">
+              Le choix dépend de votre situation ; un expert-comptable peut en discuter avec vous.
+            </p>
+            <CallbackDialog size="lg" />
+
+            <p className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed">
+              {NOTE_REMBOURSEMENT}
+            </p>
+
+            <Disclaimer />
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button asChild size="lg">
+                <Link to="/auth" search={{ redirect: "/creation" }}>
+                  Créer ma société maintenant
+                </Link>
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {resultat && !solo && (
+          <div className="space-y-6">
+            <p className="rounded-md border border-success/40 bg-success/8 px-3 py-2 text-sm">
+              {emailEnvoye
+                ? "Résultat envoyé à votre adresse email."
+                : "Votre résultat s'affiche ci-dessous ; l'envoi par email sera activé prochainement."}
             </p>
 
             {immobilier && (

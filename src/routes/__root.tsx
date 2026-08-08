@@ -9,6 +9,8 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+import { Button } from "@/components/ui/button";
+import { PageShell } from "@/components/layout/PageShell";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
@@ -16,23 +18,21 @@ import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="font-serif text-6xl">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page introuvable</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          La page que vous cherchez n'existe pas ou a été déplacée.
+    <PageShell>
+      <div className="container-page flex min-h-[60vh] max-w-3xl flex-col items-center justify-center py-16 text-center">
+        <p className="font-serif text-6xl text-muted-foreground">404</p>
+        <h1 className="mt-4 font-serif text-3xl">Page introuvable</h1>
+        <p className="mt-3 max-w-md text-base text-muted-foreground">
+          La page que vous cherchez n'existe pas ou a été déplacée. Vérifiez l'adresse ou
+          repartez depuis l'accueil.
         </p>
         <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Retour à l'accueil
-          </Link>
+          <Button asChild>
+            <Link to="/">Retour à l'accueil</Link>
+          </Button>
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }
 

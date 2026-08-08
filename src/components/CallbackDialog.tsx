@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { enregistrerRappel } from "@/lib/public-forms.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +24,8 @@ const CRENEAUX = [
   "Cette semaine",
 ];
 
+const TURNSTILE_SITE_KEY = import.meta.env["VITE_TURNSTILE_SITE_KEY"] as string | undefined;
+
 export function CallbackDialog({
   variant = "outline",
   size = "default",
@@ -37,6 +40,7 @@ export function CallbackDialog({
   const [open, setOpen] = useState(false);
   const [telephone, setTelephone] = useState("");
   const [creneau, setCreneau] = useState<string>(CRENEAUX[0] as string);
+  const [societeWeb, setSocieteWeb] = useState("");
   const [sending, setSending] = useState(false);
 
   async function submit(e: React.FormEvent) {
@@ -46,20 +50,32 @@ export function CallbackDialog({
       return;
     }
     setSending(true);
-    const { data: sess } = await supabase.auth.getSession();
-    const { error } = await supabase.from("callbacks").insert({
-      user_id: sess.session?.user.id ?? null,
-      telephone: telephone.trim().slice(0, 30),
-      creneau_souhaite: creneau,
-    });
-    setSending(false);
-    if (error) {
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      const reponse = await enregistrerRappel({
+        data: {
+          telephone: telephone.trim().slice(0, 30),
+          creneau_souhaite: creneau,
+          user_id: sess.session?.user.id,
+          piege: societeWeb || undefined,
+        },
+      });
+      setSending(false);
+      if (!reponse.ok) {
+        if (reponse.raison === "trop_de_demandes") {
+          toast.error("Trop de demandes envoyées depuis cet appareil. Réessayez dans une heure.");
+        } else {
+          toast.error("La demande n'a pas pu être enregistrée.");
+        }
+        return;
+      }
+      setOpen(false);
+      setTelephone("");
+      toast.success("Demande enregistrée. Nous vous rappelons sur le créneau indiqué.");
+    } catch {
+      setSending(false);
       toast.error("La demande n'a pas pu être enregistrée.");
-      return;
     }
-    setOpen(false);
-    setTelephone("");
-    toast.success("Demande enregistrée. Nous vous rappelons sur le créneau indiqué.");
   }
 
   return (
@@ -106,6 +122,19 @@ export function CallbackDialog({
               ))}
             </select>
           </div>
+          <input
+            type="text"
+            name="societe_web"
+            value={societeWeb}
+            onChange={(e) => setSocieteWeb(e.target.value)}
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            className="absolute left-[-9999px] h-0 w-0 opacity-0"
+          />
+          {TURNSTILE_SITE_KEY && (
+            <div className="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY} />
+          )}
           <Button type="submit" className="w-full" disabled={sending}>
             {sending ? "Envoi…" : "Demander à être rappelé"}
           </Button>

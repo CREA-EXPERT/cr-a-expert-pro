@@ -323,14 +323,17 @@ export type Database = {
           lettre_mission_acceptee_le: string | null
           lettre_mission_nom: string | null
           moyen_de_paiement_enregistre: boolean
+          moyen_de_paiement_enregistre_le: string | null
           objet_social: string | null
+          objets_confirmes_le: string | null
           objets_social: string[]
           option_fiscale: string | null
           periodicite_tva: string | null
           pour_qui: string
           regime_tva: string | null
-          relecture_options: boolean
+          reglementee_source: string | null
           relecture_statut: string
+          renonciation_retractation_le: string | null
           role_demandeur: string | null
           routage_cabinet: boolean
           sans_interdiction_gerer: boolean
@@ -346,6 +349,8 @@ export type Database = {
           sigle: string | null
           siren_existant: string | null
           statut: string
+          stripe_customer_id: string | null
+          stripe_payment_method_id: string | null
           telephone_contact: string | null
           updated_at: string
           user_id: string
@@ -390,14 +395,17 @@ export type Database = {
           lettre_mission_acceptee_le?: string | null
           lettre_mission_nom?: string | null
           moyen_de_paiement_enregistre?: boolean
+          moyen_de_paiement_enregistre_le?: string | null
           objet_social?: string | null
+          objets_confirmes_le?: string | null
           objets_social?: string[]
           option_fiscale?: string | null
           periodicite_tva?: string | null
           pour_qui?: string
           regime_tva?: string | null
-          relecture_options?: boolean
+          reglementee_source?: string | null
           relecture_statut?: string
+          renonciation_retractation_le?: string | null
           role_demandeur?: string | null
           routage_cabinet?: boolean
           sans_interdiction_gerer?: boolean
@@ -413,6 +421,8 @@ export type Database = {
           sigle?: string | null
           siren_existant?: string | null
           statut?: string
+          stripe_customer_id?: string | null
+          stripe_payment_method_id?: string | null
           telephone_contact?: string | null
           updated_at?: string
           user_id: string
@@ -457,14 +467,17 @@ export type Database = {
           lettre_mission_acceptee_le?: string | null
           lettre_mission_nom?: string | null
           moyen_de_paiement_enregistre?: boolean
+          moyen_de_paiement_enregistre_le?: string | null
           objet_social?: string | null
+          objets_confirmes_le?: string | null
           objets_social?: string[]
           option_fiscale?: string | null
           periodicite_tva?: string | null
           pour_qui?: string
           regime_tva?: string | null
-          relecture_options?: boolean
+          reglementee_source?: string | null
           relecture_statut?: string
+          renonciation_retractation_le?: string | null
           role_demandeur?: string | null
           routage_cabinet?: boolean
           sans_interdiction_gerer?: boolean
@@ -480,6 +493,8 @@ export type Database = {
           sigle?: string | null
           siren_existant?: string | null
           statut?: string
+          stripe_customer_id?: string | null
+          stripe_payment_method_id?: string | null
           telephone_contact?: string | null
           updated_at?: string
           user_id?: string
@@ -529,7 +544,9 @@ export type Database = {
           libelle: string
           montant_ht: number | null
           montant_ttc: number | null
+          source: string | null
           updated_at: string
+          verifie_le: string | null
         }
         Insert: {
           cle: string
@@ -537,7 +554,9 @@ export type Database = {
           libelle: string
           montant_ht?: number | null
           montant_ttc?: number | null
+          source?: string | null
           updated_at?: string
+          verifie_le?: string | null
         }
         Update: {
           cle?: string
@@ -545,7 +564,9 @@ export type Database = {
           libelle?: string
           montant_ht?: number | null
           montant_ttc?: number | null
+          source?: string | null
           updated_at?: string
+          verifie_le?: string | null
         }
         Relationships: []
       }
@@ -576,6 +597,27 @@ export type Database = {
           nom?: string
           prenom?: string
           telephone?: string | null
+        }
+        Relationships: []
+      }
+      rate_limits: {
+        Row: {
+          cle: string
+          created_at: string
+          id: string
+          ip: string
+        }
+        Insert: {
+          cle: string
+          created_at?: string
+          id?: string
+          ip: string
+        }
+        Update: {
+          cle?: string
+          created_at?: string
+          id?: string
+          ip?: string
         }
         Relationships: []
       }
@@ -621,6 +663,8 @@ export type Database = {
           id: string
           libelle: string
           ordre: number
+          provider: string | null
+          provider_ref: string | null
           signe_le: string | null
           statut: string
           type_document: string
@@ -634,6 +678,8 @@ export type Database = {
           id?: string
           libelle: string
           ordre?: number
+          provider?: string | null
+          provider_ref?: string | null
           signe_le?: string | null
           statut?: string
           type_document: string
@@ -647,6 +693,8 @@ export type Database = {
           id?: string
           libelle?: string
           ordre?: number
+          provider?: string | null
+          provider_ref?: string | null
           signe_le?: string | null
           statut?: string
           type_document?: string
@@ -667,6 +715,8 @@ export type Database = {
           corps_email: string | null
           created_at: string
           email: string
+          email_envoye_le: string | null
+          email_erreur: string | null
           id: string
           prenom: string | null
           reponses: Json
@@ -676,6 +726,8 @@ export type Database = {
           corps_email?: string | null
           created_at?: string
           email: string
+          email_envoye_le?: string | null
+          email_erreur?: string | null
           id?: string
           prenom?: string | null
           reponses?: Json
@@ -685,6 +737,8 @@ export type Database = {
           corps_email?: string | null
           created_at?: string
           email?: string
+          email_envoye_le?: string | null
+          email_erreur?: string | null
           id?: string
           prenom?: string | null
           reponses?: Json

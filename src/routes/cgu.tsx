@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageShell } from "@/components/layout/PageShell";
+import { EDITEUR } from "@/lib/editeur";
 
 export const Route = createFileRoute("/cgu")({
   head: () => ({
@@ -26,18 +27,15 @@ function Cgu() {
       <article className="container-page max-w-3xl space-y-8 py-12">
         <header>
           <h1 className="font-serif text-4xl">Conditions générales d'utilisation</h1>
-          <p className="mt-3 text-sm text-muted-foreground">
-            Document provisoire — les éléments balisés [À COMPLÉTER] doivent être renseignés avant
-            toute mise en ligne publique.
-          </p>
         </header>
 
         <section className="space-y-2">
           <h2 className="font-serif text-2xl">1. Objet</h2>
           <p>
             Les présentes conditions régissent l'accès et l'utilisation de la plateforme CREA EXPERT,
-            qui permet de préparer en ligne un dossier de création de société et de le soumettre à un
-            cabinet d'expertise comptable partenaire.
+            éditée par {EDITEUR.denomination}, qui permet de préparer en ligne un dossier de création
+            de société et de le soumettre au cabinet d'expertise comptable partenaire,{" "}
+            {EDITEUR.cabinetPartenaire.nom}.
           </p>
         </section>
 
@@ -47,7 +45,8 @@ function Cgu() {
             La plateforme fournit une information générale, un parcours de collecte d'informations et
             la production de projets de documents. Elle ne délivre aucun conseil juridique ni aucune
             recommandation personnalisée. La revue et la validation du dossier relèvent du cabinet
-            d'expertise comptable.
+            d'expertise comptable partenaire, inscrit au tableau de l'Ordre des experts-comptables
+            sous la référence : {EDITEUR.cabinetPartenaire.inscriptionOrdre}.
           </p>
         </section>
 
@@ -60,7 +59,12 @@ function Cgu() {
             (annonce légale, frais de greffe, déclaration des bénéficiaires effectifs) restent à la
             charge de l'utilisateur et lui sont refacturés à l'euro près.
           </p>
-          <p>[À COMPLÉTER — modalités de facturation, de paiement et de résiliation]</p>
+          <p>
+            La facturation de la mission comptable intervient mensuellement auprès du cabinet
+            partenaire, selon les modalités de paiement précisées lors de la souscription. En
+            l'absence de reconduction, la mission prend fin de plein droit au terme des 3 mois, sans
+            préavis à donner par l'utilisateur.
+          </p>
         </section>
 
         <section className="space-y-2">
@@ -74,17 +78,34 @@ function Cgu() {
 
         <section className="space-y-2">
           <h2 className="font-serif text-2xl">5. Compte et sécurité</h2>
-          <p>[À COMPLÉTER — création de compte, confidentialité des identifiants, suspension]</p>
+          <p>
+            L'accès à l'espace personnel est protégé par des identifiants strictement personnels et
+            confidentiels. L'utilisateur est responsable de leur conservation et doit signaler sans
+            délai à {EDITEUR.emailContact} toute utilisation non autorisée de son compte. L'éditeur
+            peut suspendre un compte en cas d'usage frauduleux ou de non-respect des présentes
+            conditions.
+          </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="font-serif text-2xl">6. Responsabilité</h2>
-          <p>[À COMPLÉTER]</p>
+          <p>
+            L'éditeur met en œuvre les moyens raisonnables pour assurer la disponibilité et
+            l'exactitude des contenus du site, sans garantie de résultat. La responsabilité de
+            l'éditeur ne saurait être engagée en cas d'interruption du service, d'erreur d'origine
+            technique ou d'usage non conforme de la plateforme. La validation juridique, fiscale et
+            comptable du dossier relève exclusivement du cabinet d'expertise comptable partenaire.
+          </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="font-serif text-2xl">7. Droit applicable et litiges</h2>
-          <p>[À COMPLÉTER]</p>
+          <p>
+            Les présentes conditions sont soumises au droit français. En cas de litige, et à défaut
+            de résolution amiable, l'utilisateur peut recourir au médiateur de la consommation
+            mentionné dans les mentions légales ({EDITEUR.mediateurConsommation}) avant toute action
+            judiciaire.
+          </p>
         </section>
       </article>
     </PageShell>

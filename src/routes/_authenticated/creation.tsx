@@ -40,7 +40,10 @@ import {
 import { AdresseSiege } from "@/components/AdresseSiege";
 
 import { construireDocuments, type Associe, type Dossier } from "@/lib/documents";
-import { analyserChecklist, piecesEnDrafts } from "@/lib/checklist";
+import { analyserChecklist, estMineur, piecesEnDrafts } from "@/lib/checklist";
+import { useAuth, useRoles } from "@/hooks/useAuth";
+import { etatServices } from "@/lib/services.functions";
+
 import { SituationChecklist } from "@/components/SituationChecklist";
 import { construireSignatures } from "@/lib/signatures";
 import {
@@ -98,12 +101,12 @@ type Cle =
   | "capital"
   | "associes"
   | "situation"
-  | "direction"
   | "options"
   | "mission"
   | "validation"
   | "paiement"
   | "recap";
+
 
 const CLES_SOCIETE: Cle[] = [
   "forme",
@@ -142,7 +145,7 @@ const TITRES: Record<Cle, string> = {
   capital: "Capital",
   associes: "Associés et gérance",
   situation: "Votre situation et vos justificatifs",
-  direction: "Direction",
+  
   options: "Options fiscales et sociales",
   mission: "Lettre de mission",
   validation: "Validation de votre dossier",
@@ -161,20 +164,13 @@ function deplacer<T>(liste: T[], de: number, vers: number) {
 }
 
 
-/** Un associé est mineur si sa date de naissance situe ses 18 ans dans le futur. */
-function estMineur(a: Associe) {
-  if (a.type !== "personne_physique" || !a.date_naissance) return false;
-  const n = new Date(a.date_naissance);
-  if (Number.isNaN(n.getTime())) return false;
-  const majorite = new Date(n.getFullYear() + 18, n.getMonth(), n.getDate());
-  return majorite > new Date();
-}
-
-
 function Creation() {
   const navigate = useNavigate();
   const { forme: formeInitiale } = Route.useSearch();
   const { data: tarifs } = useTarifs();
+  const { user } = useAuth();
+  const { isAdmin } = useRoles(user);
+  const { data: services } = useQuery({ queryKey: ["etat-services"], queryFn: () => etatServices() });
   const [dossier, setDossier] = useState<Dossier | null>(null);
   const [associes, setAssocies] = useState<Associe[]>([]);
   const [etape, setEtape] = useState(1);
@@ -183,8 +179,18 @@ function Creation() {
   const [busy, setBusy] = useState(false);
   const [nomAcceptation, setNomAcceptation] = useState("");
   const [lueMission, setLueMission] = useState(false);
+  const [renonceRetractation, setRenonceRetractation] = useState(false);
   const [descriptionActivite, setDescriptionActivite] = useState("");
   const [redaction, setRedaction] = useState(false);
+  /** Erreurs de l'étape courante, affichées sous les champs concernés. */
+  const [erreurs, setErreurs] = useState<Record<string, string>>({});
+  /** Activités de l'objet social explicitement conservées par l'utilisateur. */
+  const [conserves, setConserves] = useState<boolean[]>([]);
+  const [avertissementNaf, setAvertissementNaf] = useState(false);
+  /** Arbitrage demandé avant l'ajout d'une nouvelle activité. */
+  const [arbitrage, setArbitrage] = useState<{ texte: string } | null>(null);
+
+
 
 
   const { data: rules } = useQuery({
@@ -234,11 +240,107 @@ function Creation() {
     await supabase.from("dossiers").update(valeurs).eq("id", dossier.id);
   }
 
+  /** Le retour en arrière est toujours libre : aucune validation n'est exigée. */
   async function allerA(n: number) {
     setEtape(n);
+    setErreurs({});
     await patch({ etape_courante: n });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
+  /** Contrôles de l'étape courante. Renvoie les erreurs par champ. */
+  function controlerEtape(c: Cle): Record<string, string> {
+    const e: Record<string, string> = {};
+    if (!dossier) return e;
+    const d = dossier;
+    if (c === "denomination") {
+      if (!isEI(d.forme_juridique) && !d.denomination.trim())
+        e["denomination"] = "La dénomination sociale est obligatoire.";
+      if (!d.denomination_verifiee)
+        e["denomination_verifiee"] = "Confirmez la vérification de disponibilité auprès de l'INPI.";
+    }
+    if (c === "siege") {
+      if (!d.siege_type) e["siege_type"] = "Choisissez le type de siège social.";
+      const adresseSaisie = Boolean(
+        (d.siege_voie ?? "").trim() && (d.siege_code_postal ?? "").trim() && (d.siege_ville ?? "").trim(),
+      );
+      if (!adresseSaisie && !(d.siege_adresse ?? "").trim())
+        e["siege_adresse"] = "Renseignez l'adresse complète du siège (voie, code postal, commune).";
+      if (d.siege_type === "domiciliataire") {
+        if (!(d.domiciliataire_nom ?? "").trim())
+          e["domiciliataire_nom"] = "Indiquez le nom du domiciliataire.";
+        if (!(d.domiciliataire_agrement ?? "").trim())
+          e["domiciliataire_agrement"] = "Indiquez le numéro d'agrément du domiciliataire.";
+      }
+    }
+    if (c === "objet") {
+      const liste = (d.objets_social ?? []).map((t) => t.trim()).filter(Boolean);
+      if (liste.length === 0 && !(d.objet_social ?? "").trim())
+        e["objets"] = "Indiquez au moins une activité.";
+      if (!d.code_naf) e["naf"] = "Sélectionnez le code d'activité principal (NAF).";
+      if (!d.objets_confirmes_le)
+        e["objets_confirmes"] = "Confirmez que la liste des activités est exacte pour continuer.";
+    }
+    if (c === "capital") {
+      const montant = Number(d.capital_montant);
+      const lib = Number(d.capital_liberation);
+      const min = liberationMin(d.forme_juridique as Forme);
+      if (!(montant >= 1)) e["capital_montant"] = "Le capital social doit être d'au moins 1 €.";
+      if (!(lib >= min)) e["capital_liberation"] = `La libération minimale de cette forme est de ${min} %.`;
+      if (lib > 100) e["capital_liberation"] = "La libération ne peut pas dépasser 100 %.";
+    }
+    if (c === "associes") {
+      const eiForme = isEI(d.forme_juridique);
+      if (!eiForme && Math.abs(totalApports - Number(d.capital_montant)) >= 0.01)
+        e["apports"] = "Le total des apports doit être égal au capital social.";
+      if (!eiForme && !associes.some((a) => a.est_dirigeant))
+        e["dirigeants"] = "Désignez au moins un dirigeant.";
+      if (isSas(d.forme_juridique) && !associes.some((a) => a.est_dirigeant && a.fonction === "president"))
+        e["president"] = "Une SAS ou une SASU ne peut pas être créée sans président.";
+      const incomplet = associes.some(
+        (a) =>
+          a.type === "personne_physique" &&
+          (!(a.nom ?? "").trim() ||
+            !(a.prenom ?? "").trim() ||
+            !a.date_naissance ||
+            !(a.lieu_naissance ?? "").trim() ||
+            !(a.nationalite ?? "").trim() ||
+            !(a.adresse ?? "").trim()),
+      );
+      if (incomplet)
+        e["identites"] =
+          "Complétez, pour chaque personne physique, les nom, prénom, date et lieu de naissance, nationalité et adresse.";
+    }
+    if (c === "mission") {
+      if (!d.lettre_mission_acceptee_le) e["mission"] = "Acceptez la lettre de mission pour continuer.";
+      if ((d.telephone_contact ?? "").replace(/\D/g, "").length < 9)
+        e["telephone"] = "Indiquez un numéro de téléphone valide.";
+      if (!d.renonciation_retractation_le)
+        e["retractation"] = "Cette demande expresse est nécessaire pour démarrer la prestation.";
+    }
+    if (c === "validation" && !d.voie_validation)
+      e["voie"] = "Choisissez la voie de validation de votre dossier.";
+    return e;
+  }
+
+  /** Avance d'une étape après contrôle. Les erreurs s'affichent sous les champs. */
+  async function continuer(c: Cle) {
+    const e = controlerEtape(c);
+    setErreurs(e);
+    if (Object.keys(e).length > 0) {
+      toast.error("Certaines informations doivent être complétées avant de continuer.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    await allerA(etape + 1);
+  }
+
+  /** Message d'erreur affiché sous un champ. */
+  function Err({ nom }: { nom: string }) {
+    if (!erreurs[nom]) return null;
+    return <p className="text-sm font-medium text-destructive">{erreurs[nom]}</p>;
+  }
+
 
   async function ajouterAssocie(type: "personne_physique" | "personne_morale") {
     if (!dossier) return;
@@ -272,9 +374,36 @@ function Creation() {
         : []
     : [];
 
-  /** Enregistre la liste d'objets et reconstitue l'objet social consolidé des statuts. */
+  /**
+   * Enregistre la liste d'objets et reconstitue l'objet social consolidé des statuts.
+   * Toute modification annule la confirmation de cohérence : l'utilisateur doit relire.
+   */
   async function majObjets(liste: string[]) {
-    await patch({ objets_social: liste, objet_social: liste.map((t) => t.trim()).filter(Boolean).join(" ") });
+    setConserves(liste.map((_, i) => conserves[i] ?? true));
+    await patch({
+      objets_social: liste,
+      objet_social: liste.map((t) => t.trim()).filter(Boolean).join(" "),
+      objets_confirmes_le: null,
+    });
+  }
+
+  /** Ajoute une activité, après arbitrage si la liste en contient déjà. */
+  async function ajouterActivite(texte: string) {
+    if (objets.length > 0) {
+      setArbitrage({ texte });
+      return;
+    }
+    await majObjets([texte]);
+  }
+
+  /** « Repartir de zéro » : seules les activités cochées « Conserver » sont gardées. */
+  async function resoudreArbitrage(mode: "zero" | "ajouter") {
+    const texte = arbitrage?.texte ?? "";
+    setArbitrage(null);
+    const base = mode === "ajouter" ? objets : objets.filter((_, i) => conserves[i] !== false);
+    setConserves(base.map(() => true));
+    await majObjets([...base, texte]);
+    setAvertissementNaf(false);
   }
 
   async function proposerObjet() {
@@ -292,8 +421,9 @@ function Creation() {
       });
 
       if (res?.texte) {
-        await majObjets([...objets, res.texte]);
-        toast.success("Proposition rédigée. Relisez-la et adaptez-la si nécessaire.");
+        await ajouterActivite(res.texte);
+        if (objets.length === 0)
+          toast.success("Proposition rédigée. Relisez-la et adaptez-la si nécessaire.");
       } else {
         toast.error(res?.erreur ?? "Aucune proposition n'a pu être générée.");
       }
@@ -303,6 +433,7 @@ function Creation() {
       setRedaction(false);
     }
   }
+
 
 
   const totalApports = useMemo(
@@ -430,7 +561,10 @@ function Creation() {
         : TITRES[cle];
   const cout = coutParForme(tarifs, forme);
   const relectureHt = prixRelectureHt(tarifs);
-  const relectureOptionsHt = tarifMap(tarifs).get("relecture_options")?.montant_ht ?? 150;
+  /** Le caractère réglementé établi par le système ne peut pas être retiré du dossier. */
+  const nafReglemente = estCodeReglemente(dossier.code_naf);
+  const verrouReglemente = nafReglemente || dossier.reglementee_source === "verification_ia";
+
   const relecture = dossier.voie_validation === "cabinet" ? relectureHt * 1.2 : 0;
   /** Aperçu dynamique de la checklist, recalculé à chaque réponse. */
   const apercuChecklist = piecesEnDrafts(dossier, associes);
@@ -551,6 +685,8 @@ function Creation() {
                   {ei ? "Nom commercial (facultatif)" : "Dénomination sociale"}
                 </Label>
                 <Input id="denom" maxLength={120} value={dossier.denomination} onChange={(e) => patch({ denomination: e.target.value })} />
+                <Err nom="denomination" />
+
               </div>
               <div className="space-y-2">
                 <Label htmlFor="sigle">{ei ? "Enseigne (facultatif)" : "Sigle (facultatif)"}</Label>
@@ -590,6 +726,7 @@ function Creation() {
                   l'usage de ce nom, et j'en assume la responsabilité. (obligatoire)
                 </Label>
               </div>
+              <Err nom="denomination_verifiee" />
 
 
             </div>
@@ -617,20 +754,25 @@ function Creation() {
                   <span className="mt-1 block text-sm text-muted-foreground">{o.d}</span>
                 </button>
               ))}
+              <Err nom="siege_type" />
               {dossier.siege_type && <AdresseSiege dossier={dossier} patch={patch} />}
+              <Err nom="siege_adresse" />
 
               {dossier.siege_type === "domiciliataire" && (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="dnom">Nom du domiciliataire</Label>
                     <Input id="dnom" maxLength={120} value={dossier.domiciliataire_nom ?? ""} onChange={(e) => patch({ domiciliataire_nom: e.target.value })} />
+                    <Err nom="domiciliataire_nom" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="dag">Numéro d'agrément</Label>
                     <Input id="dag" maxLength={60} value={dossier.domiciliataire_agrement ?? ""} onChange={(e) => patch({ domiciliataire_agrement: e.target.value })} />
+                    <Err nom="domiciliataire_agrement" />
                   </div>
                 </div>
               )}
+
             </div>
           )}
 
@@ -657,20 +799,41 @@ function Creation() {
                   value={dossier.code_naf}
                   onChange={(n) => {
                     const regl = estCodeReglemente(n.code);
+                    const changement = dossier.code_naf !== null && dossier.code_naf !== n.code;
+                    if (changement && objets.length > 0) {
+                      setConserves(objets.map(() => false));
+                      setAvertissementNaf(true);
+                    }
                     patch({
                       code_naf: n.code,
                       code_naf_libelle: n.label,
+                      ...(changement ? { objets_confirmes_le: null } : {}),
                       ...(regl
-                        ? { activite_reglementee: true, routage_cabinet: true }
-                        : {}),
+                        ? {
+                            activite_reglementee: true,
+                            routage_cabinet: true,
+                            reglementee_source: "naf",
+                          }
+                        : dossier.reglementee_source === "naf"
+                          ? { reglementee_source: null }
+                          : {}),
                     });
                   }}
                 />
+                <Err nom="naf" />
                 <p className="text-xs text-muted-foreground">
                   Ce code est déclaratif : l'INSEE attribue le code APE définitif au vu de
                   l'activité réellement exercée.
                 </p>
               </div>
+
+              {avertissementNaf && (
+                <p className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm leading-relaxed text-justify">
+                  Vous avez changé d'activité principale : vérifiez chaque activité listée ci-dessous
+                  et cochez uniquement celles qui font toujours partie de votre projet. Aucune
+                  activité n'est supprimée sans votre confirmation.
+                </p>
+              )}
 
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground text-justify">
@@ -684,12 +847,13 @@ function Creation() {
                     <button
                       key={o.titre}
                       type="button"
-                      onClick={() => majObjets([...objets, o.texte])}
+                      onClick={() => ajouterActivite(o.texte)}
                       className="rounded-md border border-border bg-surface px-3 py-2.5 text-left text-sm hover:border-accent"
                     >
                       {o.titre}
                     </button>
                   ))}
+
                 </div>
               </div>
 
@@ -727,14 +891,20 @@ function Creation() {
                 activite={descriptionActivite}
                 naf={dossier.code_naf ? `${dossier.code_naf} — ${dossier.code_naf_libelle ?? ""}` : null}
                 onResultat={(reglementee, resume) => {
-                  if (!reglementee) return;
+                  if (!reglementee) {
+                    if (dossier.reglementee_source === "verification_ia")
+                      patch({ reglementee_source: null, activite_reglementee: nafReglemente });
+                    return;
+                  }
                   patch({
                     activite_reglementee: true,
                     routage_cabinet: true,
+                    reglementee_source: nafReglemente ? "naf" : "verification_ia",
                     ...(dossier.justificatif_detail ? {} : { justificatif_detail: resume.slice(0, 500) }),
                   });
                 }}
               />
+
 
               <div className="space-y-3">
                 <Label>Objet(s) social(aux)</Label>
@@ -787,11 +957,25 @@ function Creation() {
                       value={texte}
                       onChange={(e) => majObjets(objets.map((t, k) => (k === i ? e.target.value : t)))}
                     />
+                    <div className="mt-2 flex items-start gap-3">
+                      <Checkbox
+                        id={`conserver-${i}`}
+                        checked={conserves[i] ?? true}
+                        onCheckedChange={(v) =>
+                          setConserves(objets.map((_, k) => (k === i ? v === true : (conserves[k] ?? true))))
+                        }
+                        className="mt-0.5"
+                      />
+                      <Label htmlFor={`conserver-${i}`} className="text-sm font-normal">
+                        Conserver cette activité
+                      </Label>
+                    </div>
                   </div>
                 ))}
                 <Button type="button" variant="outline" size="sm" onClick={() => majObjets([...objets, ""])}>
                   <Plus strokeWidth={1.5} /> Ajouter un objet social
                 </Button>
+                <Err nom="objets" />
                 {objets.length > 1 && (
                   <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed text-justify">
                     Objet social retenu dans vos statuts, dans cet ordre : {objets.filter(Boolean).join(" ")}
@@ -799,15 +983,82 @@ function Creation() {
                 )}
               </div>
 
+              {arbitrage && (
+                <div
+                  role="dialog"
+                  aria-label="Que faire des activités existantes ?"
+                  className="rounded-lg border border-accent/50 bg-accent/5 p-4 text-sm leading-relaxed"
+                >
+                  <p className="font-medium">
+                    Votre objet social contient déjà {objets.length} activité(s). Que souhaitez-vous
+                    faire ?
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-3">
+                    <Button type="button" variant="outline" onClick={() => resoudreArbitrage("zero")}>
+                      Repartir de zéro (les activités non conservées seront supprimées)
+                    </Button>
+                    <Button type="button" onClick={() => resoudreArbitrage("ajouter")}>
+                      Ajouter à la liste existante
+                    </Button>
+                  </div>
+                  <button
+                    type="button"
+                    className="mt-3 text-xs underline underline-offset-2"
+                    onClick={() => setArbitrage(null)}
+                  >
+                    Annuler
+                  </button>
+                </div>
+              )}
+
+              <div className="rounded-md border border-border bg-surface p-4">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="objets-confirmes"
+                    checked={Boolean(dossier.objets_confirmes_le)}
+                    onCheckedChange={(v) =>
+                      patch({ objets_confirmes_le: v === true ? new Date().toISOString() : null })
+                    }
+                    className="mt-0.5"
+                  />
+                  <Label htmlFor="objets-confirmes" className="text-sm font-normal leading-relaxed text-justify">
+                    J'ai relu la liste ci-dessus : elle correspond exactement aux activités que la
+                    société exercera, sans activité oubliée ni activité qui n'a plus lieu d'y figurer.
+                  </Label>
+                </div>
+                <div className="mt-2">
+                  <Err nom="objets_confirmes" />
+                </div>
+              </div>
+
               <div className="flex items-start gap-3">
                 <Checkbox
                   id="regl"
                   checked={dossier.activite_reglementee}
-                  onCheckedChange={(v) => patch({ activite_reglementee: v === true, routage_cabinet: v === true || dossier.apport_nature })}
+                  disabled={verrouReglemente}
+                  onCheckedChange={(v) =>
+                    patch({
+                      activite_reglementee: v === true,
+                      routage_cabinet: v === true || dossier.apport_nature,
+                      reglementee_source: v === true ? "declaration_utilisateur" : null,
+                    })
+                  }
                   className="mt-0.5"
                 />
                 <Label htmlFor="regl" className="text-sm font-normal">Mon activité est réglementée.</Label>
               </div>
+
+              {verrouReglemente && (
+                <p className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm leading-relaxed text-justify">
+                  Cette activité est réglementée en France : cette information ne peut pas être
+                  retirée du dossier. Votre dossier est orienté vers le cabinet, qui vérifie la pièce
+                  justificative requise (exemple : l'expertise comptable relève de l'ordonnance
+                  n° 45-2138 du 19 septembre 1945 — inscription à l'Ordre obligatoire). Pour lever ce
+                  point, il faut modifier le code d'activité et la description pour une activité non
+                  réglementée, puis relancer la vérification.
+                </p>
+              )}
+
 
 
               {dossier.activite_reglementee ? (
@@ -1348,27 +1599,17 @@ function Creation() {
               </div>
 
               <div className="rounded-md border border-accent/40 bg-accent/10 p-4">
-                <div className="flex items-start gap-3">
-                  <Checkbox
-                    id="relecture-options"
-                    checked={dossier.relecture_options}
-                    onCheckedChange={(v) =>
-                      patch({ relecture_options: v === true, ...(v === true ? { voie_validation: "cabinet" } : {}) })
-                    }
-                    className="mt-0.5"
-                  />
-                  <Label htmlFor="relecture-options" className="text-sm font-normal leading-relaxed">
-                    Ces choix, comme tous les autres et vos statuts, seront revus avec vous par
-                    l'expert-comptable si vous cochez cette case (coût : {euro(relectureOptionsHt)} HT,
-                    déductible du résultat de la société et récupérable par l'associé qui a avancé les
-                    fonds à la société) ; sinon, vous avancez par vous-même, sans frais additionnels.
-                  </Label>
-                </div>
+                <p className="text-sm leading-relaxed">
+                  Ces choix fiscaux et sociaux, vos statuts et la cohérence de vos pièces peuvent
+                  être revus par un expert-comptable dans le cadre d'une prestation unique : la
+                  relecture complète du dossier, {euro(relectureHt)} HT ({euro(relectureHt * 1.2)}{" "}
+                  TTC, TVA 20 % en sus du montant HT). Elle se choisit à l'étape « Validation ».
+                </p>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  Information générale — ne constitue pas un conseil. Votre dossier peut être revu
-                  par un expert-comptable, si vous le souhaitez (option payante).
+                  Information générale — ne constitue pas un conseil.
                 </p>
               </div>
+
             </div>
           )}
 
