@@ -36,6 +36,8 @@ import {
   type Forme,
 } from "@/lib/domain";
 import { construireDocuments, type Associe, type Dossier } from "@/lib/documents";
+import { analyserChecklist, piecesEnDrafts } from "@/lib/checklist";
+import { SituationChecklist } from "@/components/SituationChecklist";
 import { construireSignatures } from "@/lib/signatures";
 import {
   coutParForme,
@@ -91,6 +93,7 @@ type Cle =
   | "objet"
   | "capital"
   | "associes"
+  | "situation"
   | "direction"
   | "options"
   | "mission"
@@ -105,7 +108,7 @@ const CLES_SOCIETE: Cle[] = [
   "objet",
   "capital",
   "associes",
-  
+  "situation",
   "options",
   "mission",
   "validation",
@@ -119,6 +122,7 @@ const CLES_EI: Cle[] = [
   "siege",
   "objet",
   "associes",
+  "situation",
   "options",
   "mission",
   "validation",
@@ -133,6 +137,7 @@ const TITRES: Record<Cle, string> = {
   objet: "Objet social",
   capital: "Capital",
   associes: "Associés et gérance",
+  situation: "Votre situation et vos justificatifs",
   direction: "Direction",
   options: "Options fiscales et sociales",
   mission: "Lettre de mission",
@@ -334,6 +339,11 @@ function Creation() {
       toast.error("Le numéro de téléphone est obligatoire avant la signature de la lettre de mission.");
       return;
     }
+    const blocages = analyserChecklist(dossier, associes).blocages;
+    if (blocages.length > 0) {
+      toast.error(blocages[0]!.titre);
+      return;
+    }
     if (mineurs.length > 0) {
       toast.error(`Un associé mineur est renseigné : cette création doit être confiée à ${CABINET.nom}.`);
       return;
@@ -361,7 +371,7 @@ function Creation() {
 
     setBusy(true);
     const auto = dossier.voie_validation === "auto";
-    const drafts = construireDocuments(dossier, associes, rules);
+    const drafts = piecesEnDrafts(dossier, associes);
     await supabase.from("documents").delete().eq("dossier_id", dossier.id).eq("statut_document", "a_fournir");
     await supabase.from("documents").insert(drafts);
     const signatures = construireSignatures(dossier, associes);
@@ -419,9 +429,7 @@ function Creation() {
   const relectureOptionsHt = tarifMap(tarifs).get("relecture_options")?.montant_ht ?? 150;
   const relecture = dossier.voie_validation === "cabinet" ? relectureHt * 1.2 : 0;
   /** Aperçu dynamique de la checklist, recalculé à chaque réponse. */
-  const apercuChecklist = rules
-    ? construireDocuments(dossier, associes, rules).filter((d) => d.origine === "a_fournir")
-    : [];
+  const apercuChecklist = piecesEnDrafts(dossier, associes);
   const apercuSignatures = construireSignatures(dossier, associes);
 
   return (
@@ -1204,6 +1212,17 @@ function Creation() {
           )}
 
           {/* 8 — OPTIONS */}
+          {cle === "situation" && (
+            <div className="mt-6">
+              <SituationChecklist
+                dossier={dossier}
+                associes={associes}
+                patch={patch}
+                majAssocie={majAssocie}
+              />
+            </div>
+          )}
+
           {cle === "options" && (
             <div className="mt-6 space-y-5">
               <div className="space-y-2">
