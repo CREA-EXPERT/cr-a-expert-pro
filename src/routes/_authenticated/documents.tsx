@@ -173,6 +173,12 @@ function Documents() {
           Formats acceptés : PDF, JPG, PNG. 10 Mo maximum par fichier.
         </p>
 
+        <div className="mt-6 space-y-5">
+          <EncadreJustificatifs />
+          <EncadreSignatureElectronique />
+        </div>
+
+
         <section className="mt-6 rounded-lg border border-border bg-surface p-5">
           <h2 className="font-serif text-xl">Dates du dossier</h2>
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
