@@ -1794,7 +1794,9 @@ function Creation() {
                   <span className="mt-1 block text-sm text-muted-foreground">{o.d}</span>
                 </button>
               ))}
+              <Err nom="voie" />
               {dossier.voie_validation === "cabinet" && <EncadreRelectureLimites />}
+
               {dossier.voie_validation === "auto" && <EncadreResponsabilite />}
               <Disclaimer />
             </div>
