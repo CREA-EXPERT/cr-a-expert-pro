@@ -1681,6 +1681,7 @@ function Creation() {
                           value={dossier.telephone_contact ?? ""}
                           onChange={(e) => patch({ telephone_contact: e.target.value })}
                         />
+                        <Err nom="telephone" />
                         <p className="text-sm text-muted-foreground text-justify">
                           Ce numéro est obligatoire avant la signature de la lettre de mission : le
                           cabinet doit pouvoir vous joindre pour la mission comptable et, le cas
@@ -1718,8 +1719,42 @@ function Creation() {
                       >
                         Accepter la lettre de mission
                       </Button>
+                      <Err nom="mission" />
                     </div>
                   )}
+
+                  <div className="rounded-md border border-border bg-surface p-4">
+                    <div className="flex items-start gap-3">
+                      <Checkbox
+                        id="retractation"
+                        checked={Boolean(dossier.renonciation_retractation_le) || renonceRetractation}
+                        disabled={Boolean(dossier.renonciation_retractation_le)}
+                        onCheckedChange={(v) => {
+                          setRenonceRetractation(v === true);
+                          if (v === true) patch({ renonciation_retractation_le: new Date().toISOString() });
+                        }}
+                        className="mt-0.5"
+                      />
+                      <Label htmlFor="retractation" className="text-sm font-normal leading-relaxed text-justify">
+                        Je demande expressément que l'exécution de la prestation commence
+                        immédiatement, avant l'expiration du délai de rétractation de quatorze jours,
+                        et je reconnais que je perdrai mon droit de rétractation une fois la
+                        prestation pleinement exécutée ; si je me rétracte avant, je devrai le prix
+                        correspondant au service déjà fourni (articles L. 221-18, L. 221-25 et
+                        L. 221-28, 1° du code de la consommation).
+                      </Label>
+                    </div>
+                    <div className="mt-2">
+                      <Err nom="retractation" />
+                    </div>
+                    {dossier.renonciation_retractation_le && (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Demande recueillie le{" "}
+                        {new Date(dossier.renonciation_retractation_le).toLocaleString("fr-FR")}.
+                      </p>
+                    )}
+                  </div>
+
                 </>
               )}
               <p className="text-sm text-muted-foreground text-justify">
