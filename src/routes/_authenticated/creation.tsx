@@ -1,0 +1,618 @@
+import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { PageShell } from "@/components/layout/PageShell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Disclaimer } from "@/components/Disclaimer";
+import { CallbackDialog } from "@/components/CallbackDialog";
+import {
+  FORMES,
+  FORMES_COMMUNAUTE,
+  OBJETS_TYPES,
+  REGIMES,
+  REGIMES_COMMUNAUTAIRES,
+  REGIME_DEFAUT,
+  SITUATIONS,
+  TVA_OPTIONS,
+  euro,
+  fonctionsPour,
+  isSas,
+  liberationMin,
+  type Forme,
+} from "@/lib/domain";
+import { construireDocuments, type Associe, type Dossier } from "@/lib/documents";
+import { ArrowLeft, ExternalLink, Plus, Trash2 } from "lucide-react";
+
+export const Route = createFileRoute("/_authenticated/creation")({
+  head: () => ({
+    meta: [
+      { title: "Créer ma société — CREA EXPERT" },
+      { name: "description", content: "Parcours guidé de création de société, sauvegardé à chaque étape." },
+      { property: "og:title", content: "Créer ma société — CREA EXPERT" },
+      { property: "og:description", content: "Complétez votre dossier de création en ligne." },
+    ],
+  }),
+  component: Creation,
+});
+
+const TITRES = [
+  "Forme juridique",
+  "Dénomination",
+  "Siège social",
+  "Objet social",
+  "Capital",
+  "Associés",
+  "Direction",
+  "Options fiscales et sociales",
+  "Récapitulatif",
+];
+
+const champ = "h-10 w-full rounded-md border border-input bg-surface px-3 text-sm";
+
+function Creation() {
+  const navigate = useNavigate();
+  const [dossier, setDossier] = useState<Dossier | null>(null);
+  const [associes, setAssocies] = useState<Associe[]>([]);
+  const [etape, setEtape] = useState(1);
+  const [certifie, setCertifie] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const { data: rules } = useQuery({
+    queryKey: ["document_rules"],
+    queryFn: async () => (await supabase.from("document_rules").select("*")).data ?? [],
+  });
+
+  useEffect(() => {
+    (async () => {
+      const { data: sess } = await supabase.auth.getUser();
+      if (!sess.user) return;
+      const { data: existants } = await supabase
+        .from("dossiers")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(1);
+      let d = existants?.[0] ?? null;
+      if (!d) {
+        const { data: cree, error } = await supabase
+          .from("dossiers")
+          .insert({ user_id: sess.user.id })
+          .select("*")
+          .single();
+        if (error) {
+          toast.error("Impossible de créer le dossier.");
+          return;
+        }
+        d = cree;
+      }
+      setDossier(d);
+      setEtape(Math.min(Math.max(d.etape_courante, 1), 9));
+      const { data: as } = await supabase.from("associes").select("*").eq("dossier_id", d.id).order("created_at");
+      setAssocies(as ?? []);
+    })();
+  }, []);
+
+  async function patch(valeurs: Partial<Dossier>) {
+    if (!dossier) return;
+    const suivant = { ...dossier, ...valeurs } as Dossier;
+    setDossier(suivant);
+    await supabase.from("dossiers").update(valeurs).eq("id", dossier.id);
+  }
+
+  async function allerA(n: number) {
+    setEtape(n);
+    await patch({ etape_courante: n });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function ajouterAssocie(type: "personne_physique" | "personne_morale") {
+    if (!dossier) return;
+    const { data, error } = await supabase
+      .from("associes")
+      .insert({ dossier_id: dossier.id, type })
+      .select("*")
+      .single();
+    if (error || !data) {
+      toast.error("Ajout impossible.");
+      return;
+    }
+    setAssocies((a) => [...a, data]);
+  }
+
+  async function majAssocie(id: string, valeurs: Partial<Associe>) {
+    setAssocies((list) => list.map((a) => (a.id === id ? { ...a, ...valeurs } : a)));
+    await supabase.from("associes").update(valeurs).eq("id", id);
+  }
+
+  async function supprimerAssocie(id: string) {
+    setAssocies((list) => list.filter((a) => a.id !== id));
+    await supabase.from("associes").delete().eq("id", id);
+  }
+
+  const totalApports = useMemo(
+    () => associes.filter((a) => a.est_associe).reduce((s, a) => s + Number(a.montant_apport || 0), 0),
+    [associes],
+  );
+  const capitalOk = dossier ? Math.abs(totalApports - Number(dossier.capital_montant)) < 0.01 : false;
+
+  async function validerDossier() {
+    if (!dossier || !rules) return;
+    if (!certifie) {
+      toast.error("Vous devez certifier l'exactitude des informations.");
+      return;
+    }
+    if (!capitalOk) {
+      toast.error("Le total des apports doit être égal au capital social.");
+      return;
+    }
+    setBusy(true);
+    const drafts = construireDocuments(dossier, associes, rules);
+    await supabase.from("documents").delete().eq("dossier_id", dossier.id).eq("statut_document", "a_fournir");
+    await supabase.from("documents").insert(drafts);
+    await supabase.from("dossiers").update({ statut: "dossier_valide_client" }).eq("id", dossier.id);
+    await supabase.from("events_dossier").insert({
+      dossier_id: dossier.id,
+      type_event: "dossier_valide_client",
+      message: "Dossier validé par le client. La liste des pièces à fournir a été générée.",
+    });
+    setBusy(false);
+    toast.success("Dossier validé. Votre checklist de documents est prête.");
+    navigate({ to: "/documents" });
+  }
+
+  if (!dossier) {
+    return (
+      <PageShell>
+        <div className="container-page py-14 text-muted-foreground">Chargement de votre dossier…</div>
+      </PageShell>
+    );
+  }
+
+  const forme = dossier.forme_juridique as Forme;
+  const libMin = liberationMin(forme);
+
+  return (
+    <PageShell withFooter={false}>
+      <div className="container-page grid gap-8 py-8 lg:grid-cols-[1.6fr_1fr]">
+        <div>
+          <div className="mb-6">
+            <Progress value={(etape / 9) * 100} />
+            <p className="mt-2 text-sm text-muted-foreground">
+              Étape {etape} sur 9 — {TITRES[etape - 1]}
+            </p>
+          </div>
+
+          {etape > 1 && (
+            <Button variant="ghost" size="sm" className="mb-4 -ml-2" onClick={() => allerA(etape - 1)}>
+              <ArrowLeft strokeWidth={1.5} /> Retour
+            </Button>
+          )}
+
+          <h1 className="font-serif text-3xl">{TITRES[etape - 1]}</h1>
+
+          {/* 1 — FORME */}
+          {etape === 1 && (
+            <div className="mt-6 space-y-3">
+              {FORMES.map((f) => (
+                <button
+                  key={f.value}
+                  type="button"
+                  onClick={() => patch({ forme_juridique: f.value })}
+                  className={`w-full rounded-lg border px-5 py-4 text-left transition-colors hover:border-accent ${
+                    forme === f.value ? "border-accent bg-accent/5" : "border-border bg-surface"
+                  }`}
+                >
+                  <span className="font-semibold">{f.label}</span>
+                  <span className="mt-1 block text-sm text-muted-foreground">{f.desc}</span>
+                </button>
+              ))}
+              <Link to="/simulateur" className="inline-block text-sm underline underline-offset-2">
+                Refaire la simulation
+              </Link>
+              <Disclaimer />
+            </div>
+          )}
+
+          {/* 2 — DENOMINATION */}
+          {etape === 2 && (
+            <div className="mt-6 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="denom">Dénomination sociale</Label>
+                <Input id="denom" maxLength={120} value={dossier.denomination} onChange={(e) => patch({ denomination: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sigle">Sigle (facultatif)</Label>
+                <Input id="sigle" maxLength={40} value={dossier.sigle ?? ""} onChange={(e) => patch({ sigle: e.target.value })} />
+              </div>
+              <div className="rounded-md border border-border bg-muted/50 p-4 text-sm">
+                <p className="font-medium">Vérifiez la disponibilité avant de continuer</p>
+                <ul className="mt-2 space-y-1.5">
+                  {[
+                    ["Annuaire des entreprises", "https://annuaire-entreprises.data.gouv.fr"],
+                    ["Base des marques (INPI)", "https://data.inpi.fr"],
+                    ["Disponibilité du nom de domaine", "https://www.afnic.fr/noms-de-domaine/tout-savoir/whois-trouver-un-nom-de-domaine/"],
+                  ].map(([l, h]) => (
+                    <li key={h}>
+                      <a href={h} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 underline underline-offset-2">
+                        {l} <ExternalLink className="size-3.5" strokeWidth={1.5} aria-hidden />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="flex items-start gap-3">
+                <Checkbox id="verif" checked={dossier.denomination_verifiee} onCheckedChange={(v) => patch({ denomination_verifiee: v === true })} className="mt-0.5" />
+                <Label htmlFor="verif" className="text-sm font-normal">
+                  J'ai vérifié la disponibilité de ma dénomination. (obligatoire)
+                </Label>
+              </div>
+            </div>
+          )}
+
+          {/* 3 — SIEGE */}
+          {etape === 3 && (
+            <div className="mt-6 space-y-4">
+              {[
+                {
+                  v: "domicile_dirigeant",
+                  t: "Chez le dirigeant",
+                  d: "Simple et sans coût, adapté aux petits projets. La domiciliation est possible au domicile du représentant légal ; si le bail ou le règlement de copropriété s'y oppose, elle est limitée à 5 ans.",
+                },
+                { v: "domiciliataire", t: "Société de domiciliation", d: "Une adresse professionnelle fournie par un prestataire agréé, avec un contrat et un numéro d'agrément." },
+                { v: "local", t: "Local commercial ou professionnel", d: "Vous disposez d'un bail ou d'un titre d'occupation à votre nom." },
+              ].map((o) => (
+                <button
+                  key={o.v}
+                  type="button"
+                  onClick={() => patch({ siege_type: o.v })}
+                  className={`w-full rounded-lg border px-5 py-4 text-left ${dossier.siege_type === o.v ? "border-accent bg-accent/5" : "border-border bg-surface"}`}
+                >
+                  <span className="font-semibold">{o.t}</span>
+                  <span className="mt-1 block text-sm text-muted-foreground">{o.d}</span>
+                </button>
+              ))}
+              {dossier.siege_type && (
+                <div className="space-y-2">
+                  <Label htmlFor="adr">Adresse du siège</Label>
+                  <Textarea id="adr" maxLength={300} value={dossier.siege_adresse ?? ""} onChange={(e) => patch({ siege_adresse: e.target.value })} />
+                </div>
+              )}
+              {dossier.siege_type === "domiciliataire" && (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="dnom">Nom du domiciliataire</Label>
+                    <Input id="dnom" maxLength={120} value={dossier.domiciliataire_nom ?? ""} onChange={(e) => patch({ domiciliataire_nom: e.target.value })} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="dag">Numéro d'agrément</Label>
+                    <Input id="dag" maxLength={60} value={dossier.domiciliataire_agrement ?? ""} onChange={(e) => patch({ domiciliataire_agrement: e.target.value })} />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 4 — OBJET */}
+          {etape === 4 && (
+            <div className="mt-6 space-y-4">
+              <p className="text-sm text-muted-foreground">Choisissez un objet type, puis adaptez-le si nécessaire.</p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {OBJETS_TYPES.map((o) => (
+                  <button
+                    key={o.titre}
+                    type="button"
+                    onClick={() => patch({ objet_social: o.texte })}
+                    className="rounded-md border border-border bg-surface px-3 py-2.5 text-left text-sm hover:border-accent"
+                  >
+                    {o.titre}
+                  </button>
+                ))}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="objet">Objet social</Label>
+                <Textarea id="objet" rows={5} maxLength={1500} value={dossier.objet_social ?? ""} onChange={(e) => patch({ objet_social: e.target.value })} />
+              </div>
+              <p className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm">
+                Certaines activités sont réglementées et exigent un diplôme ou une autorisation ;
+                votre dossier sera alors orienté vers le cabinet.
+              </p>
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="regl"
+                  checked={dossier.activite_reglementee}
+                  onCheckedChange={(v) => patch({ activite_reglementee: v === true, routage_cabinet: v === true || dossier.apport_nature })}
+                  className="mt-0.5"
+                />
+                <Label htmlFor="regl" className="text-sm font-normal">Mon activité est réglementée.</Label>
+              </div>
+            </div>
+          )}
+
+          {/* 5 — CAPITAL */}
+          {etape === 5 && (
+            <div className="mt-6 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="cap">Montant du capital social (minimum 1 €)</Label>
+                <Input id="cap" type="number" min={1} step="1" value={dossier.capital_montant} onChange={(e) => patch({ capital_montant: Number(e.target.value) })} />
+                <p className="text-xs text-muted-foreground">Valeur suggérée : 1 000 €.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lib">Libération à la constitution (%)</Label>
+                <Input id="lib" type="number" min={libMin} max={100} value={dossier.capital_liberation} onChange={(e) => patch({ capital_liberation: Number(e.target.value) })} />
+                <p className="text-sm">
+                  Règle applicable : {isSas(forme) ? "en SAS et SASU, au moins 50 % des apports en numéraire doivent être libérés à la constitution." : forme === "SCI" ? "en SCI, la libération des apports est fixée librement par les statuts." : "en SARL et EURL, au moins 20 % des apports en numéraire doivent être libérés à la constitution."}
+                </p>
+              </div>
+              <p className="rounded-md border border-border bg-muted/50 p-3 text-sm">
+                En V1, seuls les apports en numéraire sont traités en ligne.
+              </p>
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="nature"
+                  checked={dossier.apport_nature}
+                  onCheckedChange={(v) => patch({ apport_nature: v === true, routage_cabinet: v === true || dossier.activite_reglementee })}
+                  className="mt-0.5"
+                />
+                <Label htmlFor="nature" className="text-sm font-normal">
+                  Je souhaite réaliser un apport en nature. Votre dossier sera alors accompagné
+                  directement par le cabinet, car cet apport suppose une évaluation spécifique.
+                </Label>
+              </div>
+              <Disclaimer />
+            </div>
+          )}
+
+          {/* 6 — ASSOCIES */}
+          {etape === 6 && (
+            <div className="mt-6 space-y-5">
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" onClick={() => ajouterAssocie("personne_physique")}>
+                  <Plus strokeWidth={1.5} /> Ajouter une personne physique
+                </Button>
+                <Button variant="outline" onClick={() => ajouterAssocie("personne_morale")}>
+                  <Plus strokeWidth={1.5} /> Ajouter une personne morale
+                </Button>
+              </div>
+
+              {associes.map((a) => (
+                <div key={a.id} className="space-y-3 rounded-lg border border-border bg-surface p-4">
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary">{a.type === "personne_morale" ? "Personne morale" : "Personne physique"}</Badge>
+                    <Button variant="ghost" size="sm" onClick={() => supprimerAssocie(a.id)} aria-label="Supprimer">
+                      <Trash2 strokeWidth={1.5} />
+                    </Button>
+                  </div>
+
+                  {a.type === "personne_physique" ? (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <Input placeholder="Civilité" maxLength={10} value={a.civilite ?? ""} onChange={(e) => majAssocie(a.id, { civilite: e.target.value })} />
+                      <Input placeholder="Prénom" maxLength={80} value={a.prenom ?? ""} onChange={(e) => majAssocie(a.id, { prenom: e.target.value })} />
+                      <Input placeholder="Nom" maxLength={80} value={a.nom ?? ""} onChange={(e) => majAssocie(a.id, { nom: e.target.value })} />
+                      <Input placeholder="Nom de naissance" maxLength={80} value={a.nom_naissance ?? ""} onChange={(e) => majAssocie(a.id, { nom_naissance: e.target.value })} />
+                      <Input type="date" value={a.date_naissance ?? ""} onChange={(e) => majAssocie(a.id, { date_naissance: e.target.value })} />
+                      <Input placeholder="Lieu de naissance" maxLength={120} value={a.lieu_naissance ?? ""} onChange={(e) => majAssocie(a.id, { lieu_naissance: e.target.value })} />
+                      <Input placeholder="Nationalité" maxLength={60} value={a.nationalite ?? ""} onChange={(e) => majAssocie(a.id, { nationalite: e.target.value })} />
+                      <Input placeholder="Adresse" maxLength={200} value={a.adresse ?? ""} onChange={(e) => majAssocie(a.id, { adresse: e.target.value })} />
+                      <Input placeholder="Email" type="email" maxLength={255} value={a.email ?? ""} onChange={(e) => majAssocie(a.id, { email: e.target.value })} />
+                      <select className={champ} value={a.situation_matrimoniale ?? ""} onChange={(e) => majAssocie(a.id, { situation_matrimoniale: e.target.value })}>
+                        <option value="">Situation matrimoniale…</option>
+                        {SITUATIONS.map((s) => (
+                          <option key={s.value} value={s.value}>{s.label}</option>
+                        ))}
+                      </select>
+                      {a.situation_matrimoniale === "marie" && (
+                        <select className={champ} value={a.regime_matrimonial ?? ""} onChange={(e) => majAssocie(a.id, { regime_matrimonial: e.target.value })}>
+                          <option value="">Régime matrimonial…</option>
+                          {REGIMES.map((r) => (
+                            <option key={r.value} value={r.value}>{r.label}</option>
+                          ))}
+                        </select>
+                      )}
+                      {a.situation_matrimoniale === "marie" &&
+                        REGIMES_COMMUNAUTAIRES.includes(a.regime_matrimonial ?? "") &&
+                        FORMES_COMMUNAUTE.includes(forme) && (
+                          <div className="sm:col-span-2 space-y-2 rounded-md border border-border bg-muted/50 p-3">
+                            <div className="flex items-start gap-3">
+                              <Checkbox id={`fc-${a.id}`} checked={a.apport_fonds_communs} onCheckedChange={(v) => majAssocie(a.id, { apport_fonds_communs: v === true })} className="mt-0.5" />
+                              <Label htmlFor={`fc-${a.id}`} className="text-sm font-normal">
+                                L'apport provient de fonds communs du couple.
+                              </Label>
+                            </div>
+                            <p className="text-sm">
+                              Dans ce cas, votre conjoint doit être informé de l'apport. Un courrier
+                              d'information sera généré et devra être signé avant la signature des
+                              statuts.
+                            </p>
+                          </div>
+                        )}
+                    </div>
+                  ) : (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <Input placeholder="Dénomination" maxLength={120} value={a.denomination ?? ""} onChange={(e) => majAssocie(a.id, { denomination: e.target.value })} />
+                      <Input placeholder="Forme" maxLength={40} value={a.forme ?? ""} onChange={(e) => majAssocie(a.id, { forme: e.target.value })} />
+                      <Input placeholder="SIREN" maxLength={20} value={a.siren ?? ""} onChange={(e) => majAssocie(a.id, { siren: e.target.value })} />
+                      <Input placeholder="Siège" maxLength={200} value={a.siege ?? ""} onChange={(e) => majAssocie(a.id, { siege: e.target.value })} />
+                      <Input placeholder="Représentant" maxLength={120} value={a.representant ?? ""} onChange={(e) => majAssocie(a.id, { representant: e.target.value })} />
+                    </div>
+                  )}
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Nombre de titres</Label>
+                      <Input type="number" min={0} value={a.nb_titres} onChange={(e) => majAssocie(a.id, { nb_titres: Number(e.target.value) })} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">Montant de l'apport (€)</Label>
+                      <Input type="number" min={0} step="0.01" value={a.montant_apport} onChange={(e) => majAssocie(a.id, { montant_apport: Number(e.target.value) })} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <p className={`rounded-md border p-3 text-sm ${capitalOk ? "border-success/40 bg-success/8" : "border-destructive/40 bg-destructive/8"}`}>
+                Total des apports : {euro(totalApports)} — capital social : {euro(Number(dossier.capital_montant))}.
+                {capitalOk ? " Les montants correspondent." : " Les deux montants doivent être identiques pour continuer."}
+              </p>
+            </div>
+          )}
+
+          {/* 7 — DIRECTION */}
+          {etape === 7 && (
+            <div className="mt-6 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Désignez le ou les dirigeants parmi les personnes physiques enregistrées. Pour
+                nommer un tiers non associé, ajoutez-le à l'étape précédente et décochez « associé ».
+              </p>
+              {associes.filter((a) => a.type === "personne_physique").length === 0 && (
+                <p className="text-sm">Ajoutez d'abord une personne physique à l'étape 6.</p>
+              )}
+              {associes
+                .filter((a) => a.type === "personne_physique")
+                .map((a) => (
+                  <div key={a.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-surface p-4">
+                    <Checkbox id={`dir-${a.id}`} checked={a.est_dirigeant} onCheckedChange={(v) => majAssocie(a.id, { est_dirigeant: v === true })} />
+                    <Label htmlFor={`dir-${a.id}`} className="font-normal">
+                      {a.prenom} {a.nom || "(sans nom)"}
+                    </Label>
+                    <Checkbox id={`ass-${a.id}`} checked={a.est_associe} onCheckedChange={(v) => majAssocie(a.id, { est_associe: v === true })} />
+                    <Label htmlFor={`ass-${a.id}`} className="font-normal text-sm text-muted-foreground">associé</Label>
+                    {a.est_dirigeant && (
+                      <select className={`${champ} sm:w-56`} value={a.fonction ?? ""} onChange={(e) => majAssocie(a.id, { fonction: e.target.value })}>
+                        <option value="">Fonction…</option>
+                        {fonctionsPour(forme).map((f) => (
+                          <option key={f.value} value={f.value}>{f.label}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                ))}
+            </div>
+          )}
+
+          {/* 8 — OPTIONS */}
+          {etape === 8 && (
+            <div className="mt-6 space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="cloture">Date de clôture de l'exercice</Label>
+                <Input id="cloture" maxLength={5} value={dossier.date_cloture_exercice} onChange={(e) => patch({ date_cloture_exercice: e.target.value })} />
+                <p className="text-sm text-muted-foreground">
+                  Le premier exercice sera clos le {dossier.date_cloture_exercice} suivant l'immatriculation.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Option fiscale</Label>
+                <p className="text-sm">{REGIME_DEFAUT[forme]}</p>
+                <div className="flex gap-2">
+                  {["IS", "IR"].map((o) => (
+                    <Button key={o} type="button" variant={dossier.option_fiscale === o ? "default" : "outline"} onClick={() => patch({ option_fiscale: o })}>
+                      {o}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Régime de TVA</Label>
+                {TVA_OPTIONS.map((t) => (
+                  <button key={t.value} type="button" onClick={() => patch({ regime_tva: t.value })} className={`w-full rounded-lg border px-4 py-3 text-left ${dossier.regime_tva === t.value ? "border-accent bg-accent/5" : "border-border bg-surface"}`}>
+                    <span className="font-medium">{t.label}</span>
+                    <span className="mt-0.5 block text-sm text-muted-foreground">{t.desc}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="space-y-2 rounded-md border border-border bg-muted/50 p-4">
+                <div className="flex items-start gap-3">
+                  <Checkbox id="acre" checked={dossier.demande_acre} onCheckedChange={(v) => patch({ demande_acre: v === true })} className="mt-0.5" />
+                  <Label htmlFor="acre" className="text-sm font-normal">Je souhaite demander l'ACRE.</Label>
+                </div>
+                <p className="text-sm">
+                  L'ACRE est une exonération partielle et temporaire de certaines cotisations
+                  sociales, soumise à conditions d'éligibilité appréciées par l'organisme compétent.
+                </p>
+              </div>
+
+              <p className="rounded-md border border-accent/40 bg-accent/8 p-3 text-sm font-medium">
+                Ces choix seront revus avec vous par l'expert-comptable.
+              </p>
+              <Disclaimer />
+            </div>
+          )}
+
+          {/* 9 — RECAP */}
+          {etape === 9 && (
+            <div className="mt-6 space-y-4">
+              <dl className="divide-y divide-border rounded-lg border border-border bg-surface">
+                {[
+                  ["Forme juridique", forme],
+                  ["Dénomination", dossier.denomination || "—"],
+                  ["Sigle", dossier.sigle || "—"],
+                  ["Siège", dossier.siege_adresse || "—"],
+                  ["Objet social", dossier.objet_social || "—"],
+                  ["Durée", `${dossier.duree_annees} ans`],
+                  ["Capital", euro(Number(dossier.capital_montant))],
+                  ["Libération", `${dossier.capital_liberation} %`],
+                  ["Clôture d'exercice", dossier.date_cloture_exercice],
+                  ["Option fiscale", dossier.option_fiscale || "—"],
+                  ["Régime de TVA", TVA_OPTIONS.find((t) => t.value === dossier.regime_tva)?.label ?? "—"],
+                  ["ACRE", dossier.demande_acre ? "Demandée" : "Non demandée"],
+                  ["Associés", associes.map((a) => (a.type === "personne_morale" ? a.denomination : `${a.prenom} ${a.nom}`)).join(", ") || "—"],
+                ].map(([k, v]) => (
+                  <div key={k as string} className="grid gap-1 p-3 sm:grid-cols-[14rem_1fr]">
+                    <dt className="text-sm text-muted-foreground">{k}</dt>
+                    <dd className="text-sm">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+
+              <div className="flex items-start gap-3">
+                <Checkbox id="certif" checked={certifie} onCheckedChange={(v) => setCertifie(v === true)} className="mt-0.5" />
+                <Label htmlFor="certif" className="text-sm font-normal">
+                  Je certifie l'exactitude des informations saisies.
+                </Label>
+              </div>
+
+              <Button size="lg" onClick={validerDossier} disabled={busy}>
+                {busy ? "Validation…" : "Valider mon dossier"}
+              </Button>
+            </div>
+          )}
+
+          <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-border pt-6">
+            {etape < 9 && <Button onClick={() => allerA(etape + 1)}>Continuer</Button>}
+            <CallbackDialog variant="ghost" />
+          </div>
+        </div>
+
+        {/* PANNEAU RECAP */}
+        <aside className="h-fit rounded-lg border border-border bg-surface p-5 lg:sticky lg:top-24">
+          <h2 className="font-serif text-xl">Votre dossier</h2>
+          {dossier.routage_cabinet && <Badge className="mt-3">Accompagnement cabinet requis</Badge>}
+          <dl className="mt-4 space-y-2.5 text-sm">
+            {[
+              ["Forme", forme],
+              ["Dénomination", dossier.denomination || "—"],
+              ["Siège", dossier.siege_adresse || "—"],
+              ["Capital", euro(Number(dossier.capital_montant))],
+              ["Associés", String(associes.length)],
+              ["Dirigeants", String(associes.filter((a) => a.est_dirigeant).length)],
+            ].map(([k, v]) => (
+              <div key={k} className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">{k}</dt>
+                <dd className="text-right font-medium">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </aside>
+      </div>
+    </PageShell>
+  );
+}
