@@ -1153,6 +1153,8 @@ function Creation() {
               <div className="space-y-2">
                 <Label htmlFor="cap">Montant du capital social (minimum 1 €)</Label>
                 <Input id="cap" type="number" min={1} step="1" value={dossier.capital_montant} onChange={(e) => patch({ capital_montant: Math.max(1, Number(e.target.value) || 1) })} />
+                <Err nom="capital_montant" />
+
                 <p className="text-xs text-muted-foreground">Valeur suggérée : 1 000 €.</p>
               </div>
               <div className="space-y-2">
