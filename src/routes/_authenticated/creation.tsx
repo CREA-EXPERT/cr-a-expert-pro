@@ -332,6 +332,7 @@ function Creation() {
         : TITRES[cle];
   const cout = coutParForme(tarifs, forme);
   const relectureHt = prixRelectureHt(tarifs);
+  const relectureOptionsHt = tarifMap(tarifs).get("relecture_options")?.montant_ht ?? 150;
   const relecture = dossier.voie_validation === "cabinet" ? relectureHt * 1.2 : 0;
 
   return (
