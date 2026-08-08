@@ -121,7 +121,7 @@ function OngletTarifs() {
     const patch = brouillons[t.id];
     if (!patch) return;
     const { error } = await supabase.from("params_tarifs").update(patch).eq("id", t.id);
-    if (error) return toast.error("Enregistrement impossible.");
+    if (error) { toast.error("Enregistrement impossible."); return; }
     setBrouillons((b) => {
       const c = { ...b };
       delete c[t.id];
@@ -133,20 +133,20 @@ function OngletTarifs() {
 
   async function supprimer(id: string) {
     const { error } = await supabase.from("params_tarifs").delete().eq("id", id);
-    if (error) return toast.error("Suppression impossible.");
+    if (error) { toast.error("Suppression impossible."); return; }
     toast.success("Paramètre supprimé.");
     qc.invalidateQueries({ queryKey: ["admin-tarifs"] });
   }
 
   async function ajouter() {
-    if (!nouveau.cle.trim() || !nouveau.libelle.trim()) return toast.error("Clé et libellé obligatoires.");
+    if (!nouveau.cle.trim() || !nouveau.libelle.trim()) { toast.error("Clé et libellé obligatoires."); return; }
     const { error } = await supabase.from("params_tarifs").insert({
       cle: nouveau.cle.trim(),
       libelle: nouveau.libelle.trim(),
       montant_ht: nouveau.montant_ht === "" ? null : Number(nouveau.montant_ht),
       montant_ttc: nouveau.montant_ttc === "" ? null : Number(nouveau.montant_ttc),
     });
-    if (error) return toast.error("Création impossible (clé déjà utilisée ?).");
+    if (error) { toast.error("Création impossible (clé déjà utilisée ?)."); return; }
     setNouveau({ cle: "", libelle: "", montant_ht: "", montant_ttc: "" });
     toast.success("Paramètre ajouté.");
     qc.invalidateQueries({ queryKey: ["admin-tarifs"] });
@@ -267,7 +267,7 @@ function OngletRegles() {
     const patch = brouillons[r.id];
     if (!patch) return;
     const { error } = await supabase.from("document_rules").update(patch).eq("id", r.id);
-    if (error) return toast.error("Enregistrement impossible.");
+    if (error) { toast.error("Enregistrement impossible."); return; }
     setBrouillons((b) => {
       const c = { ...b };
       delete c[r.id];
@@ -279,21 +279,21 @@ function OngletRegles() {
 
   async function supprimer(id: string) {
     const { error } = await supabase.from("document_rules").delete().eq("id", id);
-    if (error) return toast.error("Suppression impossible.");
+    if (error) { toast.error("Suppression impossible."); return; }
     toast.success("Règle supprimée.");
     qc.invalidateQueries({ queryKey: ["admin-regles"] });
   }
 
   async function ajouter() {
     if (!nouvelle.type_document.trim() || !nouvelle.libelle_client.trim())
-      return toast.error("Type de document et libellé client obligatoires.");
+      { toast.error("Type de document et libellé client obligatoires."); return; }
     const { error } = await supabase.from("document_rules").insert({
       ...nouvelle,
       condition_valeur: nouvelle.condition_valeur || null,
       aide_client: nouvelle.aide_client || null,
       ordre: Number(nouvelle.ordre),
     });
-    if (error) return toast.error("Création impossible.");
+    if (error) { toast.error("Création impossible."); return; }
     setNouvelle({ ...REGLE_VIDE });
     toast.success("Règle ajoutée.");
     qc.invalidateQueries({ queryKey: ["admin-regles"] });
