@@ -1775,9 +1775,10 @@ function Creation() {
               {[
                 {
                   v: "cabinet",
-                  t: `Relecture par l'expert-comptable — ${euro(relectureHt)} HT`,
-                  d: "Un expert-comptable inscrit à l'Ordre contrôle vos pièces et vos documents avant le dépôt. La mention « PROJET » est retirée après sa validation.",
+                  t: `Relecture complète du dossier par un expert-comptable — ${euro(relectureHt)} HT (${euro(relectureHt * 1.2)} TTC)`,
+                  d: "Un expert-comptable inscrit à l'Ordre contrôle les statuts, les choix fiscaux et sociaux et la cohérence des pièces avant le dépôt. Périmètre : jusqu'à 3 emails et 3 appels avec l'expert-comptable. La mention « PROJET » est retirée après sa validation.",
                 },
+
                 {
                   v: "auto",
                   t: "Je valide moi-même mon dossier — sans frais",
