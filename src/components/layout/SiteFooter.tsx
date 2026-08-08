@@ -1,5 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { Landmark } from "lucide-react";
+import { RecommandationDialog } from "@/components/RecommandationDialog";
+import { CABINET } from "@/lib/domain";
+
 
 export function SiteFooter() {
   return (
