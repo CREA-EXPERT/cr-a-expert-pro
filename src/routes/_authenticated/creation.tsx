@@ -214,6 +214,8 @@ function Creation() {
       if (res?.texte) {
         await patch({ objet_social: res.texte });
         toast.success("Proposition rédigée. Relisez-la et adaptez-la si nécessaire.");
+      } else {
+        toast.error(res?.erreur ?? "Aucune proposition n'a pu être générée.");
       }
     } catch {
       toast.error("L'assistance à la rédaction est momentanément indisponible.");
