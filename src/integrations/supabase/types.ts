@@ -262,6 +262,8 @@ export type Database = {
           etape_courante: number
           forme_juridique: string
           id: string
+          justificatif_detail: string | null
+          justificatif_type: string | null
           lettre_mission_acceptee_le: string | null
           lettre_mission_nom: string | null
           moyen_de_paiement_enregistre: boolean
@@ -303,6 +305,8 @@ export type Database = {
           etape_courante?: number
           forme_juridique?: string
           id?: string
+          justificatif_detail?: string | null
+          justificatif_type?: string | null
           lettre_mission_acceptee_le?: string | null
           lettre_mission_nom?: string | null
           moyen_de_paiement_enregistre?: boolean
@@ -344,6 +348,8 @@ export type Database = {
           etape_courante?: number
           forme_juridique?: string
           id?: string
+          justificatif_detail?: string | null
+          justificatif_type?: string | null
           lettre_mission_acceptee_le?: string | null
           lettre_mission_nom?: string | null
           moyen_de_paiement_enregistre?: boolean

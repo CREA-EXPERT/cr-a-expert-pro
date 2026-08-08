@@ -209,8 +209,15 @@ function Creation() {
     setRedaction(true);
     try {
       const res = await redigerObjetSocial({
-        data: { activite: descriptionActivite.trim(), forme: dossier.forme_juridique },
+        data: {
+          activite: descriptionActivite.trim(),
+          forme: dossier.forme_juridique,
+          ...(dossier.code_naf
+            ? { naf: `${dossier.code_naf} — ${dossier.code_naf_libelle ?? ""}`.trim() }
+            : {}),
+        },
       });
+
       if (res?.texte) {
         await patch({ objet_social: res.texte });
         toast.success("Proposition rédigée. Relisez-la et adaptez-la si nécessaire.");
@@ -361,12 +368,12 @@ function Creation() {
                 <Input id="sigle" maxLength={40} value={dossier.sigle ?? ""} onChange={(e) => patch({ sigle: e.target.value })} />
               </div>
               <div className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed">
-                <p className="font-medium">Vérifiez que ce nom est disponible en tant que marque</p>
+                <p className="font-medium">Vérifiez que ce nom est disponible</p>
                 <p className="mt-2">
-                  Une dénomination identique ou similaire à une marque déjà déposée pour des
-                  produits ou services proches expose à une action en contrefaçon et à
-                  l'interdiction d'utiliser le nom, même après immatriculation. La vérification se
-                  fait gratuitement dans la base des marques de l'INPI.
+                  Un nom identique ou similaire à une marque déjà déposée pour des produits ou
+                  services proches expose à une action en contrefaçon et à l'interdiction d'utiliser
+                  le nom, même après immatriculation. La recherche est gratuite dans la base des
+                  marques de l'INPI.
                 </p>
                 <p className="mt-2">
                   <a
@@ -380,15 +387,11 @@ function Creation() {
                   </a>
                 </p>
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Textes applicables : articles L. 713-2 à L. 713-6 du code de la propriété
-                  intellectuelle. L'article L. 713-2 interdit, sans autorisation du titulaire,
-                  l'usage d'un signe identique à la marque pour des produits ou services
-                  identiques, ainsi que l'usage d'un signe identique ou similaire pour des produits
-                  ou services identiques ou similaires s'il existe un risque de confusion dans
-                  l'esprit du public. Les articles L. 713-3 à L. 713-5 étendent cette protection aux
-                  marques renommées et à certains usages, et l'article L. 713-6 réserve les
-                  exceptions, notamment l'usage de son nom patronymique de bonne foi et l'usage
-                  antérieur d'un signe local.
+                  Articles L. 713-2 à L. 713-6 du code de la propriété intellectuelle : usage
+                  interdit d'un signe identique à une marque pour des produits ou services
+                  identiques, et d'un signe identique ou similaire s'il existe un risque de
+                  confusion ; protection étendue aux marques renommées, sous réserve de l'usage de
+                  bonne foi de son nom patronymique et de l'usage antérieur d'un signe local.
                 </p>
               </div>
               <div className="flex items-start gap-3">
@@ -398,6 +401,7 @@ function Creation() {
                   l'usage de ce nom, et j'en assume la responsabilité. (obligatoire)
                 </Label>
               </div>
+
 
             </div>
           )}
@@ -548,28 +552,67 @@ function Creation() {
               </div>
 
               {dossier.activite_reglementee ? (
-                <div className="rounded-md border border-warning/50 bg-warning/10 p-4 text-sm leading-relaxed">
-                  <p className="font-medium">Activité réglementée : une pièce justificative sera demandée</p>
-                  <p className="mt-2">
-                    L'exercice de cette activité est subordonné à une condition de diplôme, de
-                    qualification, d'agrément ou d'autorisation. Une pièce justificative est ajoutée
-                    à votre liste de documents ; selon l'activité, il s'agit de l'un des documents
-                    suivants :
-                  </p>
-                  <ul className="mt-2 space-y-1 pl-5 [&>li]:list-disc">
-                    <li>diplôme, titre ou certificat de qualification professionnelle ;</li>
-                    <li>carte professionnelle (immobilier, sécurité privée, transport…) ;</li>
-                    <li>agrément, licence ou autorisation administrative préfectorale ;</li>
-                    <li>attestation d'inscription à un ordre ou à un organisme professionnel ;</li>
-                    <li>attestation d'assurance de responsabilité civile professionnelle ou décennale ;</li>
-                    <li>justificatif d'expérience professionnelle lorsqu'il remplace le diplôme.</li>
-                  </ul>
-                  <p className="mt-2">
-                    Votre dossier est orienté vers le cabinet, qui vous indique la pièce exacte
-                    attendue et vérifie sa conformité avant dépôt.
-                  </p>
+                <div className="space-y-4">
+                  <div className="rounded-md border border-warning/50 bg-warning/10 p-4 text-sm leading-relaxed">
+                    <p className="font-medium">Activité réglementée : une pièce justificative sera demandée</p>
+                    <p className="mt-2">
+                      L'exercice de cette activité est subordonné à une condition de diplôme, de
+                      qualification, d'agrément ou d'autorisation. Une pièce justificative est ajoutée
+                      à votre liste de documents ; selon l'activité, il s'agit de l'un des documents
+                      suivants :
+                    </p>
+                    <ul className="mt-2 space-y-1 pl-5 [&>li]:list-disc">
+                      <li>diplôme, titre ou certificat de qualification professionnelle ;</li>
+                      <li>carte professionnelle (immobilier, sécurité privée, transport…) ;</li>
+                      <li>agrément, licence ou autorisation administrative préfectorale ;</li>
+                      <li>attestation d'inscription à un ordre ou à un organisme professionnel ;</li>
+                      <li>attestation d'assurance de responsabilité civile professionnelle ou décennale ;</li>
+                      <li>justificatif d'expérience professionnelle lorsqu'il remplace le diplôme.</li>
+                    </ul>
+                    <p className="mt-2">
+                      Votre dossier est orienté vers le cabinet, qui vous indique la pièce exacte
+                      attendue et vérifie sa conformité avant dépôt.
+                    </p>
+                  </div>
+
+                  <div className="rounded-md border border-border bg-surface p-4">
+                    <p className="text-sm font-medium">Sur quoi repose votre qualification ?</p>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      {[
+                        { v: "diplome", t: "Un diplôme ou un titre" },
+                        { v: "experience", t: "Une expérience professionnelle" },
+                      ].map((o) => (
+                        <button
+                          key={o.v}
+                          type="button"
+                          onClick={() => patch({ justificatif_type: o.v })}
+                          className={`rounded-md border px-3 py-2.5 text-left text-sm ${dossier.justificatif_type === o.v ? "border-accent bg-accent/5" : "border-border bg-background"}`}
+                        >
+                          {o.t}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      <Label htmlFor="justif" className="text-sm font-normal">
+                        Précisez (intitulé du diplôme et année, ou fonctions exercées, employeur et
+                        durée)
+                      </Label>
+                      <Textarea
+                        id="justif"
+                        rows={3}
+                        maxLength={500}
+                        value={dossier.justificatif_detail ?? ""}
+                        onChange={(e) => patch({ justificatif_detail: e.target.value })}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Cette information oriente la relecture du cabinet ; le justificatif lui-même
+                        se dépose à l'étape « Mes documents ».
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ) : (
+
                 <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
                   Certaines activités sont réglementées et exigent un diplôme, une qualification ou
                   une autorisation. Si c'est votre cas, cochez la case ci-dessus : votre dossier sera

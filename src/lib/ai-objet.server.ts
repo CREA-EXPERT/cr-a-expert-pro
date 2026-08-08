@@ -1,15 +1,20 @@
 const SYSTEME =
   "Tu rédiges des objets sociaux pour des sociétés françaises. " +
   "Réponds uniquement par le texte de l'objet social, en français, sans titre, sans guillemets, " +
-  "sans commentaire et sans conseil juridique. Un seul paragraphe de 40 à 90 mots, " +
-  "rédigé à l'infinitif nominal (« La conception, la vente… »), suffisamment large pour couvrir " +
-  "les activités connexes, et terminé par : « et, plus généralement, toutes opérations " +
-  "industrielles, commerciales, financières, mobilières ou immobilières se rattachant " +
-  "directement ou indirectement à cet objet ou susceptibles d'en faciliter la réalisation. » " +
+  "sans commentaire et sans conseil juridique. " +
+  "Rédige UNE à DEUX phrases au maximum, courtes et lisibles (60 mots maximum au total), " +
+  "à l'infinitif nominal (« La conception, la vente… »), en t'appuyant strictement sur " +
+  "l'activité décrite et sur le code d'activité indiqué, suffisamment large pour couvrir " +
+  "les activités connexes. Termine par : « et, plus généralement, toutes opérations se " +
+  "rattachant directement ou indirectement à cet objet. » " +
   "N'invente aucune mention d'agrément ou d'activité réglementée.";
 
 /** Appel à la passerelle IA de Lovable. Serveur uniquement. */
-export async function redigerObjetSocialServeur(activite: string, forme: string) {
+export async function redigerObjetSocialServeur(
+  activite: string,
+  forme: string,
+  naf?: string,
+) {
   const key = process.env["LOVABLE_API_KEY"];
   if (!key) return { texte: "", erreur: "Assistance à la rédaction indisponible." };
 
@@ -22,7 +27,10 @@ export async function redigerObjetSocialServeur(activite: string, forme: string)
         { role: "system", content: SYSTEME },
         {
           role: "user",
-          content: `Forme juridique : ${forme}. Activité décrite par le créateur : ${activite}`,
+          content:
+            `Forme juridique : ${forme}.` +
+            (naf ? ` Code d'activité retenu : ${naf}.` : "") +
+            ` Activité décrite par le créateur : ${activite}`,
         },
       ],
     }),

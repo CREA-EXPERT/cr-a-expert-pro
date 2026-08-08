@@ -5,6 +5,7 @@ import { redigerObjetSocialServeur } from "./ai-objet.server";
 const Entree = z.object({
   activite: z.string().min(3).max(600),
   forme: z.string().max(20),
+  naf: z.string().max(200).optional(),
 });
 
 /**
@@ -14,4 +15,7 @@ const Entree = z.object({
  */
 export const redigerObjetSocial = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => Entree.parse(input))
-  .handler(async ({ data }) => redigerObjetSocialServeur(data.activite, data.forme));
+  .handler(async ({ data }) =>
+    redigerObjetSocialServeur(data.activite, data.forme, data.naf),
+  );
+
