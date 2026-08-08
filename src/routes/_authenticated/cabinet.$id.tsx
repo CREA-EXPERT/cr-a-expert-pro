@@ -32,6 +32,7 @@ function CabinetDossier() {
   const { isCabinet, loading: rolesLoading } = useRoles(user);
   const qc = useQueryClient();
   const [motifs, setMotifs] = useState<Record<string, string>>({});
+  const [confirmation, setConfirmation] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["cabinet-dossier", id],
