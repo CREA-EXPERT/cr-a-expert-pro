@@ -1452,12 +1452,12 @@ function Creation() {
             <div className="mt-6 space-y-5">
               <dl className="divide-y divide-border rounded-lg border border-border bg-surface">
                 {[
-                  ["Honoraires de création", "0 € — offerts en contrepartie de la mission comptable de 3 mois à " + euro(missionMensuelleHt(tarifs)) + " HT/mois"],
-                  ["Annonce légale", ei ? "Sans objet (aucune annonce en entreprise individuelle)" : euro(cout.annonceTtc)],
-                  ["Greffe", euro(cout.greffeTtc)],
-                  ["Bénéficiaires effectifs", ei ? "Sans objet" : euro(cout.benefTtc)],
-                  ["Relecture par l'expert-comptable", relecture ? euro(relecture) + " TTC" : "Non demandée"],
-                  ["Total dû aujourd'hui", euro(cout.totalTtc + relecture)],
+                  ["Honoraires de création", "0 € HT (0 € TTC) — offerts en contrepartie de la mission comptable de 3 mois à " + euro(missionMensuelleHt(tarifs)) + " HT/mois (soit " + euro(missionMensuelleHt(tarifs) * 1.2) + " TTC/mois)"],
+                  ["Annonce légale", ei ? "Sans objet (aucune annonce en entreprise individuelle)" : `${euro(cout.annonceTtc / 1.2)} HT — soit ${euro(cout.annonceTtc)} TTC (TVA 20 %)`],
+                  ["Greffe", `${euro(cout.greffeTtc)} TTC — tarif réglementé, taxes comprises`],
+                  ["Bénéficiaires effectifs", ei ? "Sans objet" : `${euro(cout.benefTtc)} TTC — tarif réglementé, taxes comprises`],
+                  ["Relecture par l'expert-comptable", relecture ? `${euro(relectureHt)} HT — soit ${euro(relecture)} TTC (TVA 20 %)` : "Non demandée"],
+                  ["Total dû aujourd'hui", `${euro(cout.totalTtc + relecture)} TTC`],
                 ].map(([k, v]) => (
                   <div key={k} className="grid gap-1 p-3 sm:grid-cols-[16rem_1fr]">
                     <dt className="text-sm text-muted-foreground">{k}</dt>
@@ -1465,9 +1465,12 @@ function Creation() {
                   </div>
                 ))}
               </dl>
-              <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
-                Les frais légaux sont refacturés à l'euro près, sans marge. Ils sont dus quelle que
-                soit la solution retenue pour créer votre société.
+              <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed text-justify">
+                Chaque montant ci-dessus précise s'il est exprimé hors taxes (HT) ou toutes taxes
+                comprises (TTC). Les tarifs du greffe et des bénéficiaires effectifs sont des tarifs
+                réglementés, exprimés taxes comprises. Les frais légaux sont refacturés à l'euro
+                près, sans marge. Ils sont dus quelle que soit la solution retenue pour créer votre
+                société.
               </p>
               {dossier.moyen_de_paiement_enregistre ? (
                 <p className="rounded-md border border-success/40 bg-success/8 p-3 text-sm">
