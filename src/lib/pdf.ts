@@ -1,5 +1,5 @@
 import { PDFDocument, StandardFonts, rgb, degrees, type PDFFont, type PDFPage } from "pdf-lib";
-import { euro, isSas, type Forme } from "./domain";
+import { euro, isSas, TVA_OPTIONS, type Forme } from "./domain";
 import type { Associe, Dossier } from "./documents";
 
 const MARGE = 56;
