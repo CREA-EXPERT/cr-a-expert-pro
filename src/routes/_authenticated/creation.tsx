@@ -363,6 +363,11 @@ function Creation() {
     const drafts = construireDocuments(dossier, associes, rules);
     await supabase.from("documents").delete().eq("dossier_id", dossier.id).eq("statut_document", "a_fournir");
     await supabase.from("documents").insert(drafts);
+    const signatures = construireSignatures(dossier, associes);
+    await supabase
+      .from("signatures_electroniques")
+      .upsert(signatures, { onConflict: "dossier_id,type_document", ignoreDuplicates: true });
+
     const maj = auto
       ? {
           statut: "dossier_valide_client",
