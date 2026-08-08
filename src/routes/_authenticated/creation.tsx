@@ -323,6 +323,16 @@ function Creation() {
       toast.error("Vous devez certifier l'exactitude des informations.");
       return;
     }
+    if (!piecesOk) {
+      toast.error(
+        "Vous devez vous engager à déposer tous les justificatifs légaux applicables avant le dépôt du dossier.",
+      );
+      return;
+    }
+    if (!dossier.telephone_contact?.trim()) {
+      toast.error("Le numéro de téléphone est obligatoire avant la signature de la lettre de mission.");
+      return;
+    }
     if (mineurs.length > 0) {
       toast.error(`Un associé mineur est renseigné : cette création doit être confiée à ${CABINET.nom}.`);
       return;
