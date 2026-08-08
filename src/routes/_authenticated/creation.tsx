@@ -267,6 +267,10 @@ function Creation() {
   const ei = dossier ? isEI(dossier.forme_juridique) : false;
   const valeurPart = Math.max(0.01, Number(dossier?.valeur_part ?? 1));
   const capitalOk = dossier ? Math.abs(totalApports - Number(dossier.capital_montant)) < 0.01 : false;
+  const sas = dossier ? isSas(dossier.forme_juridique) : false;
+  /** En SAS et SASU, un président est obligatoire : sans lui, aucune immatriculation possible. */
+  const presidentDesigne = associes.some((a) => a.est_dirigeant && a.fonction === "president");
+  const mineurs = useMemo(() => associes.filter(estMineur), [associes]);
 
   /** En SAS et SASU, il ne peut y avoir qu'un seul président : la fonction est exclusive. */
   async function choisirFonction(id: string, fonction: string) {
@@ -283,8 +287,20 @@ function Creation() {
       toast.error("Vous devez certifier l'exactitude des informations.");
       return;
     }
+    if (mineurs.length > 0) {
+      toast.error(`Un associé mineur est renseigné : cette création doit être confiée à ${CABINET.nom}.`);
+      return;
+    }
     if (!ei && !capitalOk) {
       toast.error("Le total des apports doit être égal au capital social.");
+      return;
+    }
+    if (sas && !presidentDesigne) {
+      toast.error("Une SAS ou une SASU ne peut pas être créée sans président.");
+      return;
+    }
+    if (!ei && !sas && dirigeants.length === 0) {
+      toast.error("Votre société doit avoir au moins un gérant.");
       return;
     }
     if (!dossier.lettre_mission_acceptee_le) {
@@ -295,6 +311,7 @@ function Creation() {
       toast.error("Choisissez la voie de validation de votre dossier.");
       return;
     }
+
     setBusy(true);
     const auto = dossier.voie_validation === "auto";
     const drafts = construireDocuments(dossier, associes, rules);
