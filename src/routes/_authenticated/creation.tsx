@@ -169,6 +169,7 @@ function Creation() {
   const [associes, setAssocies] = useState<Associe[]>([]);
   const [etape, setEtape] = useState(1);
   const [certifie, setCertifie] = useState(false);
+  const [piecesOk, setPiecesOk] = useState(false);
   const [busy, setBusy] = useState(false);
   const [nomAcceptation, setNomAcceptation] = useState("");
   const [lueMission, setLueMission] = useState(false);
