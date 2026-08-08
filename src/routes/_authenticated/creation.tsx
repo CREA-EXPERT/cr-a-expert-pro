@@ -945,6 +945,9 @@ function Creation() {
                   <EncadreDemembrement />
                 </>
               )}
+              <EncadreRegimes />
+              <EncadreMineur />
+
 
               <div className="flex flex-wrap gap-2">
                 {(!ei || associes.length === 0) && (
