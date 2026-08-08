@@ -1148,12 +1148,21 @@ function Creation() {
                 </p>
               )}
               {!ei && dirigeants.length === 0 && (
-                <p className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm">
+                <p className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm text-justify">
                   Aucun dirigeant n'est désigné : {isSas(forme) ? "une SAS ou une SASU doit avoir un président." : "votre société doit avoir au moins un gérant."}
                 </p>
               )}
-              {ei && (
-                <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
+              {sas && !presidentDesigne && (
+                <p className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm leading-relaxed text-justify">
+                  <strong>Condition obligatoire :</strong> une SAS ou une SASU doit obligatoirement
+                  avoir un président, personne physique ou personne morale. Sans président désigné,
+                  les statuts sont incomplets et le greffe rejette l'immatriculation : la validation
+                  du dossier restera bloquée tant que la fonction n'est pas attribuée à l'un des
+                  associés ou dirigeants renseignés ci-dessus.
+                </p>
+              )}
+              {mineurs.length > 0 && <EncadreMineur signale />}
+
                   L'entreprise individuelle n'a ni capital social, ni associé : seules vos
                   informations personnelles sont nécessaires. Depuis le 15 mai 2022, votre
                   patrimoine personnel est de plein droit distinct de votre patrimoine
