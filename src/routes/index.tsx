@@ -8,8 +8,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/layout/PageShell";
 import { FriseCouts } from "@/components/FriseCouts";
+import { FormesDetail } from "@/components/FormesDetail";
+import { SyntheseImmobilier } from "@/components/SyntheseImmobilier";
+import { Disclaimer } from "@/components/Disclaimer";
 import { CallbackDialog } from "@/components/CallbackDialog";
-import { FORMES } from "@/lib/domain";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -40,7 +43,11 @@ const BADGES = [
 ];
 
 const ETAPES = [
-  { n: 1, t: "Simulez votre forme juridique", d: "Cinq questions, une restitution comparative et neutre." },
+  {
+    n: 1,
+    t: "Simulez votre forme juridique (facultatif)",
+    d: "Cinq questions, une restitution comparative et neutre. Cette étape est optionnelle : si vous savez déjà quelle forme créer, passez directement au dossier.",
+  },
   { n: 2, t: "Complétez votre dossier en ligne", d: "Un formulaire guidé, sauvegardé à chaque étape." },
   { n: 3, t: "Déposez vos pièces", d: "Une checklist personnalisée, avec une aide pour chaque document." },
   {
@@ -50,6 +57,7 @@ const ETAPES = [
   },
   { n: 5, t: "Votre société est immatriculée", d: "Vous suivez l'avancement depuis votre espace." },
 ];
+
 
 const FAQ = [
   {
@@ -70,8 +78,13 @@ const FAQ = [
   },
   {
     q: "Puis-je créer seul(e) ou à plusieurs ?",
-    r: "Les deux. Seul, vous pouvez créer une SASU, une EURL ou une entreprise individuelle. À plusieurs, une SAS ou une SARL. Pour une activité immobilière patrimoniale, la SCI se crée à partir de deux associés.",
+    r: "Les deux. Seul, vous pouvez créer une SASU, une EURL ou une entreprise individuelle. À plusieurs, une SAS, une SARL ou une SCI — cette dernière se crée à partir de deux associés.",
   },
+  {
+    q: "Une SCI est-elle traitée de la même façon ?",
+    r: "Le principe est identique : honoraires de création offerts, frais légaux refacturés à l'euro près, engagement sur une mission comptable de 3 mois à 199 € HT/mois. Pour une SCI, cette mission de 3 mois couvre l'exercice annuel complet, le travail comptable étant concentré sur la déclaration annuelle.",
+  },
+
   {
     q: "Combien de temps prend une création ?",
     r: "Le délai dépend principalement de la rapidité de dépôt de vos pièces, du dépôt du capital en banque et du délai de traitement du greffe compétent. Le parcours en ligne se complète généralement en moins de 30 minutes.",
@@ -99,22 +112,22 @@ function Accueil() {
           <p className="font-serif text-sm font-semibold uppercase tracking-[0.2em] text-accent">
             CREA EXPERT
           </p>
-          <h1 className="mt-3 max-w-3xl font-serif text-4xl leading-tight sm:text-5xl">
+          <h1 className="mt-3 max-w-4xl font-serif text-4xl leading-tight text-balance sm:text-5xl">
             Créez votre société en ligne. Honoraires offerts*.
           </h1>
 
-          <ul className="mt-6 flex flex-wrap gap-2.5">
+          <ul className="mt-7 grid gap-3 sm:grid-cols-3">
             {BADGES.map((b) => (
               <li
                 key={b}
-                className="rounded-full border border-border bg-background px-3.5 py-1.5 text-sm text-foreground"
+                className="rounded-lg border border-border bg-background px-4 py-3.5 text-sm leading-relaxed text-foreground"
               >
                 {b}
               </li>
             ))}
           </ul>
 
-          <p className="mt-6 max-w-3xl text-base leading-relaxed text-foreground">
+          <p className="mt-6 text-base leading-relaxed text-foreground">
             *Vous n'avez aucun honoraire à payer au cabinet pour la création. Restent à votre charge
             les frais légaux obligatoires (annonce légale, greffe, bénéficiaires effectifs), fixés
             par la loi et intégralement reversés aux organismes concernés : le cabinet n'en perçoit
@@ -122,9 +135,10 @@ function Accueil() {
             mission comptable de 3 mois (199 € HT/mois).
           </p>
 
+
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg">
-              <Link to="/commencer">Commencer</Link>
+              <Link to="/commencer">Créer ma société</Link>
             </Button>
             <CallbackDialog size="lg" />
           </div>
@@ -156,7 +170,7 @@ function Accueil() {
       <section className="border-y border-border bg-surface py-12">
         <div className="container-page">
           <h2 className="font-serif text-3xl">Combien de temps ça prend</h2>
-          <p className="mt-4 max-w-3xl text-base leading-relaxed">
+          <p className="mt-4 text-base leading-relaxed">
             Votre parcours en ligne prend moins de 30 minutes. Le délai d'immatriculation dépend
             ensuite de l'administration : de 24 heures à plusieurs semaines. L'administration peut
             demander des pièces complémentaires ou rectificatives ; nous vous accompagnons jusqu'au
@@ -166,32 +180,33 @@ function Accueil() {
       </section>
 
       {/* FORMES JURIDIQUES */}
-      <section className="container-page py-14">
-        <h2 className="font-serif text-3xl">Les formes que nous créons en ligne</h2>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {FORMES.map((f) => (
-            <div key={f.value} className="rounded-lg border border-border bg-surface p-5">
-              <h3 className="font-serif text-xl">{f.label}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                {f.value === "EI"
-                  ? "À l'impôt sur le revenu, avec option possible pour l'impôt sur les sociétés."
-                  : f.desc}
-              </p>
-            </div>
-          ))}
+      <section className="border-t border-border py-14">
+        <div className="container-page">
+          <h2 className="font-serif text-3xl">Les formes juridiques que nous créons en ligne</h2>
+          <p className="mt-4 text-base leading-relaxed">
+            Dépliez chaque forme pour en connaître les caractéristiques, les avantages, les
+            inconvénients et les obligations. Ces éléments sont des faits juridiques, applicables à
+            tous : ils ne constituent pas une recommandation adaptée à votre situation.
+          </p>
+          <FormesDetail />
+          <p className="mt-6 text-base leading-relaxed">
+            D'autres formes juridiques existent (SA, SNC, sociétés en commandite, sociétés d'exercice
+            libéral…) ; nous ne les proposons pas en ligne. Si votre projet l'exige, le cabinet peut
+            vous accompagner sur devis.
+          </p>
+          <Disclaimer className="mt-6" />
         </div>
-        <p className="mt-6 max-w-3xl text-base leading-relaxed">
-          D'autres formes juridiques existent (SA, SNC, sociétés en commandite, sociétés d'exercice
-          libéral…) ; nous ne les proposons pas en ligne. Si votre projet l'exige, le cabinet peut
-          vous accompagner sur devis.
-        </p>
       </section>
+
+      {/* IMMOBILIER : LMNP, SARL DE FAMILLE, SCI */}
+      <SyntheseImmobilier />
+
 
       {/* FAQ */}
       <section className="border-t border-border py-14">
         <div className="container-page">
           <h2 className="font-serif text-3xl">Questions fréquentes</h2>
-          <Accordion type="single" collapsible className="mt-6 max-w-3xl">
+          <Accordion type="single" collapsible className="mt-6">
             {FAQ.map((f, i) => (
               <AccordionItem key={f.q} value={`q${i}`}>
                 <AccordionTrigger className="text-left text-base">{f.q}</AccordionTrigger>
@@ -204,7 +219,7 @@ function Accueil() {
 
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg">
-              <Link to="/commencer">Commencer</Link>
+              <Link to="/commencer">Créer ma société</Link>
             </Button>
             <CallbackDialog size="lg" />
           </div>

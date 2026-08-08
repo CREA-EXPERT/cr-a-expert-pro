@@ -33,9 +33,10 @@ function Commencer() {
   return (
     <PageShell>
       <div className="container-page max-w-4xl py-12">
-        <h1 className="font-serif text-4xl leading-tight">
-          Quelle forme juridique est la plus pertinente pour vous ?
+        <h1 className="max-w-2xl font-serif text-4xl leading-tight text-balance">
+          Quelle forme juridique est la plus pertinente pour vous&nbsp;?
         </h1>
+
         <p className="mt-4 text-base leading-relaxed text-foreground">
           Deux chemins, à vous de choisir. Aucun n'est obligatoire pour créer votre société.
         </p>

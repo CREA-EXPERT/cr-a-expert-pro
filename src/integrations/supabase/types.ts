@@ -241,10 +241,13 @@ export type Database = {
       dossiers: {
         Row: {
           activite_reglementee: boolean
+          apport_industrie: boolean
           apport_nature: boolean
           autovalidation_le: string | null
           capital_liberation: number
           capital_montant: number
+          code_naf: string | null
+          code_naf_libelle: string | null
           created_at: string
           date_cloture_exercice: string
           date_depot_fonds: string | null
@@ -279,10 +282,13 @@ export type Database = {
         }
         Insert: {
           activite_reglementee?: boolean
+          apport_industrie?: boolean
           apport_nature?: boolean
           autovalidation_le?: string | null
           capital_liberation?: number
           capital_montant?: number
+          code_naf?: string | null
+          code_naf_libelle?: string | null
           created_at?: string
           date_cloture_exercice?: string
           date_depot_fonds?: string | null
@@ -317,10 +323,13 @@ export type Database = {
         }
         Update: {
           activite_reglementee?: boolean
+          apport_industrie?: boolean
           apport_nature?: boolean
           autovalidation_le?: string | null
           capital_liberation?: number
           capital_montant?: number
+          code_naf?: string | null
+          code_naf_libelle?: string | null
           created_at?: string
           date_cloture_exercice?: string
           date_depot_fonds?: string | null

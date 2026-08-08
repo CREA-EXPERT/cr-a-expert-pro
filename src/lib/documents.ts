@@ -93,9 +93,13 @@ export function construireDocuments(
       case "conjoint_fonds_communs":
         physiques.filter((a) => conjointConcerne(dossier, a)).forEach((a) => out.push(base(r, a.id, nomAssocie(a))));
         break;
+      case "activite_reglementee":
+        if (dossier.activite_reglementee) out.push(base(r, null));
+        break;
       case "forme_sas":
         if (!ei && isSas(dossier.forme_juridique)) out.push(base(r, null));
         break;
+
       case "toujours":
       default:
         out.push(base(r, null));

@@ -31,8 +31,12 @@ import {
 } from "@/lib/domain";
 import { construireDocuments, type Associe, type Dossier } from "@/lib/documents";
 import { coutParForme, missionMensuelleHt, penaliteCreationHt, prixRelectureHt, useTarifs } from "@/lib/tarifs";
+import { NafSelect } from "@/components/NafSelect";
+import { estCodeReglemente } from "@/lib/naf-reglemente";
+import { redigerObjetSocial } from "@/lib/objet-social.functions";
 import { z } from "zod";
-import { ArrowLeft, ExternalLink, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Plus, Sparkle, Trash2 } from "lucide-react";
+
 
 const searchSchema = z.object({ forme: z.string().optional() });
 
@@ -93,7 +97,7 @@ const CLES_EI: Cle[] = [
 
 const TITRES: Record<Cle, string> = {
   forme: "Forme juridique",
-  denomination: "Dénomination",
+  denomination: "Dénomination (nom de la société)",
   siege: "Siège social",
   objet: "Objet social",
   capital: "Capital",
@@ -119,6 +123,9 @@ function Creation() {
   const [busy, setBusy] = useState(false);
   const [nomAcceptation, setNomAcceptation] = useState("");
   const [lueMission, setLueMission] = useState(false);
+  const [descriptionActivite, setDescriptionActivite] = useState("");
+  const [redaction, setRedaction] = useState(false);
+
 
   const { data: rules } = useQuery({
     queryKey: ["document_rules"],
@@ -197,7 +204,26 @@ function Creation() {
     await supabase.from("associes").delete().eq("id", id);
   }
 
+  async function proposerObjet() {
+    if (!dossier) return;
+    setRedaction(true);
+    try {
+      const res = await redigerObjetSocial({
+        data: { activite: descriptionActivite.trim(), forme: dossier.forme_juridique },
+      });
+      if (res?.texte) {
+        await patch({ objet_social: res.texte });
+        toast.success("Proposition rédigée. Relisez-la et adaptez-la si nécessaire.");
+      }
+    } catch {
+      toast.error("L'assistance à la rédaction est momentanément indisponible.");
+    } finally {
+      setRedaction(false);
+    }
+  }
+
   const totalApports = useMemo(
+
     () => associes.filter((a) => a.est_associe).reduce((s, a) => s + Number(a.montant_apport || 0), 0),
     [associes],
   );
@@ -332,28 +358,45 @@ function Creation() {
                 <Label htmlFor="sigle">{ei ? "Enseigne (facultatif)" : "Sigle (facultatif)"}</Label>
                 <Input id="sigle" maxLength={40} value={dossier.sigle ?? ""} onChange={(e) => patch({ sigle: e.target.value })} />
               </div>
-              <div className="rounded-md border border-border bg-muted/50 p-4 text-sm">
-                <p className="font-medium">Vérifiez la disponibilité avant de continuer</p>
-                <ul className="mt-2 space-y-1.5">
-                  {[
-                    ["Annuaire des entreprises", "https://annuaire-entreprises.data.gouv.fr"],
-                    ["Base des marques (INPI)", "https://data.inpi.fr"],
-                    ["Disponibilité du nom de domaine", "https://www.afnic.fr/noms-de-domaine/tout-savoir/whois-trouver-un-nom-de-domaine/"],
-                  ].map(([l, h]) => (
-                    <li key={h}>
-                      <a href={h} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 underline underline-offset-2">
-                        {l} <ExternalLink className="size-3.5" strokeWidth={1.5} aria-hidden />
-                      </a>
-                    </li>
-                  ))}
-                </ul>
+              <div className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed">
+                <p className="font-medium">Vérifiez que ce nom est disponible en tant que marque</p>
+                <p className="mt-2">
+                  Une dénomination identique ou similaire à une marque déjà déposée pour des
+                  produits ou services proches expose à une action en contrefaçon et à
+                  l'interdiction d'utiliser le nom, même après immatriculation. La vérification se
+                  fait gratuitement dans la base des marques de l'INPI.
+                </p>
+                <p className="mt-2">
+                  <a
+                    href="https://data.inpi.fr/search?displayStyle=LIST&type=MARQUES"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 font-medium underline underline-offset-2"
+                  >
+                    Rechercher dans la base des marques (INPI)
+                    <ExternalLink className="size-3.5" strokeWidth={1.5} aria-hidden />
+                  </a>
+                </p>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Textes applicables : articles L. 713-2 à L. 713-6 du code de la propriété
+                  intellectuelle. L'article L. 713-2 interdit, sans autorisation du titulaire,
+                  l'usage d'un signe identique à la marque pour des produits ou services
+                  identiques, ainsi que l'usage d'un signe identique ou similaire pour des produits
+                  ou services identiques ou similaires s'il existe un risque de confusion dans
+                  l'esprit du public. Les articles L. 713-3 à L. 713-5 étendent cette protection aux
+                  marques renommées et à certains usages, et l'article L. 713-6 réserve les
+                  exceptions, notamment l'usage de son nom patronymique de bonne foi et l'usage
+                  antérieur d'un signe local.
+                </p>
               </div>
               <div className="flex items-start gap-3">
                 <Checkbox id="verif" checked={dossier.denomination_verifiee} onCheckedChange={(v) => patch({ denomination_verifiee: v === true })} className="mt-0.5" />
                 <Label htmlFor="verif" className="text-sm font-normal">
-                  J'ai vérifié la disponibilité de ma dénomination. (obligatoire)
+                  J'ai vérifié dans la base de l'INPI qu'aucune marque antérieure ne s'oppose à
+                  l'usage de ce nom, et j'en assume la responsabilité. (obligatoire)
                 </Label>
               </div>
+
             </div>
           )}
 
@@ -402,28 +445,96 @@ function Creation() {
 
           {/* 4 — OBJET */}
           {cle === "objet" && (
-            <div className="mt-6 space-y-4">
-              <p className="text-sm text-muted-foreground">Choisissez un objet type, puis adaptez-le si nécessaire.</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {OBJETS_TYPES.map((o) => (
-                  <button
-                    key={o.titre}
-                    type="button"
-                    onClick={() => patch({ objet_social: o.texte })}
-                    className="rounded-md border border-border bg-surface px-3 py-2.5 text-left text-sm hover:border-accent"
-                  >
-                    {o.titre}
-                  </button>
-                ))}
+            <div className="mt-6 space-y-5">
+              <div className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed">
+                <p className="font-medium">Qu'est-ce que l'objet social ?</p>
+                <p className="mt-2">
+                  L'objet social décrit l'ensemble des activités que votre structure est autorisée à
+                  exercer. Il est inscrit dans les statuts et publié : tout ce qui n'y figure pas
+                  sort du cadre autorisé et suppose une modification statutaire, avec les frais
+                  correspondants. Rédigez-le donc suffisamment large pour couvrir vos activités
+                  connexes et vos développements prévisibles, sans y faire figurer d'activité
+                  réglementée que vous n'êtes pas en droit d'exercer. L'objet social détermine
+                  également votre code d'activité (APE) et, dans une large mesure, votre convention
+                  collective.
+                </p>
               </div>
+
+              <div className="space-y-2">
+                <Label>Activité principale (nomenclature NAF de l'INSEE)</Label>
+                <NafSelect
+                  value={dossier.code_naf}
+                  onChange={(n) => {
+                    const regl = estCodeReglemente(n.code);
+                    patch({
+                      code_naf: n.code,
+                      code_naf_libelle: n.label,
+                      ...(regl
+                        ? { activite_reglementee: true, routage_cabinet: true }
+                        : {}),
+                    });
+                  }}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Ce code est déclaratif : l'INSEE attribue le code APE définitif au vu de
+                  l'activité réellement exercée.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Partez d'un objet type, ou décrivez votre activité et laissez l'assistant en
+                  proposer une rédaction que vous pourrez modifier librement.
+                </p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {OBJETS_TYPES.map((o) => (
+                    <button
+                      key={o.titre}
+                      type="button"
+                      onClick={() => patch({ objet_social: o.texte })}
+                      className="rounded-md border border-border bg-surface px-3 py-2.5 text-left text-sm hover:border-accent"
+                    >
+                      {o.titre}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-md border border-border bg-surface p-4">
+                <Label htmlFor="descr" className="text-sm font-medium">
+                  Décrivez votre activité en quelques mots
+                </Label>
+                <Textarea
+                  id="descr"
+                  rows={3}
+                  maxLength={600}
+                  className="mt-2"
+                  placeholder="Ex. : je crée des sites internet pour des artisans et j'assure leur maintenance."
+                  value={descriptionActivite}
+                  onChange={(e) => setDescriptionActivite(e.target.value)}
+                />
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={redaction || descriptionActivite.trim().length < 10}
+                    onClick={proposerObjet}
+                  >
+                    <Sparkle strokeWidth={1.5} />
+                    {redaction ? "Rédaction en cours…" : "Proposer une rédaction"}
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    Proposition automatique, à relire et à adapter : elle ne constitue pas un
+                    conseil juridique.
+                  </span>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="objet">Objet social</Label>
-                <Textarea id="objet" rows={5} maxLength={1500} value={dossier.objet_social ?? ""} onChange={(e) => patch({ objet_social: e.target.value })} />
+                <Textarea id="objet" rows={6} maxLength={1500} value={dossier.objet_social ?? ""} onChange={(e) => patch({ objet_social: e.target.value })} />
               </div>
-              <p className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm">
-                Certaines activités sont réglementées et exigent un diplôme ou une autorisation ;
-                votre dossier sera alors orienté vers le cabinet.
-              </p>
+
               <div className="flex items-start gap-3">
                 <Checkbox
                   id="regl"
@@ -433,12 +544,57 @@ function Creation() {
                 />
                 <Label htmlFor="regl" className="text-sm font-normal">Mon activité est réglementée.</Label>
               </div>
+
+              {dossier.activite_reglementee ? (
+                <div className="rounded-md border border-warning/50 bg-warning/10 p-4 text-sm leading-relaxed">
+                  <p className="font-medium">Activité réglementée : une pièce justificative sera demandée</p>
+                  <p className="mt-2">
+                    L'exercice de cette activité est subordonné à une condition de diplôme, de
+                    qualification, d'agrément ou d'autorisation. Une pièce justificative est ajoutée
+                    à votre liste de documents ; selon l'activité, il s'agit de l'un des documents
+                    suivants :
+                  </p>
+                  <ul className="mt-2 space-y-1 pl-5 [&>li]:list-disc">
+                    <li>diplôme, titre ou certificat de qualification professionnelle ;</li>
+                    <li>carte professionnelle (immobilier, sécurité privée, transport…) ;</li>
+                    <li>agrément, licence ou autorisation administrative préfectorale ;</li>
+                    <li>attestation d'inscription à un ordre ou à un organisme professionnel ;</li>
+                    <li>attestation d'assurance de responsabilité civile professionnelle ou décennale ;</li>
+                    <li>justificatif d'expérience professionnelle lorsqu'il remplace le diplôme.</li>
+                  </ul>
+                  <p className="mt-2">
+                    Votre dossier est orienté vers le cabinet, qui vous indique la pièce exacte
+                    attendue et vérifie sa conformité avant dépôt.
+                  </p>
+                </div>
+              ) : (
+                <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
+                  Certaines activités sont réglementées et exigent un diplôme, une qualification ou
+                  une autorisation. Si c'est votre cas, cochez la case ci-dessus : votre dossier sera
+                  orienté vers le cabinet et la pièce justificative correspondante vous sera demandée.
+                </p>
+              )}
+              <Disclaimer />
             </div>
           )}
 
           {/* 5 — CAPITAL */}
           {cle === "capital" && (
-            <div className="mt-6 space-y-4">
+            <div className="mt-6 space-y-5">
+              <div className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed">
+                <p className="font-medium">À quoi sert le capital social ?</p>
+                <p className="mt-2">
+                  Le capital social correspond à la somme des apports des associés. Il constitue les
+                  premières ressources de la société, détermine la répartition des droits de vote et
+                  des dividendes, et sert de repère aux banques, aux bailleurs et aux clients. La loi
+                  ne fixe aucun minimum (1 € suffit) pour les formes proposées ici, mais un capital
+                  très faible se remarque : il figure sur tous les documents officiels et peut
+                  compliquer l'obtention d'un financement. Un capital cohérent avec les besoins de
+                  démarrage est généralement retenu. Les sommes déposées ne sont pas bloquées :
+                  elles sont libérées sur le compte de la société dès l'immatriculation et servent à
+                  financer l'activité.
+                </p>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="cap">Montant du capital social (minimum 1 €)</Label>
                 <Input id="cap" type="number" min={1} step="1" value={dossier.capital_montant} onChange={(e) => patch({ capital_montant: Number(e.target.value) })} />
@@ -447,28 +603,72 @@ function Creation() {
               <div className="space-y-2">
                 <Label htmlFor="lib">Libération à la constitution (%)</Label>
                 <Input id="lib" type="number" min={libMin} max={100} value={dossier.capital_liberation} onChange={(e) => patch({ capital_liberation: Number(e.target.value) })} />
-                <p className="text-sm">
-                  Règle applicable : {isSas(forme) ? "en SAS et SASU, au moins 50 % des apports en numéraire doivent être libérés à la constitution." : forme === "SCI" ? "en SCI, la libération des apports est fixée librement par les statuts." : "en SARL et EURL, au moins 20 % des apports en numéraire doivent être libérés à la constitution."}
+                <p className="text-sm leading-relaxed">
+                  Règle applicable : {isSas(forme) ? "en SAS et SASU, au moins 50 % des apports en numéraire doivent être libérés à la constitution, le solde dans les 5 ans suivant l'immatriculation." : forme === "SCI" ? "en SCI, la libération des apports est fixée librement par les statuts ; le solde reste dû selon les modalités qu'ils prévoient." : "en SARL et EURL, au moins 20 % des apports en numéraire doivent être libérés à la constitution, le solde dans les 5 ans suivant l'immatriculation."}
                 </p>
+                <div className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
+                  <p className="font-medium">Ce qu'implique une libération partielle</p>
+                  <ul className="mt-2 space-y-1 pl-5 [&>li]:list-disc">
+                    <li>
+                      Le solde non libéré reste une dette exigible : le dirigeant peut l'appeler à
+                      tout moment, et un liquidateur ou un créancier le réclamera en cas de
+                      difficulté.
+                    </li>
+                    <li>
+                      À défaut de libération intégrale dans les 5 ans, tout intéressé peut demander
+                      en justice que la société y soit contrainte.
+                    </li>
+                    <li>
+                      Tant que le capital n'est pas intégralement libéré, la société ne peut pas
+                      bénéficier du taux réduit d'impôt sur les sociétés de 15 %.
+                    </li>
+                    <li>
+                      Une libération partielle est mentionnée publiquement et pèse sur la crédibilité
+                      financière de la société.
+                    </li>
+                  </ul>
+                </div>
               </div>
-              <p className="rounded-md border border-border bg-muted/50 p-3 text-sm">
-                En V1, seuls les apports en numéraire sont traités en ligne.
-              </p>
+              <div className="rounded-md border border-border bg-surface p-4 text-sm leading-relaxed">
+                <p className="font-medium">Apports en nature et apports en industrie</p>
+                <p className="mt-2">
+                  Le parcours en ligne traite les apports en numéraire (sommes d'argent). Un apport
+                  en nature (bien, matériel, fonds de commerce, titres) suppose une évaluation et,
+                  au-delà de certains seuils, l'intervention d'un commissaire aux apports. Un apport
+                  en industrie (savoir-faire, travail) ne concourt pas à la formation du capital et
+                  exige une rédaction statutaire spécifique. Dans ces deux cas, le dossier est
+                  accompagné directement par le cabinet.
+                </p>
+                <div className="mt-3">
+                  <CallbackDialog label="Être rappelé à ce sujet" size="sm" />
+                </div>
+              </div>
               <div className="flex items-start gap-3">
                 <Checkbox
                   id="nature"
                   checked={dossier.apport_nature}
-                  onCheckedChange={(v) => patch({ apport_nature: v === true, routage_cabinet: v === true || dossier.activite_reglementee })}
+                  onCheckedChange={(v) => patch({ apport_nature: v === true, routage_cabinet: v === true || dossier.activite_reglementee || dossier.apport_industrie })}
                   className="mt-0.5"
                 />
                 <Label htmlFor="nature" className="text-sm font-normal">
-                  Je souhaite réaliser un apport en nature. Votre dossier sera alors accompagné
-                  directement par le cabinet, car cet apport suppose une évaluation spécifique.
+                  Je souhaite réaliser un apport en nature.
+                </Label>
+              </div>
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="industrie"
+                  checked={dossier.apport_industrie}
+                  onCheckedChange={(v) => patch({ apport_industrie: v === true, routage_cabinet: v === true || dossier.activite_reglementee || dossier.apport_nature })}
+                  className="mt-0.5"
+                />
+                <Label htmlFor="industrie" className="text-sm font-normal">
+                  Un associé réalise un apport en industrie.
                 </Label>
               </div>
               <Disclaimer />
             </div>
           )}
+
 
           {/* 6 — ASSOCIES */}
           {cle === "associes" && (

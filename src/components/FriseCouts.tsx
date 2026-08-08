@@ -48,7 +48,7 @@ export function FriseCouts() {
         Ce que vous payez — en toute transparence
       </h2>
 
-      <ol className="mt-8 max-w-3xl border-l-2 border-accent/40 pl-6">
+      <ol className="mt-8 border-l-2 border-accent/40 pl-6">
         {etages.map((e, i) => (
           <li key={e.titre} className="relative pb-8 last:pb-0">
             <span
@@ -64,7 +64,7 @@ export function FriseCouts() {
         ))}
       </ol>
 
-      <p className="mt-8 max-w-3xl text-base leading-relaxed">
+      <p className="mt-8 text-base leading-relaxed">
         Tous les prix sont affichés hors taxes ; la TVA de 20 % s'applique en sus (les montants du
         greffe sont des tarifs réglementés, TVA incluse). Si votre création n'aboutit pas, les
         sommes versées vous sont intégralement remboursées, à l'exception des frais déjà réglés pour
