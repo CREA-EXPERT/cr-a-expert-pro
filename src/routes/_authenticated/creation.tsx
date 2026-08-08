@@ -1176,6 +1176,8 @@ function Creation() {
               <div className="space-y-2">
                 <Label htmlFor="lib">Libération à la constitution (%)</Label>
                 <Input id="lib" type="number" min={libMin} max={100} value={dossier.capital_liberation} onChange={(e) => patch({ capital_liberation: Number(e.target.value) })} />
+                <Err nom="capital_liberation" />
+
                 <p className="text-sm leading-relaxed">
                   Règle applicable : {isSas(forme) ? "en SAS et SASU, au moins 50 % des apports en numéraire doivent être libérés à la constitution, le solde dans les 5 ans suivant l'immatriculation." : forme === "SCI" ? "en SCI, la libération des apports est fixée librement par les statuts ; le solde reste dû selon les modalités qu'ils prévoient." : "en SARL et EURL, au moins 20 % des apports en numéraire doivent être libérés à la constitution, le solde dans les 5 ans suivant l'immatriculation."}
                 </p>
