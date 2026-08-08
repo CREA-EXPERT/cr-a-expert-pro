@@ -209,8 +209,15 @@ function Creation() {
     setRedaction(true);
     try {
       const res = await redigerObjetSocial({
-        data: { activite: descriptionActivite.trim(), forme: dossier.forme_juridique },
+        data: {
+          activite: descriptionActivite.trim(),
+          forme: dossier.forme_juridique,
+          ...(dossier.code_naf
+            ? { naf: `${dossier.code_naf} — ${dossier.code_naf_libelle ?? ""}`.trim() }
+            : {}),
+        },
       });
+
       if (res?.texte) {
         await patch({ objet_social: res.texte });
         toast.success("Proposition rédigée. Relisez-la et adaptez-la si nécessaire.");
