@@ -36,6 +36,7 @@ import {
   type Forme,
 } from "@/lib/domain";
 import { construireDocuments, type Associe, type Dossier } from "@/lib/documents";
+import { construireSignatures } from "@/lib/signatures";
 import {
   coutParForme,
   missionMensuelleHt,
@@ -363,6 +364,11 @@ function Creation() {
     const drafts = construireDocuments(dossier, associes, rules);
     await supabase.from("documents").delete().eq("dossier_id", dossier.id).eq("statut_document", "a_fournir");
     await supabase.from("documents").insert(drafts);
+    const signatures = construireSignatures(dossier, associes);
+    await supabase
+      .from("signatures_electroniques")
+      .upsert(signatures, { onConflict: "dossier_id,type_document", ignoreDuplicates: true });
+
     const maj = auto
       ? {
           statut: "dossier_valide_client",
@@ -378,6 +384,11 @@ function Creation() {
       message: auto
         ? "Dossier validé par le client sans relecture du cabinet. Les documents portent la mention indiquant qu'ils n'ont pas été revus par un professionnel."
         : "Dossier validé par le client. Relecture par le cabinet demandée. La liste des pièces à fournir a été générée.",
+    });
+    await supabase.from("events_dossier").insert({
+      dossier_id: dossier.id,
+      type_event: "checklist_generee",
+      message: `Checklist documentaire générée : ${drafts.filter((d) => d.origine === "a_fournir").length} justificatif(s) à fournir et ${signatures.length} document(s) à signer électroniquement.`,
     });
     setBusy(false);
     toast.success("Dossier validé. Votre checklist de documents est prête.");
@@ -407,6 +418,11 @@ function Creation() {
   const relectureHt = prixRelectureHt(tarifs);
   const relectureOptionsHt = tarifMap(tarifs).get("relecture_options")?.montant_ht ?? 150;
   const relecture = dossier.voie_validation === "cabinet" ? relectureHt * 1.2 : 0;
+  /** Aperçu dynamique de la checklist, recalculé à chaque réponse. */
+  const apercuChecklist = rules
+    ? construireDocuments(dossier, associes, rules).filter((d) => d.origine === "a_fournir")
+    : [];
+  const apercuSignatures = construireSignatures(dossier, associes);
 
   return (
     <PageShell withFooter={false}>
@@ -1543,6 +1559,36 @@ function Creation() {
                   </div>
                 ))}
               </dl>
+
+              <section className="rounded-lg border border-border bg-surface p-5">
+                <h3 className="font-serif text-xl">Les justificatifs qui vous seront demandés</h3>
+                <p className="mt-1 text-sm text-muted-foreground text-justify">
+                  Cette liste est construite à partir de vos réponses : elle change si votre
+                  situation change. Après validation, elle apparaîtra dans « Mes documents » et le
+                  dossier ne pourra pas être transmis au cabinet tant que chaque pièce obligatoire
+                  n'aura pas été déposée puis attestée conforme.
+                </p>
+                <ul className="mt-4 space-y-2 text-sm">
+                  {apercuChecklist.length === 0 && (
+                    <li className="text-muted-foreground">Complétez vos réponses pour voir la liste.</li>
+                  )}
+                  {apercuChecklist.map((d, i) => (
+                    <li key={`${d.type_document}-${i}`} className="flex items-start gap-2">
+                      <span aria-hidden className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" />
+                      <span>
+                        {d.libelle}
+                        {!d.obligatoire && (
+                          <span className="text-muted-foreground"> — facultatif</span>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-4 text-sm text-muted-foreground text-justify">
+                  S'y ajoutent {apercuSignatures.length} document(s) que nous préparons et vous
+                  ferons signer électroniquement : {apercuSignatures.map((s) => s.libelle).join(", ")}.
+                </p>
+              </section>
 
               <EncadreJustificatifs />
               <EncadreSignatureElectronique />

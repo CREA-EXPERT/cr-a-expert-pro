@@ -82,7 +82,11 @@ function CabinetDossier() {
     }
     const { error } = await supabase
       .from("documents")
-      .update({ statut_document: statut, motif_rejet: statut === "rejete" ? motifNet : null })
+      .update({
+        statut_document: statut,
+        motif_rejet: statut === "rejete" ? motifNet : null,
+        valide_le: statut === "valide" ? new Date().toISOString() : null,
+      })
       .eq("id", docId);
     if (error) {
       toast.error("Mise à jour impossible.");
