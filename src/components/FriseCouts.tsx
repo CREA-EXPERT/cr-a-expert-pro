@@ -37,9 +37,10 @@ export function FriseCouts() {
     {
       titre: `Mission comptable : ${euro(mission)} HT/mois — engagement 3 mois, puis résiliation libre et sans frais`,
       texte:
-        "Lettre de mission à durée indéterminée, avec un engagement initial de 3 mois seulement. Ensuite, vous restez librement, ou vous partez sans frais ni justification.",
+        "Lettre de mission à durée indéterminée, avec un engagement initial de 3 mois seulement. Ensuite, vous restez librement, ou vous partez sans frais ni justification. Pour une SCI, ces 3 mois couvrent l'exercice annuel complet, le travail comptable étant concentré sur la déclaration annuelle : vous ne payez donc que 3 mois pour l'année. Pour toutes les autres formes (SASU, SAS, EURL, SARL, entreprise individuelle), la mission est continue et facturée 12 mois par an au-delà de l'engagement initial, si vous choisissez de la poursuivre.",
       cles: ["mission"],
     },
+
   ];
 
   return (
