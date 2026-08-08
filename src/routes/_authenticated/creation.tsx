@@ -1258,6 +1258,16 @@ function Creation() {
               <EncadreRegimes />
               <EncadreMineur />
 
+              {["apports", "dirigeants", "president", "identites"].some((k) => erreurs[k]) && (
+                <div className="space-y-1 rounded-md border border-destructive/50 bg-destructive/5 p-3">
+                  <Err nom="apports" />
+                  <Err nom="dirigeants" />
+                  <Err nom="president" />
+                  <Err nom="identites" />
+                </div>
+              )}
+
+
 
               <div className="flex flex-wrap gap-2">
                 {(!ei || associes.length === 0) && (
