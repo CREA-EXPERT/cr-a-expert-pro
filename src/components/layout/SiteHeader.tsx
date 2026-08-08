@@ -9,7 +9,7 @@ import { useNavigate } from "@tanstack/react-router";
 
 const publicLinks = [
   { to: "/", label: "Accueil" },
-  { to: "/simulateur", label: "Simulateur" },
+  { to: "/commencer", label: "Commencer" },
   { to: "/tarifs", label: "Frais légaux" },
 ];
 
@@ -78,7 +78,7 @@ export function SiteHeader() {
                 <Link to="/auth">Se connecter</Link>
               </Button>
               <Button asChild size="sm">
-                <Link to="/simulateur">Commencer</Link>
+                <Link to="/commencer">Commencer</Link>
               </Button>
             </>
           )}
@@ -127,7 +127,7 @@ export function SiteHeader() {
                   Se connecter
                 </Link>
                 <Button asChild size="sm" className="mt-2">
-                  <Link to="/simulateur">Commencer</Link>
+                  <Link to="/commencer">Commencer</Link>
                 </Button>
               </>
             )}

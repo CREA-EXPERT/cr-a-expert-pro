@@ -11,22 +11,25 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Disclaimer } from "@/components/Disclaimer";
 import { CallbackDialog } from "@/components/CallbackDialog";
+import { corpsEmail, restitution, NOTE_REMBOURSEMENT, type Restitution } from "@/lib/restitution";
 import { ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/simulateur")({
   head: () => ({
     meta: [
-      { title: "Simulateur de forme juridique — CREA EXPERT" },
+      { title: "Test d'orientation — quelle forme juridique ? — CREA EXPERT" },
       {
         name: "description",
         content:
-          "Cinq questions pour comparer les formes juridiques adaptées à votre projet : SASU, EURL, SAS, SARL ou SCI. Information générale, sans conseil personnalisé.",
+          "Test gratuit et optionnel de 2 minutes : cinq questions pour comparer les formes juridiques adaptées à votre projet. Information générale, sans conseil personnalisé.",
       },
-      { property: "og:title", content: "Simulateur de forme juridique — CREA EXPERT" },
+      { property: "og:title", content: "Test d'orientation — CREA EXPERT" },
       {
         property: "og:description",
         content: "Comparez SASU/EURL ou SAS/SARL de façon neutre, à partir de vos réponses.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Simulateur,
@@ -83,66 +86,28 @@ const QUESTIONS = [
   },
 ] as const;
 
-type Axe = { a: string; b: string };
-
-function axeDe(r: Reponses): Axe {
-  if (r["activite"] === "immobilier") return { a: "SCI", b: r["seul"] === "seul" ? "EURL" : "SARL" };
-  return r["seul"] === "seul" ? { a: "SASU", b: "EURL" } : { a: "SAS", b: "SARL" };
-}
-
-function tendance(r: Reponses, axe: Axe): string {
+function tendance(r: Reponses, res: Restitution): string {
   if (r["activite"] === "immobilier") return "SCI";
   const versSas =
     r["priorite"] === "protection" ||
     r["priorite"] === "flexibilite" ||
     r["investisseurs"] === "oui" ||
     r["investisseurs"] === "peutetre";
-  return versSas ? axe.a : axe.b;
+  return versSas ? res.a : res.b;
 }
-
-const COMPARAISON: Record<string, { social: string; dividendes: string; formalisme: string; flexibilite: string }> = {
-  SASU: {
-    social: "Le président est assimilé salarié : régime général de la sécurité sociale, sans cotisation en l'absence de rémunération.",
-    dividendes: "Les dividendes ne supportent pas de cotisations sociales.",
-    formalisme: "Formalisme de fonctionnement allégé, fixé par les statuts.",
-    flexibilite: "Grande liberté statutaire ; les règles doivent être rédigées avec soin.",
-  },
-  SAS: {
-    social: "Le président est assimilé salarié : régime général de la sécurité sociale.",
-    dividendes: "Les dividendes ne supportent pas de cotisations sociales.",
-    formalisme: "Formalisme allégé, largement défini par les statuts.",
-    flexibilite: "Grande liberté statutaire, adaptée à l'entrée d'investisseurs.",
-  },
-  EURL: {
-    social: "Le gérant associé unique relève du régime des travailleurs non salariés, avec une cotisation minimale.",
-    dividendes: "La fraction de dividendes excédant 10 % du capital et des sommes en compte courant est soumise à cotisations sociales.",
-    formalisme: "Fonctionnement encadré par la loi.",
-    flexibilite: "Cadre légal plus rigide, mais plus prévisible.",
-  },
-  SARL: {
-    social: "Le gérant majoritaire relève des travailleurs non salariés ; le gérant minoritaire ou égalitaire est assimilé salarié.",
-    dividendes: "Pour le gérant majoritaire, la fraction excédant 10 % du capital et des comptes courants est soumise à cotisations sociales.",
-    formalisme: "Fonctionnement encadré par la loi.",
-    flexibilite: "Cadre légal plus rigide, moins adapté à l'entrée d'investisseurs.",
-  },
-  SCI: {
-    social: "Le gérant non rémunéré ne relève d'aucun régime au titre de ce mandat ; s'il est rémunéré, il relève des travailleurs non salariés.",
-    dividendes: "Les résultats sont, par défaut, imposés entre les mains des associés à l'impôt sur le revenu.",
-    formalisme: "Société civile : fonctionnement encadré, comptabilité allégée selon l'option fiscale.",
-    flexibilite: "Statuts adaptables à une détention familiale ou patrimoniale.",
-  },
-};
 
 function Simulateur() {
   const [etape, setEtape] = useState(0);
   const [reponses, setReponses] = useState<Reponses>({});
+  const [prenom, setPrenom] = useState("");
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const [resultat, setResultat] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const total = QUESTIONS.length + 1;
-  const axe = axeDe(reponses);
+  const res = restitution(reponses["seul"] !== "plusieurs");
+  const immobilier = reponses["activite"] === "immobilier";
 
   function repondre(id: string, v: string) {
     setReponses((r) => ({ ...r, [id]: v }));
@@ -161,11 +126,13 @@ function Simulateur() {
       return;
     }
     setBusy(true);
-    const t = tendance(reponses, axe);
+    const t = tendance(reponses, res);
     const { error } = await supabase.from("simulations").insert({
       email: parsed.data,
+      prenom: prenom.trim() || null,
       reponses,
       resultat: t,
+      corps_email: corpsEmail(prenom.trim(), res),
     });
     setBusy(false);
     if (error) {
@@ -179,18 +146,25 @@ function Simulateur() {
 
   return (
     <PageShell>
-      <div className="container-page max-w-2xl py-10">
+      <div className="container-page max-w-3xl py-10">
         <div className="mb-8">
           <Progress value={((Math.min(etape, total) + (resultat ? 1 : 0)) / total) * 100} />
           <p className="mt-2 text-sm text-muted-foreground">
-            {resultat ? "Résultat" : `Question ${Math.min(etape + 1, total)} sur ${total}`}
+            {resultat
+              ? "Résultat"
+              : `Test gratuit de 2 minutes — optionnel · Question ${Math.min(etape + 1, total)} sur ${total}`}
           </p>
         </div>
 
         {!resultat && question && (
           <div>
             {etape > 0 && (
-              <Button variant="ghost" size="sm" className="mb-4 -ml-2" onClick={() => setEtape((e) => e - 1)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mb-4 -ml-2"
+                onClick={() => setEtape((e) => e - 1)}
+              >
                 <ArrowLeft strokeWidth={1.5} /> Retour
               </Button>
             )}
@@ -202,7 +176,9 @@ function Simulateur() {
                   type="button"
                   onClick={() => repondre(question.id, o.v)}
                   className={`rounded-lg border px-5 py-4 text-left text-base transition-colors hover:border-accent hover:bg-accent/5 ${
-                    reponses[question.id] === o.v ? "border-accent bg-accent/5" : "border-border bg-surface"
+                    reponses[question.id] === o.v
+                      ? "border-accent bg-accent/5"
+                      : "border-border bg-surface"
                   }`}
                 >
                   {o.l}
@@ -214,14 +190,29 @@ function Simulateur() {
 
         {!resultat && !question && (
           <form onSubmit={envoyer} className="space-y-5">
-            <Button variant="ghost" size="sm" className="-ml-2" onClick={() => setEtape((e) => e - 1)} type="button">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="-ml-2"
+              onClick={() => setEtape((e) => e - 1)}
+              type="button"
+            >
               <ArrowLeft strokeWidth={1.5} /> Retour
             </Button>
             <h1 className="font-serif text-3xl">Recevoir votre restitution</h1>
             <p className="text-base">
-              Indiquez votre adresse électronique pour afficher et recevoir la comparaison des formes
-              juridiques correspondant à vos réponses.
+              Indiquez votre adresse électronique pour afficher et recevoir la comparaison des
+              formes juridiques correspondant à vos réponses.
             </p>
+            <div className="space-y-2">
+              <Label htmlFor="sim-prenom">Prénom</Label>
+              <Input
+                id="sim-prenom"
+                value={prenom}
+                onChange={(e) => setPrenom(e.target.value)}
+                maxLength={80}
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="sim-email">Adresse électronique</Label>
               <Input
@@ -234,7 +225,12 @@ function Simulateur() {
               />
             </div>
             <div className="flex items-start gap-3 rounded-md border border-border bg-muted/50 p-3">
-              <Checkbox id="sim-consent" checked={consent} onCheckedChange={(v) => setConsent(v === true)} className="mt-0.5" />
+              <Checkbox
+                id="sim-consent"
+                checked={consent}
+                onCheckedChange={(v) => setConsent(v === true)}
+                className="mt-0.5"
+              />
               <Label htmlFor="sim-consent" className="text-sm font-normal leading-relaxed">
                 J'accepte le traitement de mon adresse électronique pour recevoir le résultat de
                 cette simulation, dans les conditions de la{" "}
@@ -252,50 +248,70 @@ function Simulateur() {
 
         {resultat && (
           <div className="space-y-6">
-            <h1 className="font-serif text-3xl">Votre restitution</h1>
             <p className="rounded-md border border-success/40 bg-success/8 px-3 py-2 text-sm">
               Résultat envoyé à votre adresse email.
             </p>
 
+            {immobilier && (
+              <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
+                Votre activité étant immobilière et patrimoniale, la société civile immobilière
+                (SCI) est la structure la plus couramment utilisée. La comparaison ci-dessous reste
+                utile si vous hésitez avec une société commerciale.
+              </p>
+            )}
+
+            <h1 className="font-serif text-3xl leading-snug">{res.titre}</h1>
+            <p className="text-lg leading-relaxed">{res.sousTitre}</p>
+            <p className="rounded-md border border-accent/40 bg-accent/8 p-3 text-base font-medium">
+              {res.mention}
+            </p>
+
             <div className="overflow-x-auto rounded-lg border border-border bg-surface">
-              <table className="w-full min-w-[34rem] text-left text-sm">
-                <caption className="sr-only">Comparaison des deux formes juridiques</caption>
+              <table className="w-full min-w-[38rem] text-left text-sm">
+                <caption className="sr-only">
+                  Comparaison entre {res.a} et {res.b}
+                </caption>
                 <thead>
                   <tr className="border-b border-border">
-                    <th scope="col" className="p-3 font-medium">Critère</th>
-                    <th scope="col" className="p-3 font-medium">{axe.a}</th>
-                    <th scope="col" className="p-3 font-medium">{axe.b}</th>
+                    <th scope="col" className="p-3 font-medium">
+                      Critère
+                    </th>
+                    <th scope="col" className="p-3 font-medium">
+                      {res.a}
+                    </th>
+                    <th scope="col" className="p-3 font-medium">
+                      {res.b}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {[
-                    ["Régime social du dirigeant", "social"],
-                    ["Dividendes", "dividendes"],
-                    ["Formalisme", "formalisme"],
-                    ["Flexibilité statutaire", "flexibilite"],
-                  ].map(([libelle, cle]) => (
-                    <tr key={cle} className="border-b border-border align-top">
-                      <th scope="row" className="p-3 font-medium">{libelle}</th>
-                      <td className="p-3">{COMPARAISON[axe.a]?.[cle as "social"]}</td>
-                      <td className="p-3">{COMPARAISON[axe.b]?.[cle as "social"]}</td>
+                  {res.lignes.map((l) => (
+                    <tr key={l.critere} className="border-b border-border align-top last:border-0">
+                      <th scope="row" className="p-3 font-medium">
+                        {l.critere}
+                      </th>
+                      <td className="p-3">{l.a}</td>
+                      <td className="p-3">{l.b}</td>
                     </tr>
                   ))}
-                  <tr className="align-top">
-                    <th scope="row" className="p-3 font-medium">Points communs</th>
-                    <td className="p-3" colSpan={2}>
-                      Responsabilité limitée aux apports, capital libre, possibilité de créer avec un
-                      capital de 1 €, dépôt du capital préalable et immatriculation au registre
-                      compétent.
-                    </td>
-                  </tr>
                 </tbody>
               </table>
+            </div>
+
+            <div className="rounded-lg border border-border bg-surface p-5">
+              <h2 className="font-serif text-xl">{res.encadreTitre}</h2>
+              <p className="mt-2 text-base leading-relaxed">{res.encadreTexte}</p>
             </div>
 
             <p className="text-base">
               Au regard de vos réponses, les créateurs dans votre situation s'orientent le plus
               souvent vers la <strong>{resultat}</strong>.
             </p>
+
+            <p className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed">
+              {NOTE_REMBOURSEMENT}
+            </p>
+
             <Disclaimer />
 
             <div className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed">

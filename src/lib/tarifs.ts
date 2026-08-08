@@ -43,6 +43,17 @@ export type CoutForme = {
 
 export function coutParForme(tarifs: Tarif[] | undefined, forme: Forme): CoutForme {
   const m = tarifMap(tarifs);
+  if (forme === "EI") {
+    const greffeEi = m.get("greffe_EI")?.montant_ttc ?? 0;
+    return {
+      forme,
+      annonceTtc: m.get("annonce_EI")?.montant_ttc ?? 0,
+      greffeTtc: greffeEi,
+      benefTtc: 0,
+      greffeEtBenef: greffeEi,
+      totalTtc: greffeEi,
+    };
+  }
   const annonceTtc = m.get(`annonce_${forme}`)?.montant_ttc ?? 0;
   const greffeTtc =
     m.get(isCivile(forme) ? "greffe_societe_civile" : "greffe_societe_commerciale")?.montant_ttc ?? 0;
@@ -60,3 +71,32 @@ export function coutParForme(tarifs: Tarif[] | undefined, forme: Forme): CoutFor
 export function missionMensuelleHt(tarifs: Tarif[] | undefined) {
   return tarifMap(tarifs).get("mission_compta_mensuelle")?.montant_ht ?? 199;
 }
+
+export function prixRelectureHt(tarifs: Tarif[] | undefined) {
+  return tarifMap(tarifs).get("relecture_cabinet")?.montant_ht ?? 149;
+}
+
+export function penaliteCreationHt(tarifs: Tarif[] | undefined) {
+  return tarifMap(tarifs).get("penalite_creation")?.montant_ht ?? 399;
+}
+
+/** Bornes HT de l'annonce légale sur les formes sociétaires (l'EI en est exclue). */
+export function bornesAnnonceHt(tarifs: Tarif[] | undefined) {
+  const valeurs = (tarifs ?? [])
+    .filter((t) => t.cle.startsWith("annonce_") && t.cle !== "annonce_EI")
+    .map((t) => Number(t.montant_ht ?? 0))
+    .filter((n) => n > 0);
+  if (valeurs.length === 0) return { min: 0, max: 0 };
+  return { min: Math.min(...valeurs), max: Math.max(...valeurs) };
+}
+
+/** Greffe + bénéficiaires effectifs pour une société commerciale (montant réglementé). */
+export function greffeEtBenefSociete(tarifs: Tarif[] | undefined) {
+  const m = tarifMap(tarifs);
+  return (m.get("greffe_societe_commerciale")?.montant_ttc ?? 0) + (m.get("benef_effectifs")?.montant_ttc ?? 0);
+}
+
+export function greffeEi(tarifs: Tarif[] | undefined) {
+  return tarifMap(tarifs).get("greffe_EI")?.montant_ttc ?? 0;
+}
+

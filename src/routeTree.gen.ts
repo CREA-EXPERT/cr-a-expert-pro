@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CguRouteImport } from './routes/cgu'
+import { Route as CommencerRouteImport } from './routes/commencer'
 import { Route as ConfidentialiteRouteImport } from './routes/confidentialite'
 import { Route as MentionsLegalesRouteImport } from './routes/mentions-legales'
 import { Route as SimulateurRouteImport } from './routes/simulateur'
@@ -42,6 +43,11 @@ const AuthRoute = AuthRouteImport.update({
 const CguRoute = CguRouteImport.update({
   id: '/cgu',
   path: '/cgu',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommencerRoute = CommencerRouteImport.update({
+  id: '/commencer',
+  path: '/commencer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConfidentialiteRoute = ConfidentialiteRouteImport.update({
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/cgu': typeof CguRoute
+  '/commencer': typeof CommencerRoute
   '/confidentialite': typeof ConfidentialiteRoute
   '/mentions-legales': typeof MentionsLegalesRoute
   '/simulateur': typeof SimulateurRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/cgu': typeof CguRoute
+  '/commencer': typeof CommencerRoute
   '/confidentialite': typeof ConfidentialiteRoute
   '/mentions-legales': typeof MentionsLegalesRoute
   '/simulateur': typeof SimulateurRoute
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/cgu': typeof CguRoute
+  '/commencer': typeof CommencerRoute
   '/confidentialite': typeof ConfidentialiteRoute
   '/mentions-legales': typeof MentionsLegalesRoute
   '/simulateur': typeof SimulateurRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/cgu'
+    | '/commencer'
     | '/confidentialite'
     | '/mentions-legales'
     | '/simulateur'
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/cgu'
+    | '/commencer'
     | '/confidentialite'
     | '/mentions-legales'
     | '/simulateur'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/cgu'
+    | '/commencer'
     | '/confidentialite'
     | '/mentions-legales'
     | '/simulateur'
@@ -210,6 +222,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   CguRoute: typeof CguRoute
+  CommencerRoute: typeof CommencerRoute
   ConfidentialiteRoute: typeof ConfidentialiteRoute
   MentionsLegalesRoute: typeof MentionsLegalesRoute
   SimulateurRoute: typeof SimulateurRoute
@@ -244,6 +257,13 @@ declare module '@tanstack/react-router' {
       path: '/cgu'
       fullPath: '/cgu'
       preLoaderRoute: typeof CguRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/commencer': {
+      id: '/commencer'
+      path: '/commencer'
+      fullPath: '/commencer'
+      preLoaderRoute: typeof CommencerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/confidentialite': {
@@ -354,6 +374,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   CguRoute: CguRoute,
+  CommencerRoute: CommencerRoute,
   ConfidentialiteRoute: ConfidentialiteRoute,
   MentionsLegalesRoute: MentionsLegalesRoute,
   SimulateurRoute: SimulateurRoute,

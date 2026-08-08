@@ -242,6 +242,7 @@ export type Database = {
         Row: {
           activite_reglementee: boolean
           apport_nature: boolean
+          autovalidation_le: string | null
           capital_liberation: number
           capital_montant: number
           created_at: string
@@ -258,9 +259,13 @@ export type Database = {
           etape_courante: number
           forme_juridique: string
           id: string
+          lettre_mission_acceptee_le: string | null
+          lettre_mission_nom: string | null
+          moyen_de_paiement_enregistre: boolean
           objet_social: string | null
           option_fiscale: string | null
           regime_tva: string | null
+          relecture_statut: string
           routage_cabinet: boolean
           siege_adresse: string | null
           siege_type: string | null
@@ -270,10 +275,12 @@ export type Database = {
           user_id: string
           valide_le: string | null
           valide_par: string | null
+          voie_validation: string | null
         }
         Insert: {
           activite_reglementee?: boolean
           apport_nature?: boolean
+          autovalidation_le?: string | null
           capital_liberation?: number
           capital_montant?: number
           created_at?: string
@@ -290,9 +297,13 @@ export type Database = {
           etape_courante?: number
           forme_juridique?: string
           id?: string
+          lettre_mission_acceptee_le?: string | null
+          lettre_mission_nom?: string | null
+          moyen_de_paiement_enregistre?: boolean
           objet_social?: string | null
           option_fiscale?: string | null
           regime_tva?: string | null
+          relecture_statut?: string
           routage_cabinet?: boolean
           siege_adresse?: string | null
           siege_type?: string | null
@@ -302,10 +313,12 @@ export type Database = {
           user_id: string
           valide_le?: string | null
           valide_par?: string | null
+          voie_validation?: string | null
         }
         Update: {
           activite_reglementee?: boolean
           apport_nature?: boolean
+          autovalidation_le?: string | null
           capital_liberation?: number
           capital_montant?: number
           created_at?: string
@@ -322,9 +335,13 @@ export type Database = {
           etape_courante?: number
           forme_juridique?: string
           id?: string
+          lettre_mission_acceptee_le?: string | null
+          lettre_mission_nom?: string | null
+          moyen_de_paiement_enregistre?: boolean
           objet_social?: string | null
           option_fiscale?: string | null
           regime_tva?: string | null
+          relecture_statut?: string
           routage_cabinet?: boolean
           siege_adresse?: string | null
           siege_type?: string | null
@@ -334,6 +351,7 @@ export type Database = {
           user_id?: string
           valide_le?: string | null
           valide_par?: string | null
+          voie_validation?: string | null
         }
         Relationships: []
       }
@@ -428,23 +446,29 @@ export type Database = {
       }
       simulations: {
         Row: {
+          corps_email: string | null
           created_at: string
           email: string
           id: string
+          prenom: string | null
           reponses: Json
           resultat: string | null
         }
         Insert: {
+          corps_email?: string | null
           created_at?: string
           email: string
           id?: string
+          prenom?: string | null
           reponses?: Json
           resultat?: string | null
         }
         Update: {
+          corps_email?: string | null
           created_at?: string
           email?: string
           id?: string
+          prenom?: string | null
           reponses?: Json
           resultat?: string | null
         }
