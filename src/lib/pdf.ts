@@ -378,8 +378,17 @@ export async function genererLettreMission(
   titre(ctx, "Objet de la mission");
   ecrire(ctx, "Le cabinet d'expertise comptable partenaire, inscrit à l'Ordre des experts-comptables, réalise une mission de présentation des comptes annuels conforme au référentiel normatif de l'Ordre : tenue de la comptabilité, établissement des comptes annuels, déclarations fiscales courantes et conseil au fil de l'eau.");
 
+  titre(ctx, "Exercice social et régimes fiscaux");
+  ecrire(
+    ctx,
+    `Clôture de l'exercice : ${d.date_cloture_exercice}${d.exercice_etendu ? " — premier exercice étendu (plus de 12 mois, un seul franchissement du 31 décembre)" : ""}.`,
+  );
+  ecrire(ctx, `Régime d'imposition des bénéfices : ${regimeBeneficesTexte(d)}.`);
+  ecrire(ctx, `Taxe sur la valeur ajoutée : ${regimeTvaTexte(d)}.`);
+
   titre(ctx, "Honoraires");
   ecrire(ctx, `Les honoraires sont fixés à ${euro(missionHt)} HT par mois, TVA de 20 % en sus.`);
+
 
   titre(ctx, "Durée et résiliation");
   ecrire(ctx, "La lettre de mission est conclue pour une durée indéterminée, avec un engagement initial de trois mois. À l'issue de cette période, chaque partie peut y mettre fin librement, sans frais ni justification.");
