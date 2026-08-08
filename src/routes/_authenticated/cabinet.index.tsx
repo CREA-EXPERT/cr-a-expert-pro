@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,7 +6,10 @@ import { useAuth, useRoles } from "@/hooks/useAuth";
 import { PageShell } from "@/components/layout/PageShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { STATUT_LABEL } from "@/lib/domain";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { STATUTS, STATUT_LABEL } from "@/lib/domain";
 
 export const Route = createFileRoute("/_authenticated/cabinet/")({
   head: () => ({
@@ -14,6 +18,8 @@ export const Route = createFileRoute("/_authenticated/cabinet/")({
       { name: "description", content: "Liste des dossiers de création à revoir par le cabinet d'expertise comptable." },
       { property: "og:title", content: "Espace cabinet — CREA EXPERT" },
       { property: "og:description", content: "Suivi et revue des dossiers clients." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: CabinetListe,
@@ -22,6 +28,8 @@ export const Route = createFileRoute("/_authenticated/cabinet/")({
 function CabinetListe() {
   const { user } = useAuth();
   const { isCabinet, loading: rolesLoading } = useRoles(user);
+  const [statut, setStatut] = useState<string>("tous");
+  const [recherche, setRecherche] = useState("");
 
   const { data, isLoading } = useQuery({
     queryKey: ["cabinet-dossiers"],
@@ -36,7 +44,11 @@ function CabinetListe() {
       const { data: docs } = ids.length
         ? await supabase.from("documents").select("dossier_id, statut_document").in("dossier_id", ids)
         : { data: [] as { dossier_id: string; statut_document: string }[] };
-      return { dossiers: dossiers ?? [], docs: docs ?? [] };
+      const { count } = await supabase
+        .from("callbacks")
+        .select("id", { count: "exact", head: true })
+        .eq("statut", "a_traiter");
+      return { dossiers: dossiers ?? [], docs: docs ?? [], rappels: count ?? 0 };
     },
   });
 
@@ -64,21 +76,71 @@ function CabinetListe() {
     );
   }
 
-  const compte = (id: string, statut: string) =>
-    (data?.docs ?? []).filter((d) => d.dossier_id === id && d.statut_document === statut).length;
+  const compte = (id: string, s: string) =>
+    (data?.docs ?? []).filter((d) => d.dossier_id === id && d.statut_document === s).length;
+
+  const q = recherche.trim().toLowerCase();
+  const dossiers = (data?.dossiers ?? []).filter((d) => {
+    const okStatut = statut === "tous" || d.statut === statut;
+    const okRecherche =
+      q === "" ||
+      (d.denomination ?? "").toLowerCase().includes(q) ||
+      (d.sigle ?? "").toLowerCase().includes(q) ||
+      d.forme_juridique.toLowerCase().includes(q) ||
+      d.id.toLowerCase().startsWith(q);
+    return okStatut && okRecherche;
+  });
 
   return (
     <PageShell>
       <div className="container-page py-10">
-        <h1 className="font-serif text-3xl">Dossiers clients</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {data?.dossiers.length ?? 0} dossier(s). Les dossiers signalés « accompagnement requis » sont à traiter en priorité.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="font-serif text-3xl">Dossiers clients</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {dossiers.length} dossier(s) affiché(s) sur {data?.dossiers.length ?? 0}. Les dossiers signalés
+              « accompagnement requis » sont à traiter en priorité.
+            </p>
+          </div>
+          <Button asChild variant="outline">
+            <Link to="/cabinet/rappels">
+              Demandes de rappel{data?.rappels ? ` (${data.rappels})` : ""}
+            </Link>
+          </Button>
+        </div>
+
+        <div className="mt-6 grid gap-3 sm:grid-cols-[1fr_16rem]">
+          <div className="space-y-1.5">
+            <Label htmlFor="recherche">Rechercher</Label>
+            <Input
+              id="recherche"
+              placeholder="Dénomination, sigle, forme juridique…"
+              value={recherche}
+              onChange={(e) => setRecherche(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="filtre-statut">Statut</Label>
+            <Select value={statut} onValueChange={setStatut}>
+              <SelectTrigger id="filtre-statut">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tous">Tous les statuts</SelectItem>
+                {STATUTS.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {STATUT_LABEL[s]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
         {isLoading ? (
           <p className="mt-8 text-muted-foreground">Chargement…</p>
-        ) : (data?.dossiers.length ?? 0) === 0 ? (
-          <p className="mt-8 text-muted-foreground">Aucun dossier pour le moment.</p>
+        ) : dossiers.length === 0 ? (
+          <p className="mt-8 text-muted-foreground">Aucun dossier ne correspond à votre recherche.</p>
         ) : (
           <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-surface">
             <table className="w-full text-sm">
@@ -93,7 +155,7 @@ function CabinetListe() {
                 </tr>
               </thead>
               <tbody>
-                {data?.dossiers.map((d) => (
+                {dossiers.map((d) => (
                   <tr key={d.id} className="border-b border-border/60 last:border-0">
                     <td className="p-3">
                       <span className="font-medium">{d.denomination || "Sans dénomination"}</span>

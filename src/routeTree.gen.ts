@@ -23,6 +23,7 @@ import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
 import { Route as AuthenticatedCabinetIndexRouteImport } from './routes/_authenticated/cabinet.index'
 import { Route as AuthenticatedCabinetIdRouteImport } from './routes/_authenticated/cabinet.$id'
+import { Route as AuthenticatedCabinetRappelsRouteImport } from './routes/_authenticated/cabinet.rappels'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -95,6 +96,12 @@ const AuthenticatedCabinetIdRoute = AuthenticatedCabinetIdRouteImport.update({
   path: '/cabinet/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCabinetRappelsRoute =
+  AuthenticatedCabinetRappelsRouteImport.update({
+    id: '/cabinet/rappels',
+    path: '/cabinet/rappels',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/documents': typeof AuthenticatedDocumentsRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
+  '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/cabinet/': typeof AuthenticatedCabinetIndexRoute
 }
 export interface FileRoutesByTo {
@@ -124,6 +132,7 @@ export interface FileRoutesByTo {
   '/documents': typeof AuthenticatedDocumentsRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
+  '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/cabinet': typeof AuthenticatedCabinetIndexRoute
 }
 export interface FileRoutesById {
@@ -141,6 +150,7 @@ export interface FileRoutesById {
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/_authenticated/cabinet/$id': typeof AuthenticatedCabinetIdRoute
+  '/_authenticated/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/_authenticated/cabinet/': typeof AuthenticatedCabinetIndexRoute
 }
 export interface FileRouteTypes {
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/tableau-de-bord'
     | '/cabinet/$id'
+    | '/cabinet/rappels'
     | '/cabinet/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/tableau-de-bord'
     | '/cabinet/$id'
+    | '/cabinet/rappels'
     | '/cabinet'
   id:
     | '__root__'
@@ -189,6 +201,7 @@ export interface FileRouteTypes {
     | '/_authenticated/documents'
     | '/_authenticated/tableau-de-bord'
     | '/_authenticated/cabinet/$id'
+    | '/_authenticated/cabinet/rappels'
     | '/_authenticated/cabinet/'
   fileRoutesById: FileRoutesById
 }
@@ -303,6 +316,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCabinetIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cabinet/rappels': {
+      id: '/_authenticated/cabinet/rappels'
+      path: '/cabinet/rappels'
+      fullPath: '/cabinet/rappels'
+      preLoaderRoute: typeof AuthenticatedCabinetRappelsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -312,6 +332,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
   AuthenticatedTableauDeBordRoute: typeof AuthenticatedTableauDeBordRoute
   AuthenticatedCabinetIdRoute: typeof AuthenticatedCabinetIdRoute
+  AuthenticatedCabinetRappelsRoute: typeof AuthenticatedCabinetRappelsRoute
   AuthenticatedCabinetIndexRoute: typeof AuthenticatedCabinetIndexRoute
 }
 
@@ -321,6 +342,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
   AuthenticatedTableauDeBordRoute: AuthenticatedTableauDeBordRoute,
   AuthenticatedCabinetIdRoute: AuthenticatedCabinetIdRoute,
+  AuthenticatedCabinetRappelsRoute: AuthenticatedCabinetRappelsRoute,
   AuthenticatedCabinetIndexRoute: AuthenticatedCabinetIndexRoute,
 }
 
