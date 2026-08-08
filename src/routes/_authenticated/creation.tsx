@@ -14,11 +14,14 @@ import { Badge } from "@/components/ui/badge";
 import { Disclaimer } from "@/components/Disclaimer";
 import { CallbackDialog } from "@/components/CallbackDialog";
 import {
+  CABINET,
   FORMES,
   FORMES_COMMUNAUTE,
   MOIS,
   OBJETS_TYPES,
-  REGIMES,
+  REGIMES_AVEC_CONTRAT,
+  REGIMES_MARIAGE,
+  REGIMES_PACS,
   REGIMES_COMMUNAUTAIRES,
   REGIME_DEFAUT,
   SITUATIONS,
@@ -43,17 +46,24 @@ import {
 } from "@/lib/tarifs";
 import { NafSelect } from "@/components/NafSelect";
 import { AssocieIdentite } from "@/components/AssocieIdentite";
+import { VerifReglementation } from "@/components/VerifReglementation";
+import { RecommandationDialog } from "@/components/RecommandationDialog";
 import {
   EncadreCloture,
   EncadreCompositionForme,
   EncadreDemembrement,
   EncadreGouvernance,
+  EncadreMineur,
+  EncadreRegimes,
+  EncadreRelectureLimites,
+  EncadreResponsabilite,
   EncadreTva,
 } from "@/components/EncadresPedago";
 import { estCodeReglemente } from "@/lib/naf-reglemente";
 import { redigerObjetSocial } from "@/lib/objet-social.functions";
 import { z } from "zod";
-import { ArrowLeft, ExternalLink, Plus, Sparkle, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, ExternalLink, Plus, Sparkle, Trash2 } from "lucide-react";
+
 
 
 const searchSchema = z.object({ forme: z.string().optional() });
