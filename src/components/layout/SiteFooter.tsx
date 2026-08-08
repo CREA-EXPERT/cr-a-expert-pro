@@ -45,13 +45,20 @@ export function SiteFooter() {
             <li>Frais légaux refacturés à l'euro près</li>
             <li>Données hébergées en Union européenne</li>
           </ul>
+          <div className="mt-4">
+            <RecommandationDialog />
+          </div>
         </div>
       </div>
       <div className="border-t border-border">
         <p className="container-page py-5 text-xs text-muted-foreground">
           CREA EXPERT — plateforme d'accompagnement à la création de société. Les informations
-          publiées sur ce site sont générales et ne constituent pas un conseil personnalisé.
+          publiées sur ce site sont générales et ne constituent pas un conseil personnalisé. En
+          l'absence de recours à un professionnel, les choix effectués et les documents produits
+          relèvent de la seule responsabilité de l'utilisateur : ni CREA EXPERT, ni {CABINET.mention},
+          ne peuvent en répondre.
         </p>
+
       </div>
     </footer>
   );
