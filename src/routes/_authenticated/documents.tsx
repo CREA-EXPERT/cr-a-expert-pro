@@ -56,7 +56,9 @@ function Documents() {
   async function majDate(champ: "date_signature" | "date_depot_fonds" | "date_parution", v: string) {
     if (!dossier) return;
     setDossier({ ...dossier, [champ]: v || null });
-    await supabase.from("dossiers").update({ [champ]: v || null }).eq("id", dossier.id);
+    const maj: Record<string, string | null> = { [champ]: v || null };
+    await supabase.from("dossiers").update(maj as never).eq("id", dossier.id);
+
   }
 
   async function televerser(doc: DocumentRow, file: File) {
