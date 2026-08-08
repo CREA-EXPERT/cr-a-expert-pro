@@ -346,6 +346,47 @@ function Creation() {
           {/* 1 — FORME */}
           {cle === "forme" && (
             <div className="mt-6 space-y-3">
+              <div className="space-y-3 rounded-lg border border-border bg-surface p-4">
+                <p className="text-sm font-medium">Pour qui créez-vous cette société ?</p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {[
+                    { v: "moi", t: "Je crée une société pour moi" },
+                    { v: "tiers", t: "Je crée une société pour le compte d'un tiers" },
+                  ].map((o) => (
+                    <button
+                      key={o.v}
+                      type="button"
+                      onClick={() => patch({ pour_qui: o.v, ...(o.v === "tiers" ? { routage_cabinet: true } : {}) })}
+                      className={`rounded-md border px-3 py-2.5 text-left text-sm ${dossier.pour_qui === o.v ? "border-accent bg-accent/5" : "border-border bg-background"}`}
+                    >
+                      {o.t}
+                    </button>
+                  ))}
+                </div>
+
+                <p className="pt-2 text-sm font-medium">Quel sera votre rôle dans la gérance ?</p>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {[
+                    { v: "gerant", t: isSas(forme) ? "Je serai président" : "Je serai gérant" },
+                    { v: "cogerant", t: isSas(forme) ? "Je serai directeur général" : "Je serai co-gérant" },
+                    { v: "aucun", t: "Je ne serai pas dans la gérance" },
+                  ].map((o) => (
+                    <button
+                      key={o.v}
+                      type="button"
+                      onClick={() => patch({ role_demandeur: o.v })}
+                      className={`rounded-md border px-3 py-2.5 text-left text-sm ${dossier.role_demandeur === o.v ? "border-accent bg-accent/5" : "border-border bg-background"}`}
+                    >
+                      {o.t}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Ce choix oriente le parcours ; la désignation définitive des dirigeants et des
+                  associés se fait à l'étape « Associés et gérance ».
+                </p>
+              </div>
+
               {FORMES.map((f) => (
                 <button
                   key={f.value}
