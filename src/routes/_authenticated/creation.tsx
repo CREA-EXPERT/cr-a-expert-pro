@@ -733,9 +733,17 @@ function Creation() {
           )}
 
 
-          {/* 6 — ASSOCIES */}
+          {/* 6 — ASSOCIES ET GERANCE */}
           {cle === "associes" && (
             <div className="mt-6 space-y-5">
+              {!ei && (
+                <>
+                  <EncadreGouvernance forme={forme} />
+                  <EncadreCompositionForme forme={forme} />
+                  <EncadreDemembrement />
+                </>
+              )}
+
               <div className="flex flex-wrap gap-2">
                 {(!ei || associes.length === 0) && (
                   <Button variant="outline" onClick={() => ajouterAssocie("personne_physique")}>
@@ -750,7 +758,7 @@ function Creation() {
               </div>
 
               {associes.map((a) => (
-                <div key={a.id} className="space-y-3 rounded-lg border border-border bg-surface p-4">
+                <div key={a.id} className="space-y-4 rounded-lg border border-border bg-surface p-4">
                   <div className="flex items-center justify-between">
                     <Badge variant="secondary">{a.type === "personne_morale" ? "Personne morale" : "Personne physique"}</Badge>
                     <Button variant="ghost" size="sm" onClick={() => supprimerAssocie(a.id)} aria-label="Supprimer">
@@ -759,48 +767,42 @@ function Creation() {
                   </div>
 
                   {a.type === "personne_physique" ? (
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <Input placeholder="Civilité" maxLength={10} value={a.civilite ?? ""} onChange={(e) => majAssocie(a.id, { civilite: e.target.value })} />
-                      <Input placeholder="Prénom" maxLength={80} value={a.prenom ?? ""} onChange={(e) => majAssocie(a.id, { prenom: e.target.value })} />
-                      <Input placeholder="Nom" maxLength={80} value={a.nom ?? ""} onChange={(e) => majAssocie(a.id, { nom: e.target.value })} />
-                      <Input placeholder="Nom de naissance" maxLength={80} value={a.nom_naissance ?? ""} onChange={(e) => majAssocie(a.id, { nom_naissance: e.target.value })} />
-                      <Input type="date" value={a.date_naissance ?? ""} onChange={(e) => majAssocie(a.id, { date_naissance: e.target.value })} />
-                      <Input placeholder="Lieu de naissance" maxLength={120} value={a.lieu_naissance ?? ""} onChange={(e) => majAssocie(a.id, { lieu_naissance: e.target.value })} />
-                      <Input placeholder="Nationalité" maxLength={60} value={a.nationalite ?? ""} onChange={(e) => majAssocie(a.id, { nationalite: e.target.value })} />
-                      <Input placeholder="Adresse" maxLength={200} value={a.adresse ?? ""} onChange={(e) => majAssocie(a.id, { adresse: e.target.value })} />
-                      <Input placeholder="Email" type="email" maxLength={255} value={a.email ?? ""} onChange={(e) => majAssocie(a.id, { email: e.target.value })} />
-                      <select className={champ} value={a.situation_matrimoniale ?? ""} onChange={(e) => majAssocie(a.id, { situation_matrimoniale: e.target.value })}>
-                        <option value="">Situation matrimoniale…</option>
-                        {SITUATIONS.map((s) => (
-                          <option key={s.value} value={s.value}>{s.label}</option>
-                        ))}
-                      </select>
-                      {a.situation_matrimoniale === "marie" && (
-                        <select className={champ} value={a.regime_matrimonial ?? ""} onChange={(e) => majAssocie(a.id, { regime_matrimonial: e.target.value })}>
-                          <option value="">Régime matrimonial…</option>
-                          {REGIMES.map((r) => (
-                            <option key={r.value} value={r.value}>{r.label}</option>
+                    <>
+                      <AssocieIdentite associe={a} onChange={(v) => majAssocie(a.id, v)} />
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <select className={champ} value={a.situation_matrimoniale ?? ""} onChange={(e) => majAssocie(a.id, { situation_matrimoniale: e.target.value })}>
+                          <option value="">Situation matrimoniale…</option>
+                          {SITUATIONS.map((s) => (
+                            <option key={s.value} value={s.value}>{s.label}</option>
                           ))}
                         </select>
-                      )}
-                      {a.situation_matrimoniale === "marie" &&
-                        REGIMES_COMMUNAUTAIRES.includes(a.regime_matrimonial ?? "") &&
-                        FORMES_COMMUNAUTE.includes(forme) && (
-                          <div className="sm:col-span-2 space-y-2 rounded-md border border-border bg-muted/50 p-3">
-                            <div className="flex items-start gap-3">
-                              <Checkbox id={`fc-${a.id}`} checked={a.apport_fonds_communs} onCheckedChange={(v) => majAssocie(a.id, { apport_fonds_communs: v === true })} className="mt-0.5" />
-                              <Label htmlFor={`fc-${a.id}`} className="text-sm font-normal">
-                                L'apport provient de fonds communs du couple.
-                              </Label>
-                            </div>
-                            <p className="text-sm">
-                              Dans ce cas, votre conjoint doit être informé de l'apport. Un courrier
-                              d'information sera généré et devra être signé avant la signature des
-                              statuts.
-                            </p>
-                          </div>
+                        {a.situation_matrimoniale === "marie" && (
+                          <select className={champ} value={a.regime_matrimonial ?? ""} onChange={(e) => majAssocie(a.id, { regime_matrimonial: e.target.value })}>
+                            <option value="">Régime matrimonial…</option>
+                            {REGIMES.map((r) => (
+                              <option key={r.value} value={r.value}>{r.label}</option>
+                            ))}
+                          </select>
                         )}
-                    </div>
+                        {a.situation_matrimoniale === "marie" &&
+                          REGIMES_COMMUNAUTAIRES.includes(a.regime_matrimonial ?? "") &&
+                          FORMES_COMMUNAUTE.includes(forme) && (
+                            <div className="sm:col-span-2 space-y-2 rounded-md border border-border bg-muted/50 p-3">
+                              <div className="flex items-start gap-3">
+                                <Checkbox id={`fc-${a.id}`} checked={a.apport_fonds_communs} onCheckedChange={(v) => majAssocie(a.id, { apport_fonds_communs: v === true })} className="mt-0.5" />
+                                <Label htmlFor={`fc-${a.id}`} className="text-sm font-normal">
+                                  L'apport provient de fonds communs du couple.
+                                </Label>
+                              </div>
+                              <p className="text-sm">
+                                Dans ce cas, votre conjoint doit être informé de l'apport. Un courrier
+                                d'information sera généré et devra être signé avant la signature des
+                                statuts.
+                              </p>
+                            </div>
+                          )}
+                      </div>
+                    </>
                   ) : (
                     <div className="grid gap-3 sm:grid-cols-2">
                       <Input placeholder="Dénomination" maxLength={120} value={a.denomination ?? ""} onChange={(e) => majAssocie(a.id, { denomination: e.target.value })} />
@@ -812,25 +814,89 @@ function Creation() {
                   )}
 
                   {!ei && (
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="space-y-1">
-                      <Label className="text-xs">Nombre de titres</Label>
-                      <Input type="number" min={0} value={a.nb_titres} onChange={(e) => majAssocie(a.id, { nb_titres: Number(e.target.value) })} />
+                    <div className="space-y-3 rounded-md border border-border bg-muted/40 p-3">
+                      <p className="text-sm font-medium">Détention de titres</p>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Nombre de titres</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            step="1"
+                            value={a.nb_titres}
+                            onChange={(e) => {
+                              const n = Math.max(0, Math.floor(Number(e.target.value) || 0));
+                              majAssocie(a.id, {
+                                nb_titres: n,
+                                montant_apport: Number((n * valeurPart).toFixed(2)),
+                                est_associe: n > 0,
+                              });
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Montant de l'apport (€)</Label>
+                          <Input type="number" readOnly value={Number(a.montant_apport)} />
+                          <p className="text-xs text-muted-foreground">
+                            Calculé : nombre de titres × valeur d'une part ({euro(valeurPart)}).
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 opacity-60">
+                        <Checkbox id={`ass-${a.id}`} checked={a.nb_titres > 0} disabled />
+                        <Label htmlFor={`ass-${a.id}`} className="text-sm font-normal">
+                          Associé — déterminé automatiquement par la détention de titres
+                        </Label>
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Montant de l'apport (€)</Label>
-                      <Input type="number" min={0} step="0.01" value={a.montant_apport} onChange={(e) => majAssocie(a.id, { montant_apport: Number(e.target.value) })} />
+                  )}
+
+                  {!ei && (
+                    <div className="space-y-3 rounded-md border border-border bg-muted/40 p-3">
+                      <p className="text-sm font-medium">Gérance</p>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Checkbox
+                          id={`dir-${a.id}`}
+                          checked={a.est_dirigeant}
+                          disabled={a.type === "personne_morale" && !isSas(forme) && forme !== "SCI"}
+                          onCheckedChange={(v) => majAssocie(a.id, { est_dirigeant: v === true, ...(v === true ? {} : { fonction: null }) })}
+                        />
+                        <Label htmlFor={`dir-${a.id}`} className="text-sm font-normal">
+                          Cette personne exerce un mandat de direction.
+                        </Label>
+                        {a.est_dirigeant && (
+                          <select
+                            className={`${champ} sm:w-64`}
+                            value={a.fonction ?? ""}
+                            onChange={(e) => choisirFonction(a.id, e.target.value)}
+                          >
+                            <option value="">Fonction…</option>
+                            {fonctionsPour(forme).map((f) => (
+                              <option key={f.value} value={f.value}>{f.label}</option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
+                      {a.type === "personne_morale" && !isSas(forme) && forme !== "SCI" && (
+                        <p className="text-xs text-muted-foreground">
+                          En SARL et EURL, le gérant est obligatoirement une personne physique.
+                        </p>
+                      )}
                     </div>
-                  </div>
                   )}
                 </div>
               ))}
 
               {!ei && (
-              <p className={`rounded-md border p-3 text-sm ${capitalOk ? "border-success/40 bg-success/8" : "border-destructive/40 bg-destructive/8"}`}>
-                Total des apports : {euro(totalApports)} — capital social : {euro(Number(dossier.capital_montant))}.
-                {capitalOk ? " Les montants correspondent." : " Les deux montants doivent être identiques pour continuer."}
-              </p>
+                <p className={`rounded-md border p-3 text-sm ${capitalOk ? "border-success/40 bg-success/8" : "border-destructive/40 bg-destructive/8"}`}>
+                  Total des apports : {euro(totalApports)} — capital social : {euro(Number(dossier.capital_montant))}.
+                  {capitalOk ? " Les montants correspondent." : " Les deux montants doivent être identiques pour continuer."}
+                </p>
+              )}
+              {!ei && dirigeants.length === 0 && (
+                <p className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm">
+                  Aucun dirigeant n'est désigné : {isSas(forme) ? "une SAS ou une SASU doit avoir un président." : "votre société doit avoir au moins un gérant."}
+                </p>
               )}
               {ei && (
                 <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
@@ -840,39 +906,6 @@ function Creation() {
                   professionnel.
                 </p>
               )}
-            </div>
-          )}
-
-          {/* 7 — DIRECTION */}
-          {cle === "direction" && (
-            <div className="mt-6 space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Désignez le ou les dirigeants parmi les personnes physiques enregistrées. Pour
-                nommer un tiers non associé, ajoutez-le à l'étape précédente et décochez « associé ».
-              </p>
-              {associes.filter((a) => a.type === "personne_physique").length === 0 && (
-                <p className="text-sm">Ajoutez d'abord une personne physique à l'étape 6.</p>
-              )}
-              {associes
-                .filter((a) => a.type === "personne_physique")
-                .map((a) => (
-                  <div key={a.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-surface p-4">
-                    <Checkbox id={`dir-${a.id}`} checked={a.est_dirigeant} onCheckedChange={(v) => majAssocie(a.id, { est_dirigeant: v === true })} />
-                    <Label htmlFor={`dir-${a.id}`} className="font-normal">
-                      {a.prenom} {a.nom || "(sans nom)"}
-                    </Label>
-                    <Checkbox id={`ass-${a.id}`} checked={a.est_associe} onCheckedChange={(v) => majAssocie(a.id, { est_associe: v === true })} />
-                    <Label htmlFor={`ass-${a.id}`} className="font-normal text-sm text-muted-foreground">associé</Label>
-                    {a.est_dirigeant && (
-                      <select className={`${champ} sm:w-56`} value={a.fonction ?? ""} onChange={(e) => majAssocie(a.id, { fonction: e.target.value })}>
-                        <option value="">Fonction…</option>
-                        {fonctionsPour(forme).map((f) => (
-                          <option key={f.value} value={f.value}>{f.label}</option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-                ))}
             </div>
           )}
 
