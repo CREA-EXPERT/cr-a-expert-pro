@@ -555,28 +555,67 @@ function Creation() {
               </div>
 
               {dossier.activite_reglementee ? (
-                <div className="rounded-md border border-warning/50 bg-warning/10 p-4 text-sm leading-relaxed">
-                  <p className="font-medium">Activité réglementée : une pièce justificative sera demandée</p>
-                  <p className="mt-2">
-                    L'exercice de cette activité est subordonné à une condition de diplôme, de
-                    qualification, d'agrément ou d'autorisation. Une pièce justificative est ajoutée
-                    à votre liste de documents ; selon l'activité, il s'agit de l'un des documents
-                    suivants :
-                  </p>
-                  <ul className="mt-2 space-y-1 pl-5 [&>li]:list-disc">
-                    <li>diplôme, titre ou certificat de qualification professionnelle ;</li>
-                    <li>carte professionnelle (immobilier, sécurité privée, transport…) ;</li>
-                    <li>agrément, licence ou autorisation administrative préfectorale ;</li>
-                    <li>attestation d'inscription à un ordre ou à un organisme professionnel ;</li>
-                    <li>attestation d'assurance de responsabilité civile professionnelle ou décennale ;</li>
-                    <li>justificatif d'expérience professionnelle lorsqu'il remplace le diplôme.</li>
-                  </ul>
-                  <p className="mt-2">
-                    Votre dossier est orienté vers le cabinet, qui vous indique la pièce exacte
-                    attendue et vérifie sa conformité avant dépôt.
-                  </p>
+                <div className="space-y-4">
+                  <div className="rounded-md border border-warning/50 bg-warning/10 p-4 text-sm leading-relaxed">
+                    <p className="font-medium">Activité réglementée : une pièce justificative sera demandée</p>
+                    <p className="mt-2">
+                      L'exercice de cette activité est subordonné à une condition de diplôme, de
+                      qualification, d'agrément ou d'autorisation. Une pièce justificative est ajoutée
+                      à votre liste de documents ; selon l'activité, il s'agit de l'un des documents
+                      suivants :
+                    </p>
+                    <ul className="mt-2 space-y-1 pl-5 [&>li]:list-disc">
+                      <li>diplôme, titre ou certificat de qualification professionnelle ;</li>
+                      <li>carte professionnelle (immobilier, sécurité privée, transport…) ;</li>
+                      <li>agrément, licence ou autorisation administrative préfectorale ;</li>
+                      <li>attestation d'inscription à un ordre ou à un organisme professionnel ;</li>
+                      <li>attestation d'assurance de responsabilité civile professionnelle ou décennale ;</li>
+                      <li>justificatif d'expérience professionnelle lorsqu'il remplace le diplôme.</li>
+                    </ul>
+                    <p className="mt-2">
+                      Votre dossier est orienté vers le cabinet, qui vous indique la pièce exacte
+                      attendue et vérifie sa conformité avant dépôt.
+                    </p>
+                  </div>
+
+                  <div className="rounded-md border border-border bg-surface p-4">
+                    <p className="text-sm font-medium">Sur quoi repose votre qualification ?</p>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      {[
+                        { v: "diplome", t: "Un diplôme ou un titre" },
+                        { v: "experience", t: "Une expérience professionnelle" },
+                      ].map((o) => (
+                        <button
+                          key={o.v}
+                          type="button"
+                          onClick={() => patch({ justificatif_type: o.v })}
+                          className={`rounded-md border px-3 py-2.5 text-left text-sm ${dossier.justificatif_type === o.v ? "border-accent bg-accent/5" : "border-border bg-background"}`}
+                        >
+                          {o.t}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      <Label htmlFor="justif" className="text-sm font-normal">
+                        Précisez (intitulé du diplôme et année, ou fonctions exercées, employeur et
+                        durée)
+                      </Label>
+                      <Textarea
+                        id="justif"
+                        rows={3}
+                        maxLength={500}
+                        value={dossier.justificatif_detail ?? ""}
+                        onChange={(e) => patch({ justificatif_detail: e.target.value })}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Cette information oriente la relecture du cabinet ; le justificatif lui-même
+                        se dépose à l'étape « Mes documents ».
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ) : (
+
                 <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
                   Certaines activités sont réglementées et exigent un diplôme, une qualification ou
                   une autorisation. Si c'est votre cas, cochez la case ci-dessus : votre dossier sera
