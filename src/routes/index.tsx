@@ -149,7 +149,7 @@ function Accueil() {
       {/* COMMENT CA MARCHE */}
       <section className="border-b border-border py-14">
         <div className="container-page">
-          <h2 className="font-serif text-3xl">Comment ça marche</h2>
+          <h2 className="font-serif text-2xl sm:text-3xl">Comment ça marche</h2>
           <ol className="mt-8 grid gap-6 md:grid-cols-5">
             {ETAPES.map((e) => (
               <li key={e.n} className="border-t-2 border-accent/50 pt-4">
@@ -170,7 +170,7 @@ function Accueil() {
       {/* DELAIS */}
       <section className="border-y border-border bg-surface py-12">
         <div className="container-page">
-          <h2 className="font-serif text-3xl">Combien de temps ça prend</h2>
+          <h2 className="font-serif text-2xl sm:text-3xl">Combien de temps ça prend</h2>
           <p className="mt-4 text-base leading-relaxed">
             Votre parcours en ligne prend moins de 30 minutes. Le délai d'immatriculation dépend
             ensuite de l'administration : de 24 heures à plusieurs semaines. L'administration peut
@@ -183,7 +183,7 @@ function Accueil() {
       {/* FORMES JURIDIQUES */}
       <section className="border-t border-border py-14">
         <div className="container-page">
-          <h2 className="font-serif text-3xl">Les formes juridiques que nous créons en ligne</h2>
+          <h2 className="font-serif text-2xl sm:text-3xl">Les formes juridiques que nous créons en ligne</h2>
           <p className="mt-4 text-base leading-relaxed">
             Dépliez chaque forme pour en connaître les caractéristiques, les avantages, les
             inconvénients et les obligations. Ces éléments sont des faits juridiques, applicables à
@@ -206,7 +206,7 @@ function Accueil() {
       {/* FAQ */}
       <section className="border-t border-border py-14">
         <div className="container-page">
-          <h2 className="font-serif text-3xl">Questions fréquentes</h2>
+          <h2 className="font-serif text-2xl sm:text-3xl">Questions fréquentes</h2>
           <Accordion type="single" collapsible className="mt-6">
             {FAQ.map((f, i) => (
               <AccordionItem key={f.q} value={`q${i}`}>
