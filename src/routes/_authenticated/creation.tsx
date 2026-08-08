@@ -418,6 +418,11 @@ function Creation() {
   const relectureHt = prixRelectureHt(tarifs);
   const relectureOptionsHt = tarifMap(tarifs).get("relecture_options")?.montant_ht ?? 150;
   const relecture = dossier.voie_validation === "cabinet" ? relectureHt * 1.2 : 0;
+  /** Aperçu dynamique de la checklist, recalculé à chaque réponse. */
+  const apercuChecklist = rules
+    ? construireDocuments(dossier, associes, rules).filter((d) => d.origine === "a_fournir")
+    : [];
+  const apercuSignatures = construireSignatures(dossier, associes);
 
   return (
     <PageShell withFooter={false}>
