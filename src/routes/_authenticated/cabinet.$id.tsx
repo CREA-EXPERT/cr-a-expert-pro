@@ -13,6 +13,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Disclaimer } from "@/components/Disclaimer";
 import { STATUTS, STATUT_LABEL, euro } from "@/lib/domain";
 import type { Associe, DocumentRow, Dossier } from "@/lib/documents";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+const STATUT_PIECE: Record<string, string> = {
+  a_fournir: "À fournir",
+  recu: "Reçue, à contrôler",
+  valide: "Validée",
+  rejete: "À corriger",
+};
 
 export const Route = createFileRoute("/_authenticated/cabinet/$id")({
   head: () => ({
@@ -32,6 +49,7 @@ function CabinetDossier() {
   const { isCabinet, loading: rolesLoading } = useRoles(user);
   const qc = useQueryClient();
   const [motifs, setMotifs] = useState<Record<string, string>>({});
+  const [confirmation, setConfirmation] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["cabinet-dossier", id],
@@ -57,9 +75,14 @@ function CabinetDossier() {
   }
 
   async function majDocument(docId: string, statut: string, motif?: string) {
+    const motifNet = (motif ?? "").trim();
+    if (statut === "rejete" && motifNet.length < 5) {
+      toast.error("Le motif de rejet est obligatoire (5 caractères minimum).");
+      return;
+    }
     const { error } = await supabase
       .from("documents")
-      .update({ statut_document: statut, motif_rejet: statut === "rejete" ? (motif ?? null) : null })
+      .update({ statut_document: statut, motif_rejet: statut === "rejete" ? motifNet : null })
       .eq("id", docId);
     if (error) {
       toast.error("Mise à jour impossible.");
@@ -67,25 +90,55 @@ function CabinetDossier() {
     }
     const doc = data?.docs.find((d) => d.id === docId);
     await journaliser(
-      statut === "valide" ? `Pièce validée par le cabinet : ${doc?.libelle}` : `Pièce rejetée : ${doc?.libelle}${motif ? ` — ${motif}` : ""}`,
+      statut === "valide"
+        ? `Pièce validée par le cabinet : ${doc?.libelle}`
+        : `Pièce à corriger — ${doc?.libelle} : ${motifNet}`,
     );
+    if (statut === "rejete") setMotifs((m) => ({ ...m, [docId]: "" }));
     toast.success("Pièce mise à jour.");
     qc.invalidateQueries({ queryKey: ["cabinet-dossier", id] });
   }
 
-  async function majStatut(statut: string) {
-    const patch: Record<string, unknown> = { statut };
-    if (statut === "valide_cabinet") {
-      patch['valide_par'] = user?.email ?? "cabinet";
-      patch['valide_le'] = new Date().toISOString();
+  async function ouvrirPiece(chemin: string | null) {
+    if (!chemin) {
+      toast.error("Aucun fichier déposé pour cette pièce.");
+      return;
     }
-    const { error } = await supabase.from("dossiers").update(patch as never).eq("id", id);
+    const { data: signed, error } = await supabase.storage.from("documents").createSignedUrl(chemin, 300);
+    if (error || !signed) {
+      toast.error("Impossible d'ouvrir le fichier.");
+      return;
+    }
+    window.open(signed.signedUrl, "_blank", "noopener");
+  }
+
+  async function majStatut(statut: string) {
+    const { error } = await supabase.from("dossiers").update({ statut }).eq("id", id);
     if (error) {
       toast.error("Mise à jour impossible.");
       return;
     }
     await journaliser(`Statut du dossier : ${STATUT_LABEL[statut] ?? statut}`);
     toast.success("Statut mis à jour.");
+    qc.invalidateQueries({ queryKey: ["cabinet-dossier", id] });
+  }
+
+  async function validerDossier() {
+    const horodatage = new Date().toISOString();
+    const validateur = user?.email ?? "cabinet";
+    const { error } = await supabase
+      .from("dossiers")
+      .update({ statut: "valide_cabinet", valide_par: validateur, valide_le: horodatage })
+      .eq("id", id);
+    if (error) {
+      toast.error("Validation impossible.");
+      return;
+    }
+    await journaliser(
+      `Dossier validé par le cabinet — ${validateur}, le ${new Date(horodatage).toLocaleString("fr-FR")}. Les documents ne portent plus la mention « PROJET ».`,
+    );
+    setConfirmation(false);
+    toast.success("Dossier validé.");
     qc.invalidateQueries({ queryKey: ["cabinet-dossier", id] });
   }
 
@@ -189,19 +242,27 @@ function CabinetDossier() {
             <ul className="mt-4 space-y-3">
               {(data?.docs ?? []).map((d) => (
                 <li key={d.id} className="rounded-md border border-border p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-medium">{d.libelle}</p>
                       <p className="text-xs text-muted-foreground">
                         {d.origine === "genere" ? "Généré par la plateforme" : "À fournir par le client"} ·{" "}
-                        {d.obligatoire ? "Obligatoire" : "Facultative"} · {d.statut_document}
+                        {d.obligatoire ? "Obligatoire" : "Facultative"} · {STATUT_PIECE[d.statut_document] ?? d.statut_document}
                       </p>
                       {d.motif_rejet && <p className="mt-1 text-xs text-destructive">Motif : {d.motif_rejet}</p>}
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={!d.fichier_url}
+                        onClick={() => ouvrirPiece(d.fichier_url)}
+                      >
+                        {d.fichier_url ? "Voir la pièce" : "Non déposée"}
+                      </Button>
                       <Input
                         className="h-9 w-48"
-                        placeholder="Motif de rejet"
+                        placeholder="Motif de rejet (obligatoire)"
                         value={motifs[d.id] ?? ""}
                         onChange={(e) => setMotifs((m) => ({ ...m, [d.id]: e.target.value }))}
                       />
@@ -246,9 +307,34 @@ function CabinetDossier() {
                 filigrane « PROJET » des documents générés.
               </p>
             )}
-            <Button className="mt-4 w-full" onClick={() => majStatut("valide_cabinet")}>
-              Valider le dossier
-            </Button>
+            {dossier.valide_le ? (
+              <p className="mt-4 rounded-md border border-border bg-muted p-3 text-sm">
+                Dossier validé par {dossier.valide_par} le{" "}
+                {new Date(dossier.valide_le).toLocaleString("fr-FR")}.
+              </p>
+            ) : (
+              <Button className="mt-4 w-full" onClick={() => setConfirmation(true)}>
+                VALIDER LE DOSSIER
+              </Button>
+            )}
+            <AlertDialog open={confirmation} onOpenChange={setConfirmation}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Valider définitivement ce dossier ?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    La validation est horodatée et enregistrée à votre nom ({user?.email}). Elle retire la mention
+                    « PROJET » des documents générés et en informe le client dans son suivi.
+                    {manquantes.length > 0
+                      ? ` ${manquantes.length} pièce(s) obligatoire(s) ne sont pas encore validées.`
+                      : ""}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction onClick={validerDossier}>Valider le dossier</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             <div className="mt-4">
               <Disclaimer />
             </div>
