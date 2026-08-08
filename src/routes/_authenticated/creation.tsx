@@ -617,12 +617,8 @@ function Creation() {
                   <span className="mt-1 block text-sm text-muted-foreground">{o.d}</span>
                 </button>
               ))}
-              {dossier.siege_type && (
-                <div className="space-y-2">
-                  <Label htmlFor="adr">Adresse du siège</Label>
-                  <Textarea id="adr" maxLength={300} value={dossier.siege_adresse ?? ""} onChange={(e) => patch({ siege_adresse: e.target.value })} />
-                </div>
-              )}
+              {dossier.siege_type && <AdresseSiege dossier={dossier} patch={patch} />}
+
               {dossier.siege_type === "domiciliataire" && (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
