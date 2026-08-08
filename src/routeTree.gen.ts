@@ -17,6 +17,8 @@ import { Route as ConfidentialiteRouteImport } from './routes/confidentialite'
 import { Route as MentionsLegalesRouteImport } from './routes/mentions-legales'
 import { Route as SimulateurRouteImport } from './routes/simulateur'
 import { Route as TarifsRouteImport } from './routes/tarifs'
+import { Route as AuthenticatedCreationRouteImport } from './routes/_authenticated/creation'
+import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
 
 const IndexRoute = IndexRouteImport.update({
@@ -58,6 +60,16 @@ const TarifsRoute = TarifsRouteImport.update({
   path: '/tarifs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedCreationRoute = AuthenticatedCreationRouteImport.update({
+  id: '/creation',
+  path: '/creation',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDocumentsRoute = AuthenticatedDocumentsRouteImport.update({
+  id: '/documents',
+  path: '/documents',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTableauDeBordRoute =
   AuthenticatedTableauDeBordRouteImport.update({
     id: '/tableau-de-bord',
@@ -73,6 +85,8 @@ export interface FileRoutesByFullPath {
   '/mentions-legales': typeof MentionsLegalesRoute
   '/simulateur': typeof SimulateurRoute
   '/tarifs': typeof TarifsRoute
+  '/creation': typeof AuthenticatedCreationRoute
+  '/documents': typeof AuthenticatedDocumentsRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
 }
 export interface FileRoutesByTo {
@@ -83,6 +97,8 @@ export interface FileRoutesByTo {
   '/mentions-legales': typeof MentionsLegalesRoute
   '/simulateur': typeof SimulateurRoute
   '/tarifs': typeof TarifsRoute
+  '/creation': typeof AuthenticatedCreationRoute
+  '/documents': typeof AuthenticatedDocumentsRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
 }
 export interface FileRoutesById {
@@ -95,6 +111,8 @@ export interface FileRoutesById {
   '/mentions-legales': typeof MentionsLegalesRoute
   '/simulateur': typeof SimulateurRoute
   '/tarifs': typeof TarifsRoute
+  '/_authenticated/creation': typeof AuthenticatedCreationRoute
+  '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
 }
 export interface FileRouteTypes {
@@ -107,6 +125,8 @@ export interface FileRouteTypes {
     | '/mentions-legales'
     | '/simulateur'
     | '/tarifs'
+    | '/creation'
+    | '/documents'
     | '/tableau-de-bord'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -117,6 +137,8 @@ export interface FileRouteTypes {
     | '/mentions-legales'
     | '/simulateur'
     | '/tarifs'
+    | '/creation'
+    | '/documents'
     | '/tableau-de-bord'
   id:
     | '__root__'
@@ -128,6 +150,8 @@ export interface FileRouteTypes {
     | '/mentions-legales'
     | '/simulateur'
     | '/tarifs'
+    | '/_authenticated/creation'
+    | '/_authenticated/documents'
     | '/_authenticated/tableau-de-bord'
   fileRoutesById: FileRoutesById
 }
@@ -200,6 +224,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TarifsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/creation': {
+      id: '/_authenticated/creation'
+      path: '/creation'
+      fullPath: '/creation'
+      preLoaderRoute: typeof AuthenticatedCreationRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/documents': {
+      id: '/_authenticated/documents'
+      path: '/documents'
+      fullPath: '/documents'
+      preLoaderRoute: typeof AuthenticatedDocumentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tableau-de-bord': {
       id: '/_authenticated/tableau-de-bord'
       path: '/tableau-de-bord'
@@ -211,10 +249,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCreationRoute: typeof AuthenticatedCreationRoute
+  AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
   AuthenticatedTableauDeBordRoute: typeof AuthenticatedTableauDeBordRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCreationRoute: AuthenticatedCreationRoute,
+  AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
   AuthenticatedTableauDeBordRoute: AuthenticatedTableauDeBordRoute,
 }
 
@@ -234,3 +276,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
