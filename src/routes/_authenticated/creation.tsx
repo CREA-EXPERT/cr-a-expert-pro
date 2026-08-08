@@ -385,6 +385,11 @@ function Creation() {
         ? "Dossier validé par le client sans relecture du cabinet. Les documents portent la mention indiquant qu'ils n'ont pas été revus par un professionnel."
         : "Dossier validé par le client. Relecture par le cabinet demandée. La liste des pièces à fournir a été générée.",
     });
+    await supabase.from("events_dossier").insert({
+      dossier_id: dossier.id,
+      type_event: "checklist_generee",
+      message: `Checklist documentaire générée : ${drafts.filter((d) => d.origine === "a_fournir").length} justificatif(s) à fournir et ${signatures.length} document(s) à signer électroniquement.`,
+    });
     setBusy(false);
     toast.success("Dossier validé. Votre checklist de documents est prête.");
     navigate({ to: "/documents" });
