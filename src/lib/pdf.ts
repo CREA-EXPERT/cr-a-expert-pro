@@ -16,15 +16,35 @@ type Ctx = {
   y: number;
 };
 
+/** Mode de rendu courant : filigrane « PROJET » et/ou mention de pied de page. */
+let RENDU: { filigrane: boolean; pied: string | null } = { filigrane: true, pied: null };
+
 function filigrane(page: PDFPage, font: PDFFont) {
-  page.drawText("PROJET — soumis à la validation du cabinet", {
-    x: 60,
-    y: 300,
-    size: 24,
-    font,
-    color: rgb(0.86, 0.86, 0.88),
-    rotate: degrees(38),
-  });
+  if (RENDU.filigrane) {
+    page.drawText("PROJET — soumis à la validation du cabinet", {
+      x: 60,
+      y: 300,
+      size: 24,
+      font,
+      color: rgb(0.86, 0.86, 0.88),
+      rotate: degrees(38),
+    });
+  }
+  if (RENDU.pied) {
+    page.drawText(RENDU.pied, { x: MARGE, y: 30, size: 8, font, color: GRIS });
+  }
+}
+
+/** Détermine le rendu à partir de l'état du dossier (validation cabinet ou auto-validation). */
+export function renduPour(d: Dossier): { filigrane: boolean; pied: string | null } {
+  if (d.valide_par) return { filigrane: false, pied: null };
+  if (d.voie_validation === "auto" && d.autovalidation_le) {
+    return {
+      filigrane: false,
+      pied: "Document genere a partir des reponses du declarant - non revu par un professionnel.",
+    };
+  }
+  return { filigrane: true, pied: null };
 }
 
 function nouvellePage(ctx: Ctx) {
@@ -313,7 +333,74 @@ export const TYPES_GENERES = [
   "pouvoir",
   "courrier_conjoint",
   "renonciation_conjoint",
+  "declaration_ei",
 ];
+
+/* --------------------- ENTREPRISE INDIVIDUELLE --------------------- */
+
+async function declarationEi(d: Dossier, associes: Associe[]) {
+  const e = associes.find((a) => a.type === "personne_physique");
+  const ctx = await creerCtx(
+    "Déclaration de début d'activité — entreprise individuelle",
+    `${d.denomination || "[nom commercial]"} — entrepreneur individuel`,
+  );
+  ecrire(ctx, `Je soussigné(e) ${e ? identite(e) : "[entrepreneur]"},`);
+  espace(ctx, 8);
+  ecrire(ctx, `déclare exercer une activité en nom propre, sous le statut d'entrepreneur individuel, à l'adresse suivante : ${d.siege_adresse || "[adresse d'exercice]"}.`);
+  espace(ctx, 8);
+  ecrire(ctx, `Activité exercée : ${d.objet_social || "[activité]"}`);
+  espace(ctx, 8);
+  ecrire(ctx, `Régime fiscal : ${d.option_fiscale === "IS" ? "option pour l'impôt sur les sociétés" : "impôt sur le revenu (régime de droit commun)"}.`);
+  ecrire(ctx, `Régime de TVA déclaré : ${d.regime_tva ?? "[régime de TVA]"}.`);
+  ecrire(ctx, `Demande d'ACRE : ${d.demande_acre ? "oui" : "non"}.`);
+  espace(ctx, 8);
+  ecrire(ctx, "Depuis le 15 mai 2022, le patrimoine personnel de l'entrepreneur individuel est de plein droit distinct de son patrimoine professionnel, dans les conditions prévues par la loi.");
+  aValider(ctx, "vérification de l'éligibilité au régime déclaré et des mentions du guichet des formalités");
+  espace(ctx, 20);
+  ecrire(ctx, `Fait le ${dateFr(d.date_signature)}.`, { bold: true });
+  espace(ctx, 18);
+  ecrire(ctx, "Signature :", { color: GRIS });
+  return fin(ctx);
+}
+
+/* ----------------------- LETTRE DE MISSION ----------------------- */
+
+export async function genererLettreMission(
+  d: Dossier,
+  missionHt: number,
+  penaliteHt: number,
+): Promise<Uint8Array> {
+  RENDU = { filigrane: false, pied: null };
+  const ctx = await creerCtx(
+    "Lettre de mission — mission de présentation des comptes",
+    `${d.denomination || "[dénomination]"} — ${d.forme_juridique}`,
+  );
+  titre(ctx, "Objet de la mission");
+  ecrire(ctx, "Le cabinet d'expertise comptable partenaire, inscrit à l'Ordre des experts-comptables, réalise une mission de présentation des comptes annuels conforme au référentiel normatif de l'Ordre : tenue de la comptabilité, établissement des comptes annuels, déclarations fiscales courantes et conseil au fil de l'eau.");
+
+  titre(ctx, "Honoraires");
+  ecrire(ctx, `Les honoraires sont fixés à ${euro(missionHt)} HT par mois, TVA de 20 % en sus.`);
+
+  titre(ctx, "Durée et résiliation");
+  ecrire(ctx, "La lettre de mission est conclue pour une durée indéterminée, avec un engagement initial de trois mois. À l'issue de cette période, chaque partie peut y mettre fin librement, sans frais ni justification.");
+
+  titre(ctx, "Honoraires de création offerts sous condition");
+  ecrire(ctx, `En cas de non-respect de l'engagement de 3 mois ou de défaut de paiement, les honoraires de création, offerts sous condition, deviennent exigibles à hauteur de ${euro(penaliteHt)} HT.`);
+
+  titre(ctx, "Frais légaux");
+  ecrire(ctx, "Les frais légaux (annonce légale, greffe, bénéficiaires effectifs) sont refacturés à l'euro près, sans marge. Les frais payés dans l'intérêt de la société créée peuvent être remboursés par celle-ci à la personne qui a avancé les fonds.");
+
+  espace(ctx, 20);
+  ecrire(ctx, `Acceptation : ${d.lettre_mission_nom ?? "[nom complet du client]"}`, { bold: true });
+  ecrire(
+    ctx,
+    d.lettre_mission_acceptee_le
+      ? `Acceptée en ligne le ${new Date(d.lettre_mission_acceptee_le).toLocaleString("fr-FR")}.`
+      : "En attente d'acceptation en ligne.",
+    { color: GRIS },
+  );
+  return fin(ctx);
+}
 
 export async function genererPdf(
   type: string,
@@ -321,6 +408,7 @@ export async function genererPdf(
   associes: Associe[],
   associeId: string | null,
 ): Promise<Uint8Array> {
+  RENDU = renduPour(dossier);
   const cible = associes.find((a) => a.id === associeId);
   switch (type) {
     case "statuts":
@@ -339,6 +427,8 @@ export async function genererPdf(
       return courrierConjoint(dossier, cible);
     case "renonciation_conjoint":
       return renonciationConjoint(dossier, cible);
+    case "declaration_ei":
+      return declarationEi(dossier, associes);
     default: {
       const ctx = await creerCtx("Document", dossier.denomination || "");
       ecrire(ctx, "Ce document sera généré par le cabinet.");

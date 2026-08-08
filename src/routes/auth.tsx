@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const searchSchema = z.object({ redirect: z.string().optional() });
+const searchSchema = z.object({ redirect: z.string().optional(), forme: z.string().optional() });
 
 export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
@@ -41,6 +41,7 @@ function Auth() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/auth" });
   const cible = search.redirect ?? "/tableau-de-bord";
+  const suite = { to: cible as string, replace: true, ...(search.forme ? { search: { forme: search.forme } } : {}) };
 
   const [busy, setBusy] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
@@ -67,7 +68,7 @@ function Auth() {
       toast.error("Identifiants incorrects ou compte non confirmé.");
       return;
     }
-    navigate({ to: cible as string, replace: true });
+    navigate(suite as never);
   }
 
   async function inscription(e: React.FormEvent) {
@@ -105,7 +106,7 @@ function Auth() {
       return;
     }
     if (data.session) {
-      navigate({ to: cible as string, replace: true });
+      navigate(suite as never);
       return;
     }
     setConfirmation(true);

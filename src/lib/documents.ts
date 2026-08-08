@@ -1,5 +1,5 @@
 import type { Tables } from "@/integrations/supabase/types";
-import { isSas, REGIMES_COMMUNAUTAIRES, FORMES_COMMUNAUTE, type Forme } from "./domain";
+import { isEI, isSas, REGIMES_COMMUNAUTAIRES, FORMES_COMMUNAUTE, type Forme } from "./domain";
 
 export type Dossier = Tables<"dossiers">;
 export type Associe = Tables<"associes">;
@@ -51,11 +51,32 @@ export function construireDocuments(
     statut_document: "a_fournir",
   });
 
+  const ei = isEI(dossier.forme_juridique);
+  /** L'entreprise individuelle n'a ni statuts, ni capital, ni annonce légale, ni bénéficiaires effectifs. */
+  const TYPES_HORS_EI = [
+    "statuts",
+    "liste_souscripteurs",
+    "depot_fonds",
+    "parution_annonce",
+    "beneficiaires_effectifs",
+    "non_condamnation",
+    "kbis_associe",
+    "statuts_associe",
+    "decision_souscription",
+    "courrier_conjoint",
+    "renonciation_conjoint",
+  ];
+
   const physiques = associes.filter((a) => a.type === "personne_physique");
   const morales = associes.filter((a) => a.type === "personne_morale");
   const dirigeants = associes.filter((a) => a.est_dirigeant && a.type === "personne_physique");
 
   for (const r of [...rules].sort((a, b) => a.ordre - b.ordre)) {
+    if (r.condition_champ === "forme_EI") {
+      if (ei) out.push(base(r, null));
+      continue;
+    }
+    if (ei && TYPES_HORS_EI.includes(r.type_document)) continue;
     switch (r.condition_champ) {
       case "par_personne_physique":
         physiques.forEach((a) => out.push(base(r, a.id, nomAssocie(a))));
@@ -73,7 +94,7 @@ export function construireDocuments(
         physiques.filter((a) => conjointConcerne(dossier, a)).forEach((a) => out.push(base(r, a.id, nomAssocie(a))));
         break;
       case "forme_sas":
-        if (isSas(dossier.forme_juridique)) out.push(base(r, null));
+        if (!ei && isSas(dossier.forme_juridique)) out.push(base(r, null));
         break;
       case "toujours":
       default:
@@ -90,6 +111,7 @@ export function verifierDates(dossier: Dossier): string[] {
   const sig = dossier.date_signature ? new Date(dossier.date_signature) : null;
   const depot = dossier.date_depot_fonds ? new Date(dossier.date_depot_fonds) : null;
   const parution = dossier.date_parution ? new Date(dossier.date_parution) : null;
+  if (isEI(dossier.forme_juridique)) return erreurs;
   if (!sig) erreurs.push("La date de signature des statuts n'est pas renseignée.");
   if (sig && depot && depot > sig)
     erreurs.push(

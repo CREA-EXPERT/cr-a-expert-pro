@@ -1,4 +1,4 @@
-export type Forme = "SASU" | "SAS" | "EURL" | "SARL" | "SCI";
+export type Forme = "SASU" | "SAS" | "EURL" | "SARL" | "SCI" | "EI";
 
 export const FORMES: { value: Forme; label: string; desc: string }[] = [
   { value: "SASU", label: "SASU", desc: "Société par actions simplifiée unipersonnelle — un seul associé." },
@@ -6,13 +6,22 @@ export const FORMES: { value: Forme; label: string; desc: string }[] = [
   { value: "EURL", label: "EURL", desc: "Société à responsabilité limitée à associé unique." },
   { value: "SARL", label: "SARL", desc: "Société à responsabilité limitée — plusieurs associés." },
   { value: "SCI", label: "SCI", desc: "Société civile immobilière — gestion immobilière patrimoniale." },
+  {
+    value: "EI",
+    label: "Entreprise individuelle",
+    desc: "À l'impôt sur le revenu, avec option possible pour l'impôt sur les sociétés. Pas de statuts, pas de capital, pas d'annonce légale.",
+  },
 ];
+
+/** Formes sociétaires uniquement (l'entreprise individuelle n'est pas une société). */
+export const FORMES_SOCIETES = FORMES.filter((f) => f.value !== "EI");
 
 export const FORMES_SAS: Forme[] = ["SAS", "SASU"];
 export const FORMES_COMMUNAUTE: Forme[] = ["SARL", "EURL", "SCI"];
 
 export const isSas = (f: string) => FORMES_SAS.includes(f as Forme);
 export const isCivile = (f: string) => f === "SCI";
+export const isEI = (f: string) => f === "EI";
 export const liberationMin = (f: string) => (isSas(f) ? 50 : isCivile(f) ? 0 : 20);
 
 export const fonctionsPour = (f: string) =>
@@ -29,6 +38,7 @@ export const REGIME_DEFAUT: Record<string, string> = {
   EURL: "Impôt sur le revenu (IR) par défaut lorsque l'associé unique est une personne physique ; option possible pour l'IS.",
   SARL: "Impôt sur les sociétés (IS) par défaut.",
   SCI: "Impôt sur le revenu (IR) par défaut ; option possible pour l'IS.",
+  EI: "Impôt sur le revenu (IR) par défaut ; une option pour l'impôt sur les sociétés est possible.",
 };
 
 export const OBJETS_TYPES: { titre: string; texte: string }[] = [

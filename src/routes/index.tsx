@@ -7,9 +7,9 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/layout/PageShell";
-import { TableauFraisLegaux } from "@/components/TableauFraisLegaux";
+import { FriseCouts } from "@/components/FriseCouts";
 import { CallbackDialog } from "@/components/CallbackDialog";
-import { MapPin, ShieldCheck, Server } from "lucide-react";
+import { FORMES } from "@/lib/domain";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -18,24 +18,36 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Créez votre SASU, SAS, EURL, SARL ou SCI en ligne. Honoraires de création offerts, frais légaux refacturés à l'euro près, mission comptable de 3 mois à 199 € HT/mois.",
+          "Créez votre SASU, SAS, EURL, SARL, SCI ou entreprise individuelle en ligne. Honoraires de création offerts, frais légaux refacturés à l'euro près, mission comptable de 3 mois à 199 € HT/mois.",
       },
       { property: "og:title", content: "CREA EXPERT — Créez votre société en ligne" },
       {
         property: "og:description",
         content:
-          "Honoraires de création offerts. Seuls les frais de greffe et d'annonce légale restent à votre charge. Un expert-comptable valide chaque dossier.",
+          "Honoraires de création offerts. Seuls les frais légaux obligatoires restent à votre charge, sans marge. Un cabinet inscrit à l'Ordre vous accompagne.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Accueil,
 });
 
+const BADGES = [
+  "🇫🇷 100 % réalisé en France",
+  "Accompagné par un cabinet inscrit à l'Ordre des experts-comptables",
+  "Données hébergées en Europe",
+];
+
 const ETAPES = [
   { n: 1, t: "Simulez votre forme juridique", d: "Cinq questions, une restitution comparative et neutre." },
   { n: 2, t: "Complétez votre dossier en ligne", d: "Un formulaire guidé, sauvegardé à chaque étape." },
   { n: 3, t: "Déposez vos pièces", d: "Une checklist personnalisée, avec une aide pour chaque document." },
-  { n: 4, t: "Un expert-comptable valide tout", d: "Chaque pièce est contrôlée avant le dépôt." },
+  {
+    n: 4,
+    t: "Vous validez vos documents",
+    d: "Vous validez vous-même vos documents pour aller plus vite, ou demandez leur relecture par un expert-comptable (en option).",
+  },
   { n: 5, t: "Votre société est immatriculée", d: "Vous suivez l'avancement depuis votre espace." },
 ];
 
@@ -50,15 +62,19 @@ const FAQ = [
   },
   {
     q: "Qui rédige mes statuts ?",
-    r: "Les statuts sont générés à partir des réponses que vous saisissez dans le parcours, selon un gabarit correspondant à la forme juridique choisie. Ils portent la mention « PROJET » tant qu'ils n'ont pas été revus et validés par le cabinet d'expertise comptable. Aucune clause n'est ajoutée sans validation d'un professionnel.",
+    r: "Vos documents sont générés à partir de vos réponses. Vous pouvez les valider vous-même, ou demander leur relecture par un expert-comptable (option payante, avec engagement de sa responsabilité).",
+  },
+  {
+    q: "Puis-je créer sans engagement comptable ?",
+    r: "Non. Notre modèle est simple et assumé : la création est offerte parce que le cabinet vous accompagne ensuite en comptabilité pendant au moins 3 mois. Si vous ne souhaitez pas d'accompagnement comptable, notre offre n'est pas adaptée à votre situation.",
   },
   {
     q: "Puis-je créer seul(e) ou à plusieurs ?",
-    r: "Les deux. Seul, vous pouvez créer une SASU ou une EURL. À plusieurs, une SAS ou une SARL. Pour une activité immobilière patrimoniale, la SCI se crée à partir de deux associés.",
+    r: "Les deux. Seul, vous pouvez créer une SASU, une EURL ou une entreprise individuelle. À plusieurs, une SAS ou une SARL. Pour une activité immobilière patrimoniale, la SCI se crée à partir de deux associés.",
   },
   {
     q: "Combien de temps prend une création ?",
-    r: "Le délai dépend principalement de la rapidité de dépôt de vos pièces, du dépôt du capital en banque et du délai de traitement du greffe compétent. Le parcours en ligne se complète généralement en moins d'une heure.",
+    r: "Le délai dépend principalement de la rapidité de dépôt de vos pièces, du dépôt du capital en banque et du délai de traitement du greffe compétent. Le parcours en ligne se complète généralement en moins de 30 minutes.",
   },
   {
     q: "Les frais légaux sont-ils les mêmes partout ?",
@@ -79,68 +95,52 @@ function Accueil() {
     <PageShell>
       {/* HERO */}
       <section className="border-b border-border bg-surface">
-        <div className="container-page grid gap-10 py-14 lg:grid-cols-[1.05fr_1fr] lg:items-start lg:py-20">
-          <div>
-            <h1 className="font-serif text-4xl leading-tight sm:text-5xl">
-              Créez votre société en ligne.
-              <br />
-              Honoraires offerts.
-            </h1>
-            <p className="mt-5 max-w-xl text-lg leading-relaxed text-foreground">
-              Seuls les frais de greffe et d'annonce légale — incompressibles et dus quelle que soit
-              la solution choisie — restent à votre charge, refacturés à l'euro près. En
-              contrepartie : une mission comptable de 3 mois à 199 € HT/mois auprès de notre cabinet
-              d'expertise comptable partenaire.
-            </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <Button asChild size="lg">
-                <Link to="/simulateur">Commencer</Link>
-              </Button>
-              <CallbackDialog size="lg" />
-            </div>
+        <div className="container-page py-14 lg:py-20">
+          <p className="font-serif text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+            CREA EXPERT
+          </p>
+          <h1 className="mt-3 max-w-3xl font-serif text-4xl leading-tight sm:text-5xl">
+            Créez votre société en ligne. Honoraires offerts*.
+          </h1>
+
+          <ul className="mt-6 flex flex-wrap gap-2.5">
+            {BADGES.map((b) => (
+              <li
+                key={b}
+                className="rounded-full border border-border bg-background px-3.5 py-1.5 text-sm text-foreground"
+              >
+                {b}
+              </li>
+            ))}
+          </ul>
+
+          <p className="mt-6 max-w-3xl text-base leading-relaxed text-foreground">
+            *Vous n'avez aucun honoraire à payer au cabinet pour la création. Restent à votre charge
+            les frais légaux obligatoires (annonce légale, greffe, bénéficiaires effectifs), fixés
+            par la loi et intégralement reversés aux organismes concernés : le cabinet n'en perçoit
+            pas un centime et n'y prend aucune marge. En contrepartie, vous vous engagez sur une
+            mission comptable de 3 mois (199 € HT/mois).
+          </p>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button asChild size="lg">
+              <Link to="/commencer">Commencer</Link>
+            </Button>
+            <CallbackDialog size="lg" />
           </div>
-
-          <TableauFraisLegaux />
-        </div>
-      </section>
-
-      {/* REASSURANCE */}
-      <section className="container-page py-14">
-        <div className="grid gap-6 md:grid-cols-3">
-          {[
-            {
-              icon: MapPin,
-              t: "100 % réalisé en France",
-              d: "Le traitement de votre dossier, la revue des pièces et l'accompagnement sont assurés en France.",
-            },
-            {
-              icon: ShieldCheck,
-              t: "Validé par un expert-comptable",
-              d: "Votre dossier est revu et validé par un expert-comptable inscrit à l'Ordre avant tout dépôt.",
-            },
-            {
-              icon: Server,
-              t: "Données hébergées en Union européenne",
-              d: "Vos informations et vos pièces justificatives ne quittent pas l'Union européenne.",
-            },
-          ].map((b) => (
-            <div key={b.t} className="rounded-lg border border-border bg-surface p-6">
-              <b.icon className="size-6 text-accent" strokeWidth={1.5} aria-hidden />
-              <h2 className="mt-4 text-base font-semibold">{b.t}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{b.d}</p>
-            </div>
-          ))}
         </div>
       </section>
 
       {/* COMMENT CA MARCHE */}
-      <section className="border-y border-border bg-surface py-14">
+      <section className="border-b border-border py-14">
         <div className="container-page">
           <h2 className="font-serif text-3xl">Comment ça marche</h2>
           <ol className="mt-8 grid gap-6 md:grid-cols-5">
             {ETAPES.map((e) => (
               <li key={e.n} className="border-t-2 border-accent/50 pt-4">
-                <span className="text-sm font-semibold text-accent">{String(e.n).padStart(2, "0")}</span>
+                <span className="text-sm font-semibold text-accent">
+                  {String(e.n).padStart(2, "0")}
+                </span>
                 <h3 className="mt-1 text-base font-semibold">{e.t}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{e.d}</p>
               </li>
@@ -149,25 +149,65 @@ function Accueil() {
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="container-page py-14">
-        <h2 className="font-serif text-3xl">Questions fréquentes</h2>
-        <Accordion type="single" collapsible className="mt-6 max-w-3xl">
-          {FAQ.map((f, i) => (
-            <AccordionItem key={f.q} value={`q${i}`}>
-              <AccordionTrigger className="text-left text-base">{f.q}</AccordionTrigger>
-              <AccordionContent className="text-base leading-relaxed text-foreground">
-                {f.r}
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+      {/* FRISE DES COUTS */}
+      <FriseCouts />
 
-        <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-          <Button asChild size="lg">
-            <Link to="/simulateur">Commencer ma simulation</Link>
-          </Button>
-          <CallbackDialog size="lg" />
+      {/* DELAIS */}
+      <section className="border-y border-border bg-surface py-12">
+        <div className="container-page">
+          <h2 className="font-serif text-3xl">Combien de temps ça prend</h2>
+          <p className="mt-4 max-w-3xl text-base leading-relaxed">
+            Votre parcours en ligne prend moins de 30 minutes. Le délai d'immatriculation dépend
+            ensuite de l'administration : de 24 heures à plusieurs semaines. L'administration peut
+            demander des pièces complémentaires ou rectificatives ; nous vous accompagnons jusqu'au
+            bout.
+          </p>
+        </div>
+      </section>
+
+      {/* FORMES JURIDIQUES */}
+      <section className="container-page py-14">
+        <h2 className="font-serif text-3xl">Les formes que nous créons en ligne</h2>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {FORMES.map((f) => (
+            <div key={f.value} className="rounded-lg border border-border bg-surface p-5">
+              <h3 className="font-serif text-xl">{f.label}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                {f.value === "EI"
+                  ? "À l'impôt sur le revenu, avec option possible pour l'impôt sur les sociétés."
+                  : f.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-6 max-w-3xl text-base leading-relaxed">
+          D'autres formes juridiques existent (SA, SNC, sociétés en commandite, sociétés d'exercice
+          libéral…) ; nous ne les proposons pas en ligne. Si votre projet l'exige, le cabinet peut
+          vous accompagner sur devis.
+        </p>
+      </section>
+
+      {/* FAQ */}
+      <section className="border-t border-border py-14">
+        <div className="container-page">
+          <h2 className="font-serif text-3xl">Questions fréquentes</h2>
+          <Accordion type="single" collapsible className="mt-6 max-w-3xl">
+            {FAQ.map((f, i) => (
+              <AccordionItem key={f.q} value={`q${i}`}>
+                <AccordionTrigger className="text-left text-base">{f.q}</AccordionTrigger>
+                <AccordionContent className="text-base leading-relaxed text-foreground">
+                  {f.r}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+
+          <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+            <Button asChild size="lg">
+              <Link to="/commencer">Commencer</Link>
+            </Button>
+            <CallbackDialog size="lg" />
+          </div>
         </div>
       </section>
     </PageShell>
