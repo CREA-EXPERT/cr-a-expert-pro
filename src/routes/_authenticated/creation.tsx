@@ -1349,19 +1349,23 @@ function Creation() {
                   ) : (
                     <div className="space-y-4">
                       <div className="space-y-2 sm:max-w-sm">
-                        <Label htmlFor="tel-contact">Numéro de téléphone</Label>
+                        <Label htmlFor="tel-contact">
+                          Numéro de téléphone <span className="text-destructive">(obligatoire)</span>
+                        </Label>
                         <Input
                           id="tel-contact"
                           type="tel"
+                          required
+                          aria-required="true"
                           maxLength={20}
                           placeholder="06 12 34 56 78"
                           value={dossier.telephone_contact ?? ""}
                           onChange={(e) => patch({ telephone_contact: e.target.value })}
                         />
                         <p className="text-sm text-muted-foreground text-justify">
-                          Nécessaire avant la signature : le cabinet doit pouvoir vous joindre pour
-                          la mission comptable et, le cas échéant, pour la relecture de votre
-                          dossier.
+                          Ce numéro est obligatoire avant la signature de la lettre de mission : le
+                          cabinet doit pouvoir vous joindre pour la mission comptable et, le cas
+                          échéant, pour la relecture de votre dossier.
                         </p>
                       </div>
                       <div className="flex items-start gap-3">
