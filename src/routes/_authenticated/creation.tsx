@@ -92,7 +92,7 @@ const CLES_SOCIETE: Cle[] = [
   "objet",
   "capital",
   "associes",
-  "direction",
+  
   "options",
   "mission",
   "validation",
