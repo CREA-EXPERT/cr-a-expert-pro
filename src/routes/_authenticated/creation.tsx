@@ -1538,7 +1538,7 @@ function Creation() {
           <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-border pt-6">
             {cle !== "recap" && <Button onClick={() => allerA(etape + 1)}>Continuer</Button>}
             <CallbackDialog variant="ghost" />
-            <RecommandationDialog page={`création — étape ${etape}`} />
+            <RecommandationDialog variant="ghost" />
 
           </div>
         </div>
