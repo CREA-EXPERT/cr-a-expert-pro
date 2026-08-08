@@ -140,6 +140,15 @@ const TITRES: Record<Cle, string> = {
 
 const champ = "h-10 w-full rounded-md border border-input bg-surface px-3 text-sm";
 
+/** Déplace un élément d'une liste, sans la modifier sur place. */
+function deplacer<T>(liste: T[], de: number, vers: number) {
+  const copie = [...liste];
+  const [item] = copie.splice(de, 1);
+  copie.splice(vers, 0, item as T);
+  return copie;
+}
+
+
 /** Un associé est mineur si sa date de naissance situe ses 18 ans dans le futur. */
 function estMineur(a: Associe) {
   if (a.type !== "personne_physique" || !a.date_naissance) return false;
