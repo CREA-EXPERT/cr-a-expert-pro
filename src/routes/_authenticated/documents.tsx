@@ -8,6 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  EncadreJustificatifs,
+  EncadreSignatureElectronique,
+} from "@/components/EncadresPedago";
 import { genererPdf, telechargerPdf } from "@/lib/pdf";
 import { verifierDates, type Associe, type Dossier, type DocumentRow } from "@/lib/documents";
 import { Download, HelpCircle, Upload } from "lucide-react";
