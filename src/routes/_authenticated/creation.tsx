@@ -261,6 +261,12 @@ function Creation() {
   const cles = ei ? CLES_EI : CLES_SOCIETE;
   const nbEtapes = cles.length;
   const cle = cles[Math.min(etape, nbEtapes) - 1] as Cle;
+  const titreEtape =
+    ei && cle === "associes"
+      ? "L'entrepreneur"
+      : ei && cle === "denomination"
+        ? "Nom commercial"
+        : TITRES[cle];
   const cout = coutParForme(tarifs, forme);
   const relectureHt = prixRelectureHt(tarifs);
   const relecture = dossier.voie_validation === "cabinet" ? relectureHt * 1.2 : 0;
@@ -272,7 +278,7 @@ function Creation() {
           <div className="mb-6">
             <Progress value={(etape / nbEtapes) * 100} />
             <p className="mt-2 text-sm text-muted-foreground">
-              Étape {etape} sur {nbEtapes} — {TITRES[cle]}
+              Étape {etape} sur {nbEtapes} — {titreEtape}
             </p>
           </div>
 
@@ -282,7 +288,7 @@ function Creation() {
             </Button>
           )}
 
-          <h1 className="font-serif text-3xl">{TITRES[cle]}</h1>
+          <h1 className="font-serif text-3xl">{titreEtape}</h1>
 
           {/* 1 — FORME */}
           {cle === "forme" && (
@@ -310,12 +316,20 @@ function Creation() {
           {/* 2 — DENOMINATION */}
           {cle === "denomination" && (
             <div className="mt-6 space-y-4">
+              {ei && (
+                <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
+                  En entreprise individuelle, vous exercez sous votre nom de famille. Un nom
+                  commercial peut être ajouté pour votre communication ; il n'est pas obligatoire.
+                </p>
+              )}
               <div className="space-y-2">
-                <Label htmlFor="denom">Dénomination sociale</Label>
+                <Label htmlFor="denom">
+                  {ei ? "Nom commercial (facultatif)" : "Dénomination sociale"}
+                </Label>
                 <Input id="denom" maxLength={120} value={dossier.denomination} onChange={(e) => patch({ denomination: e.target.value })} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="sigle">Sigle (facultatif)</Label>
+                <Label htmlFor="sigle">{ei ? "Enseigne (facultatif)" : "Sigle (facultatif)"}</Label>
                 <Input id="sigle" maxLength={40} value={dossier.sigle ?? ""} onChange={(e) => patch({ sigle: e.target.value })} />
               </div>
               <div className="rounded-md border border-border bg-muted/50 p-4 text-sm">
@@ -460,12 +474,16 @@ function Creation() {
           {cle === "associes" && (
             <div className="mt-6 space-y-5">
               <div className="flex flex-wrap gap-2">
-                <Button variant="outline" onClick={() => ajouterAssocie("personne_physique")}>
-                  <Plus strokeWidth={1.5} /> Ajouter une personne physique
-                </Button>
-                <Button variant="outline" onClick={() => ajouterAssocie("personne_morale")}>
-                  <Plus strokeWidth={1.5} /> Ajouter une personne morale
-                </Button>
+                {(!ei || associes.length === 0) && (
+                  <Button variant="outline" onClick={() => ajouterAssocie("personne_physique")}>
+                    <Plus strokeWidth={1.5} /> {ei ? "Renseigner mon identité" : "Ajouter une personne physique"}
+                  </Button>
+                )}
+                {!ei && (
+                  <Button variant="outline" onClick={() => ajouterAssocie("personne_morale")}>
+                    <Plus strokeWidth={1.5} /> Ajouter une personne morale
+                  </Button>
+                )}
               </div>
 
               {associes.map((a) => (
@@ -530,6 +548,7 @@ function Creation() {
                     </div>
                   )}
 
+                  {!ei && (
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-1">
                       <Label className="text-xs">Nombre de titres</Label>
@@ -540,13 +559,24 @@ function Creation() {
                       <Input type="number" min={0} step="0.01" value={a.montant_apport} onChange={(e) => majAssocie(a.id, { montant_apport: Number(e.target.value) })} />
                     </div>
                   </div>
+                  )}
                 </div>
               ))}
 
+              {!ei && (
               <p className={`rounded-md border p-3 text-sm ${capitalOk ? "border-success/40 bg-success/8" : "border-destructive/40 bg-destructive/8"}`}>
                 Total des apports : {euro(totalApports)} — capital social : {euro(Number(dossier.capital_montant))}.
                 {capitalOk ? " Les montants correspondent." : " Les deux montants doivent être identiques pour continuer."}
               </p>
+              )}
+              {ei && (
+                <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
+                  L'entreprise individuelle n'a ni capital social, ni associé : seules vos
+                  informations personnelles sont nécessaires. Depuis le 15 mai 2022, votre
+                  patrimoine personnel est de plein droit distinct de votre patrimoine
+                  professionnel.
+                </p>
+              )}
             </div>
           )}
 
@@ -783,9 +813,13 @@ function Creation() {
                   ["Sigle", dossier.sigle || "—"],
                   ["Siège", dossier.siege_adresse || "—"],
                   ["Objet social", dossier.objet_social || "—"],
-                  ["Durée", `${dossier.duree_annees} ans`],
-                  ["Capital", euro(Number(dossier.capital_montant))],
-                  ["Libération", `${dossier.capital_liberation} %`],
+                  ...(ei
+                    ? []
+                    : ([
+                        ["Durée", `${dossier.duree_annees} ans`],
+                        ["Capital", euro(Number(dossier.capital_montant))],
+                        ["Libération", `${dossier.capital_liberation} %`],
+                      ] as string[][])),
                   ["Clôture d'exercice", dossier.date_cloture_exercice],
                   ["Option fiscale", dossier.option_fiscale || "—"],
                   ["Régime de TVA", TVA_OPTIONS.find((t) => t.value === dossier.regime_tva)?.label ?? "—"],
@@ -830,7 +864,7 @@ function Creation() {
               ["Forme", forme],
               ["Dénomination", dossier.denomination || "—"],
               ["Siège", dossier.siege_adresse || "—"],
-              ["Capital", euro(Number(dossier.capital_montant))],
+              ...(ei ? [] : ([["Capital", euro(Number(dossier.capital_montant))]] as string[][])),
               ["Associés", String(associes.length)],
               ["Dirigeants", String(associes.filter((a) => a.est_dirigeant).length)],
             ].map(([k, v]) => (
