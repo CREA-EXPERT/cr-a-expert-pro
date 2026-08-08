@@ -471,35 +471,21 @@ function Creation() {
                     </button>
                   ))}
                 </div>
-
-                <p className="pt-2 text-sm font-medium">Quel sera votre rôle dans la gérance ?</p>
-                <div className="grid gap-2 sm:grid-cols-3">
-                  {[
-                    { v: "gerant", t: isSas(forme) ? "Je serai président" : "Je serai gérant" },
-                    { v: "cogerant", t: isSas(forme) ? "Je serai directeur général" : "Je serai co-gérant" },
-                    { v: "aucun", t: "Je ne serai pas dans la gérance" },
-                  ].map((o) => (
-                    <button
-                      key={o.v}
-                      type="button"
-                      onClick={() => patch({ role_demandeur: o.v })}
-                      className={`rounded-md border px-3 py-2.5 text-left text-sm ${dossier.role_demandeur === o.v ? "border-accent bg-accent/5" : "border-border bg-background"}`}
-                    >
-                      {o.t}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Ce choix oriente le parcours ; la désignation définitive des dirigeants et des
-                  associés se fait à l'étape « Associés et gérance ».
-                </p>
               </div>
 
               {FORMES.map((f) => (
                 <button
                   key={f.value}
                   type="button"
-                  onClick={() => patch({ forme_juridique: f.value })}
+                  onClick={() => {
+                    const roles = rolesPour(f.value).map((r) => r.v);
+                    patch({
+                      forme_juridique: f.value,
+                      ...(dossier.role_demandeur && !roles.includes(dossier.role_demandeur)
+                        ? { role_demandeur: null }
+                        : {}),
+                    });
+                  }}
                   className={`w-full rounded-lg border px-5 py-4 text-left transition-colors hover:border-accent ${
                     forme === f.value ? "border-accent bg-accent/5" : "border-border bg-surface"
                   }`}
@@ -508,12 +494,44 @@ function Creation() {
                   <span className="mt-1 block text-sm text-muted-foreground">{f.desc}</span>
                 </button>
               ))}
+
+              <div className="space-y-3 rounded-lg border border-border bg-surface p-4">
+                <p className="text-sm font-medium">Quel sera votre rôle dans la direction ?</p>
+                <p className="text-sm leading-relaxed text-muted-foreground">{minimumLegal(forme)}</p>
+                {ei ? (
+                  <p className="text-sm leading-relaxed">
+                    En entreprise individuelle, il n'y a ni dirigeant ni associé à désigner : vous
+                    êtes l'unique exploitant de l'entreprise.
+                  </p>
+                ) : (
+                  <>
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      {rolesPour(forme).map((o) => (
+                        <button
+                          key={o.v}
+                          type="button"
+                          onClick={() => patch({ role_demandeur: o.v })}
+                          className={`rounded-md border px-3 py-2.5 text-left text-sm ${dossier.role_demandeur === o.v ? "border-accent bg-accent/5" : "border-border bg-background"}`}
+                        >
+                          {o.t}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Ce choix oriente le parcours ; la désignation définitive des dirigeants et des
+                      associés se fait à l'étape « Associés et gérance ».
+                    </p>
+                  </>
+                )}
+              </div>
+
               <Link to="/simulateur" className="inline-block text-sm underline underline-offset-2">
                 Refaire la simulation
               </Link>
               <Disclaimer />
             </div>
           )}
+
 
           {/* 2 — DENOMINATION */}
           {cle === "denomination" && (
