@@ -12,17 +12,22 @@ export const Route = createFileRoute("/api/public/hooks/relance-signatures")({
     handlers: {
       POST: async ({ request }) => {
         const attendu = process.env["PURGE_HOOK_SECRET"];
+        const anon = process.env["SUPABASE_ANON_KEY"];
         const fourni =
           request.headers.get("x-purge-secret") ??
+          request.headers.get("apikey") ??
           request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ??
           null;
 
-        if (!attendu || !fourni || fourni !== attendu) {
+        const autorise =
+          Boolean(fourni) && ((attendu && fourni === attendu) || (anon && fourni === anon));
+        if (!autorise) {
           return new Response(JSON.stringify({ erreur: "non_autorise" }), {
             status: 401,
             headers: { "Content-Type": "application/json" },
           });
         }
+
 
         const { relancerEnvoisEnEchec } = await import("@/lib/signature.server");
         const origine = new URL(request.url).origin;
