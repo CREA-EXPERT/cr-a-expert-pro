@@ -11,7 +11,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { Tarif } from "@/lib/tarifs";
 import { tarifAVerifier } from "@/lib/tarifs";
 import type { DocumentRule } from "@/lib/documents";
@@ -20,18 +26,20 @@ import { etatServices } from "@/lib/services.functions";
 import { PanneauConservation } from "@/components/PanneauConservation";
 import { ReglagesRelanceSignature } from "@/components/ReglagesRelanceSignature";
 
-
-
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
       { title: "Administration — CREA EXPERT" },
       {
         name: "description",
-        content: "Paramétrage des frais légaux, des règles documentaires et des rôles utilisateurs.",
+        content:
+          "Paramétrage des frais légaux, des règles documentaires et des rôles utilisateurs.",
       },
       { property: "og:title", content: "Administration — CREA EXPERT" },
-      { property: "og:description", content: "Paramétrage des frais légaux, règles documentaires et rôles." },
+      {
+        property: "og:description",
+        content: "Paramétrage des frais légaux, règles documentaires et rôles.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -40,7 +48,11 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 const ROLES: Role[] = ["client", "cabinet", "admin"];
-const ROLE_LABEL: Record<Role, string> = { client: "Client", cabinet: "Cabinet", admin: "Administrateur" };
+const ROLE_LABEL: Record<Role, string> = {
+  client: "Client",
+  cabinet: "Cabinet",
+  admin: "Administrateur",
+};
 
 function Admin() {
   const { user } = useAuth();
@@ -104,7 +116,6 @@ function Admin() {
             <PanneauConservation />
           </TabsContent>
         </Tabs>
-
       </div>
     </PageShell>
   );
@@ -136,8 +147,8 @@ function BandeauServices() {
 
   return (
     <p className="mt-3 text-xs text-muted-foreground">
-      Service email : {data?.email ? "configuré" : "non configuré"} · Enregistrement du moyen de paiement :{" "}
-      {data?.paiement ? "configuré" : "non configuré"}
+      Service email : {data?.email ? "configuré" : "non configuré"} · Enregistrement du moyen de
+      paiement : {data?.paiement ? "configuré" : "non configuré"}
     </p>
   );
 }
@@ -161,14 +172,18 @@ function OngletTarifs() {
     },
   });
 
-  const valeur = (t: Tarif, champ: keyof Tarif) => (brouillons[t.id]?.[champ] ?? t[champ]) as string | number | null;
+  const valeur = (t: Tarif, champ: keyof Tarif) =>
+    (brouillons[t.id]?.[champ] ?? t[champ]) as string | number | null;
 
   const CHAMPS_TEXTE: (keyof Tarif)[] = ["libelle", "cle", "source", "verifie_le"];
 
   function maj(id: string, champ: keyof Tarif, v: string) {
     setBrouillons((b) => ({
       ...b,
-      [id]: { ...b[id], [champ]: CHAMPS_TEXTE.includes(champ) ? (v === "" ? null : v) : v === "" ? null : Number(v) },
+      [id]: {
+        ...b[id],
+        [champ]: CHAMPS_TEXTE.includes(champ) ? (v === "" ? null : v) : v === "" ? null : Number(v),
+      },
     }));
   }
 
@@ -176,7 +191,10 @@ function OngletTarifs() {
     const patch = brouillons[t.id];
     if (!patch) return;
     const { error } = await supabase.from("params_tarifs").update(patch).eq("id", t.id);
-    if (error) { toast.error("Enregistrement impossible."); return; }
+    if (error) {
+      toast.error("Enregistrement impossible.");
+      return;
+    }
     setBrouillons((b) => {
       const c = { ...b };
       delete c[t.id];
@@ -188,20 +206,29 @@ function OngletTarifs() {
 
   async function supprimer(id: string) {
     const { error } = await supabase.from("params_tarifs").delete().eq("id", id);
-    if (error) { toast.error("Suppression impossible."); return; }
+    if (error) {
+      toast.error("Suppression impossible.");
+      return;
+    }
     toast.success("Paramètre supprimé.");
     qc.invalidateQueries({ queryKey: ["admin-tarifs"] });
   }
 
   async function ajouter() {
-    if (!nouveau.cle.trim() || !nouveau.libelle.trim()) { toast.error("Clé et libellé obligatoires."); return; }
+    if (!nouveau.cle.trim() || !nouveau.libelle.trim()) {
+      toast.error("Clé et libellé obligatoires.");
+      return;
+    }
     const { error } = await supabase.from("params_tarifs").insert({
       cle: nouveau.cle.trim(),
       libelle: nouveau.libelle.trim(),
       montant_ht: nouveau.montant_ht === "" ? null : Number(nouveau.montant_ht),
       montant_ttc: nouveau.montant_ttc === "" ? null : Number(nouveau.montant_ttc),
     });
-    if (error) { toast.error("Création impossible (clé déjà utilisée ?)."); return; }
+    if (error) {
+      toast.error("Création impossible (clé déjà utilisée ?).");
+      return;
+    }
     setNouveau({ cle: "", libelle: "", montant_ht: "", montant_ttc: "" });
     toast.success("Paramètre ajouté.");
     qc.invalidateQueries({ queryKey: ["admin-tarifs"] });
@@ -212,8 +239,8 @@ function OngletTarifs() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Ces montants sont repris partout dans l'application. Ils évoluent généralement au 1<sup>er</sup> janvier :
-        mettez-les à jour ici plutôt que dans le code.
+        Ces montants sont repris partout dans l'application. Ils évoluent généralement au 1
+        <sup>er</sup> janvier : mettez-les à jour ici plutôt que dans le code.
       </p>
 
       {tarifs.map((t) => (
@@ -221,11 +248,19 @@ function OngletTarifs() {
           <div className="grid gap-3 sm:grid-cols-[1fr_2fr_1fr_1fr]">
             <div className="space-y-1.5">
               <Label htmlFor={`cle-${t.id}`}>Clé</Label>
-              <Input id={`cle-${t.id}`} value={String(valeur(t, "cle") ?? "")} onChange={(e) => maj(t.id, "cle", e.target.value)} />
+              <Input
+                id={`cle-${t.id}`}
+                value={String(valeur(t, "cle") ?? "")}
+                onChange={(e) => maj(t.id, "cle", e.target.value)}
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor={`lib-${t.id}`}>Libellé</Label>
-              <Input id={`lib-${t.id}`} value={String(valeur(t, "libelle") ?? "")} onChange={(e) => maj(t.id, "libelle", e.target.value)} />
+              <Input
+                id={`lib-${t.id}`}
+                value={String(valeur(t, "libelle") ?? "")}
+                onChange={(e) => maj(t.id, "libelle", e.target.value)}
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor={`ht-${t.id}`}>Montant HT (€)</Label>
@@ -269,8 +304,9 @@ function OngletTarifs() {
           </div>
           {tarifAVerifier(t) && (
             <p className="mt-3 rounded-md border border-warning/40 bg-warning/10 p-3 text-sm text-foreground">
-              Montant non vérifié contre le barème en vigueur — la promesse de refacturation à l'euro près impose
-              une vérification annuelle (les tarifs sont révisés en principe au 1er janvier).
+              Montant non vérifié contre le barème en vigueur — la promesse de refacturation à
+              l'euro près impose une vérification annuelle (les tarifs sont révisés en principe au
+              1er janvier).
             </p>
           )}
           <div className="mt-3 flex gap-2">
@@ -289,19 +325,39 @@ function OngletTarifs() {
         <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_2fr_1fr_1fr]">
           <div className="space-y-1.5">
             <Label htmlFor="n-cle">Clé</Label>
-            <Input id="n-cle" value={nouveau.cle} onChange={(e) => setNouveau({ ...nouveau, cle: e.target.value })} />
+            <Input
+              id="n-cle"
+              value={nouveau.cle}
+              onChange={(e) => setNouveau({ ...nouveau, cle: e.target.value })}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="n-lib">Libellé</Label>
-            <Input id="n-lib" value={nouveau.libelle} onChange={(e) => setNouveau({ ...nouveau, libelle: e.target.value })} />
+            <Input
+              id="n-lib"
+              value={nouveau.libelle}
+              onChange={(e) => setNouveau({ ...nouveau, libelle: e.target.value })}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="n-ht">Montant HT (€)</Label>
-            <Input id="n-ht" type="number" step="0.01" value={nouveau.montant_ht} onChange={(e) => setNouveau({ ...nouveau, montant_ht: e.target.value })} />
+            <Input
+              id="n-ht"
+              type="number"
+              step="0.01"
+              value={nouveau.montant_ht}
+              onChange={(e) => setNouveau({ ...nouveau, montant_ht: e.target.value })}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="n-ttc">Montant TTC (€)</Label>
-            <Input id="n-ttc" type="number" step="0.01" value={nouveau.montant_ttc} onChange={(e) => setNouveau({ ...nouveau, montant_ttc: e.target.value })} />
+            <Input
+              id="n-ttc"
+              type="number"
+              step="0.01"
+              value={nouveau.montant_ttc}
+              onChange={(e) => setNouveau({ ...nouveau, montant_ttc: e.target.value })}
+            />
           </div>
         </div>
         <Button className="mt-3" size="sm" onClick={ajouter}>
@@ -347,7 +403,10 @@ function OngletRegles() {
     const patch = brouillons[r.id];
     if (!patch) return;
     const { error } = await supabase.from("document_rules").update(patch).eq("id", r.id);
-    if (error) { toast.error("Enregistrement impossible."); return; }
+    if (error) {
+      toast.error("Enregistrement impossible.");
+      return;
+    }
     setBrouillons((b) => {
       const c = { ...b };
       delete c[r.id];
@@ -359,21 +418,29 @@ function OngletRegles() {
 
   async function supprimer(id: string) {
     const { error } = await supabase.from("document_rules").delete().eq("id", id);
-    if (error) { toast.error("Suppression impossible."); return; }
+    if (error) {
+      toast.error("Suppression impossible.");
+      return;
+    }
     toast.success("Règle supprimée.");
     qc.invalidateQueries({ queryKey: ["admin-regles"] });
   }
 
   async function ajouter() {
-    if (!nouvelle.type_document.trim() || !nouvelle.libelle_client.trim())
-      { toast.error("Type de document et libellé client obligatoires."); return; }
+    if (!nouvelle.type_document.trim() || !nouvelle.libelle_client.trim()) {
+      toast.error("Type de document et libellé client obligatoires.");
+      return;
+    }
     const { error } = await supabase.from("document_rules").insert({
       ...nouvelle,
       condition_valeur: nouvelle.condition_valeur || null,
       aide_client: nouvelle.aide_client || null,
       ordre: Number(nouvelle.ordre),
     });
-    if (error) { toast.error("Création impossible."); return; }
+    if (error) {
+      toast.error("Création impossible.");
+      return;
+    }
     setNouvelle({ ...REGLE_VIDE });
     toast.success("Règle ajoutée.");
     qc.invalidateQueries({ queryKey: ["admin-regles"] });
@@ -381,26 +448,55 @@ function OngletRegles() {
 
   if (isLoading) return <p className="text-muted-foreground">Chargement…</p>;
 
-  const val = <K extends keyof DocumentRule>(r: DocumentRule, champ: K) => (brouillons[r.id]?.[champ] ?? r[champ]);
+  const val = <K extends keyof DocumentRule>(r: DocumentRule, champ: K) =>
+    brouillons[r.id]?.[champ] ?? r[champ];
 
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Chaque règle ajoute une pièce à la liste du client lorsque la condition est remplie (champ du dossier et
-        valeur attendue). « Toujours » applique la règle à tous les dossiers.
+        Chaque règle ajoute une pièce à la liste du client lorsque la condition est remplie (champ
+        du dossier et valeur attendue). « Toujours » applique la règle à tous les dossiers.
       </p>
 
       {regles.map((r) => (
         <div key={r.id} className="rounded-lg border border-border bg-surface p-4">
           <div className="grid gap-3 sm:grid-cols-3">
-            <Champ label="Condition (champ)" id={`cc-${r.id}`} value={String(val(r, "condition_champ") ?? "")} onChange={(v) => maj(r.id, "condition_champ", v)} />
-            <Champ label="Condition (valeur)" id={`cv-${r.id}`} value={String(val(r, "condition_valeur") ?? "")} onChange={(v) => maj(r.id, "condition_valeur", v || null)} />
-            <Champ label="Type de document" id={`td-${r.id}`} value={String(val(r, "type_document") ?? "")} onChange={(v) => maj(r.id, "type_document", v)} />
-            <Champ label="Libellé client" id={`lc-${r.id}`} value={String(val(r, "libelle_client") ?? "")} onChange={(v) => maj(r.id, "libelle_client", v)} />
-            <Champ label="Aide client" id={`ac-${r.id}`} value={String(val(r, "aide_client") ?? "")} onChange={(v) => maj(r.id, "aide_client", v || null)} />
+            <Champ
+              label="Condition (champ)"
+              id={`cc-${r.id}`}
+              value={String(val(r, "condition_champ") ?? "")}
+              onChange={(v) => maj(r.id, "condition_champ", v)}
+            />
+            <Champ
+              label="Condition (valeur)"
+              id={`cv-${r.id}`}
+              value={String(val(r, "condition_valeur") ?? "")}
+              onChange={(v) => maj(r.id, "condition_valeur", v || null)}
+            />
+            <Champ
+              label="Type de document"
+              id={`td-${r.id}`}
+              value={String(val(r, "type_document") ?? "")}
+              onChange={(v) => maj(r.id, "type_document", v)}
+            />
+            <Champ
+              label="Libellé client"
+              id={`lc-${r.id}`}
+              value={String(val(r, "libelle_client") ?? "")}
+              onChange={(v) => maj(r.id, "libelle_client", v)}
+            />
+            <Champ
+              label="Aide client"
+              id={`ac-${r.id}`}
+              value={String(val(r, "aide_client") ?? "")}
+              onChange={(v) => maj(r.id, "aide_client", v || null)}
+            />
             <div className="space-y-1.5">
               <Label htmlFor={`or-${r.id}`}>Origine</Label>
-              <Select value={String(val(r, "origine"))} onValueChange={(v) => maj(r.id, "origine", v)}>
+              <Select
+                value={String(val(r, "origine"))}
+                onValueChange={(v) => maj(r.id, "origine", v)}
+              >
                 <SelectTrigger id={`or-${r.id}`}>
                   <SelectValue />
                 </SelectTrigger>
@@ -410,9 +506,19 @@ function OngletRegles() {
                 </SelectContent>
               </Select>
             </div>
-            <Champ label="Ordre" id={`od-${r.id}`} type="number" value={String(val(r, "ordre") ?? "")} onChange={(v) => maj(r.id, "ordre", Number(v))} />
+            <Champ
+              label="Ordre"
+              id={`od-${r.id}`}
+              type="number"
+              value={String(val(r, "ordre") ?? "")}
+              onChange={(v) => maj(r.id, "ordre", Number(v))}
+            />
             <div className="flex items-center gap-3 pt-6">
-              <Switch id={`ob-${r.id}`} checked={Boolean(val(r, "obligatoire"))} onCheckedChange={(v) => maj(r.id, "obligatoire", v)} />
+              <Switch
+                id={`ob-${r.id}`}
+                checked={Boolean(val(r, "obligatoire"))}
+                onCheckedChange={(v) => maj(r.id, "obligatoire", v)}
+              />
               <Label htmlFor={`ob-${r.id}`}>Obligatoire</Label>
             </div>
           </div>
@@ -430,14 +536,42 @@ function OngletRegles() {
       <div className="rounded-lg border border-dashed border-border p-4">
         <h3 className="font-medium">Ajouter une règle</h3>
         <div className="mt-3 grid gap-3 sm:grid-cols-3">
-          <Champ label="Condition (champ)" id="n-cc" value={nouvelle.condition_champ} onChange={(v) => setNouvelle({ ...nouvelle, condition_champ: v })} />
-          <Champ label="Condition (valeur)" id="n-cv" value={nouvelle.condition_valeur} onChange={(v) => setNouvelle({ ...nouvelle, condition_valeur: v })} />
-          <Champ label="Type de document" id="n-td" value={nouvelle.type_document} onChange={(v) => setNouvelle({ ...nouvelle, type_document: v })} />
-          <Champ label="Libellé client" id="n-lc" value={nouvelle.libelle_client} onChange={(v) => setNouvelle({ ...nouvelle, libelle_client: v })} />
-          <Champ label="Aide client" id="n-ac" value={nouvelle.aide_client} onChange={(v) => setNouvelle({ ...nouvelle, aide_client: v })} />
+          <Champ
+            label="Condition (champ)"
+            id="n-cc"
+            value={nouvelle.condition_champ}
+            onChange={(v) => setNouvelle({ ...nouvelle, condition_champ: v })}
+          />
+          <Champ
+            label="Condition (valeur)"
+            id="n-cv"
+            value={nouvelle.condition_valeur}
+            onChange={(v) => setNouvelle({ ...nouvelle, condition_valeur: v })}
+          />
+          <Champ
+            label="Type de document"
+            id="n-td"
+            value={nouvelle.type_document}
+            onChange={(v) => setNouvelle({ ...nouvelle, type_document: v })}
+          />
+          <Champ
+            label="Libellé client"
+            id="n-lc"
+            value={nouvelle.libelle_client}
+            onChange={(v) => setNouvelle({ ...nouvelle, libelle_client: v })}
+          />
+          <Champ
+            label="Aide client"
+            id="n-ac"
+            value={nouvelle.aide_client}
+            onChange={(v) => setNouvelle({ ...nouvelle, aide_client: v })}
+          />
           <div className="space-y-1.5">
             <Label htmlFor="n-or">Origine</Label>
-            <Select value={nouvelle.origine} onValueChange={(v) => setNouvelle({ ...nouvelle, origine: v })}>
+            <Select
+              value={nouvelle.origine}
+              onValueChange={(v) => setNouvelle({ ...nouvelle, origine: v })}
+            >
               <SelectTrigger id="n-or">
                 <SelectValue />
               </SelectTrigger>
@@ -447,9 +581,19 @@ function OngletRegles() {
               </SelectContent>
             </Select>
           </div>
-          <Champ label="Ordre" id="n-od" type="number" value={String(nouvelle.ordre)} onChange={(v) => setNouvelle({ ...nouvelle, ordre: Number(v) })} />
+          <Champ
+            label="Ordre"
+            id="n-od"
+            type="number"
+            value={String(nouvelle.ordre)}
+            onChange={(v) => setNouvelle({ ...nouvelle, ordre: Number(v) })}
+          />
           <div className="flex items-center gap-3 pt-6">
-            <Switch id="n-ob" checked={nouvelle.obligatoire} onCheckedChange={(v) => setNouvelle({ ...nouvelle, obligatoire: v })} />
+            <Switch
+              id="n-ob"
+              checked={nouvelle.obligatoire}
+              onCheckedChange={(v) => setNouvelle({ ...nouvelle, obligatoire: v })}
+            />
             <Label htmlFor="n-ob">Obligatoire</Label>
           </div>
         </div>
@@ -477,7 +621,12 @@ function Champ({
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>
-      <Input id={id} type={type ?? "text"} value={value} onChange={(e) => onChange(e.target.value)} />
+      <Input
+        id={id}
+        type={type ?? "text"}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
     </div>
   );
 }
@@ -496,7 +645,10 @@ function OngletRoles({ currentUserId }: { currentUserId: string | null }) {
         supabase.from("user_roles").select("id, user_id, role"),
       ]);
       if (error) throw error;
-      return { profils: profils ?? [], roles: (roles ?? []) as { id: string; user_id: string; role: Role }[] };
+      return {
+        profils: profils ?? [],
+        roles: (roles ?? []) as { id: string; user_id: string; role: Role }[],
+      };
     },
   });
 
@@ -506,7 +658,11 @@ function OngletRoles({ currentUserId }: { currentUserId: string | null }) {
       toast.error("Attribution impossible.");
       return;
     }
-    const { error: errDel } = await supabase.from("user_roles").delete().eq("user_id", userId).neq("role", role);
+    const { error: errDel } = await supabase
+      .from("user_roles")
+      .delete()
+      .eq("user_id", userId)
+      .neq("role", role);
     if (errDel) {
       toast.error(
         errDel.message.includes("dernier administrateur")
@@ -533,12 +689,18 @@ function OngletRoles({ currentUserId }: { currentUserId: string | null }) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Le tout premier compte créé sur la plateforme reçoit automatiquement le rôle administrateur. Vous pouvez
-        ensuite attribuer un rôle à n'importe quel utilisateur. Le dernier administrateur ne peut pas être rétrogradé.
+        Le tout premier compte créé sur la plateforme reçoit automatiquement le rôle administrateur.
+        Vous pouvez ensuite attribuer un rôle à n'importe quel utilisateur. Le dernier
+        administrateur ne peut pas être rétrogradé.
       </p>
       <div className="max-w-sm space-y-1.5">
         <Label htmlFor="filtre-users">Rechercher un utilisateur</Label>
-        <Input id="filtre-users" placeholder="Nom ou e-mail" value={filtre} onChange={(e) => setFiltre(e.target.value)} />
+        <Input
+          id="filtre-users"
+          placeholder="Nom ou e-mail"
+          value={filtre}
+          onChange={(e) => setFiltre(e.target.value)}
+        />
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-border bg-surface">
@@ -553,7 +715,9 @@ function OngletRoles({ currentUserId }: { currentUserId: string | null }) {
           </thead>
           <tbody>
             {profils.map((p) => {
-              const roles = (data?.roles ?? []).filter((r) => r.user_id === p.id).map((r) => r.role);
+              const roles = (data?.roles ?? [])
+                .filter((r) => r.user_id === p.id)
+                .map((r) => r.role);
               const roleCourant: Role = roles.includes("admin")
                 ? "admin"
                 : roles.includes("cabinet")
@@ -563,7 +727,9 @@ function OngletRoles({ currentUserId }: { currentUserId: string | null }) {
                 <tr key={p.id} className="border-b border-border/60 last:border-0">
                   <td className="p-3">
                     {`${p.prenom} ${p.nom}`.trim() || "—"}
-                    {p.id === currentUserId && <span className="ml-2 text-xs text-muted-foreground">(vous)</span>}
+                    {p.id === currentUserId && (
+                      <span className="ml-2 text-xs text-muted-foreground">(vous)</span>
+                    )}
                   </td>
                   <td className="p-3">{p.email}</td>
                   <td className="p-3 whitespace-nowrap text-muted-foreground">
@@ -619,7 +785,9 @@ function OngletSignatures() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("signatures_electroniques")
-        .select("id, provider, provider_ref, signe_le, statut, libelle, dossier_id, dossiers(denomination)")
+        .select(
+          "id, provider, provider_ref, signe_le, statut, libelle, dossier_id, dossiers(denomination)",
+        )
         .order("signe_le", { ascending: false, nullsFirst: false });
       if (error) throw error;
       return (data ?? []) as unknown as SignatureLigne[];
@@ -633,8 +801,6 @@ function OngletSignatures() {
       <ReglagesRelanceSignature />
 
       <p className="text-sm text-muted-foreground">Suivi des documents à signer.</p>
-
-
 
       <div className="overflow-x-auto rounded-lg border border-border bg-surface">
         <table className="w-full text-sm">

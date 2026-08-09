@@ -66,9 +66,7 @@ export function blocageChronologie(dossier: Dossier, typeDocument: string): stri
     ...dossier,
     date_signature: dossier.date_signature ?? new Date().toISOString().slice(0, 10),
   } as Dossier;
-  const erreurs = verifierDates(provisoire).filter(
-    (e) => !e.includes("n'est pas renseignée"),
-  );
+  const erreurs = verifierDates(provisoire).filter((e) => !e.includes("n'est pas renseignée"));
   return erreurs[0] ?? null;
 }
 
@@ -176,7 +174,6 @@ export async function chargerReglages(): Promise<ReglagesRelance> {
   };
 }
 
-
 /** Ne conserve qu'une forme masquée de l'adresse dans le journal (minimisation RGPD). */
 export function masquerEmail(email: string) {
   const [locale = "", domaine = ""] = email.split("@");
@@ -192,9 +189,6 @@ function causeGenerique(r: { envoye: false; raison: string; detail?: string }): 
   if (d.includes("rate") || d.includes("429")) return "trop_de_demandes";
   return "envoi_refuse";
 }
-
-
-
 
 /** Envoi des convocations : commun au mode interne et à un futur mode Yousign. */
 export async function envoyerLiensSignature(
@@ -226,7 +220,9 @@ export async function envoyerLiensSignature(
       .eq("id", lien.signataireId)
       .maybeSingle();
     const tentative = (ligne?.tentatives_envoi ?? 0) + 1;
-    const cause = r.envoye ? null : causeGenerique(r as { envoye: false; raison: string; detail?: string });
+    const cause = r.envoye
+      ? null
+      : causeGenerique(r as { envoye: false; raison: string; detail?: string });
 
     await sb
       .from("signatures_signataires")
@@ -366,8 +362,6 @@ export async function envoyerAUnSignataire(
   };
 }
 
-
-
 /** Attribue un lien nominatif à un signataire et renvoie l'URL en clair. */
 export async function attribuerLien(signataire: SignataireRow, origine: string) {
   const sb = await admin();
@@ -451,12 +445,10 @@ export async function finaliserSiComplet(signatureId: string) {
       empreinte: empreinteBase,
     });
     cheminFinal = cheminSigne(dossier.id, sig.id);
-    await sb.storage
-      .from(BUCKET_SIGNATURES)
-      .upload(cheminFinal, finalPdf as unknown as Blob, {
-        contentType: "application/pdf",
-        upsert: true,
-      });
+    await sb.storage.from(BUCKET_SIGNATURES).upload(cheminFinal, finalPdf as unknown as Blob, {
+      contentType: "application/pdf",
+      upsert: true,
+    });
     empreinteFinale = await sha256Hex(finalPdf);
   }
 

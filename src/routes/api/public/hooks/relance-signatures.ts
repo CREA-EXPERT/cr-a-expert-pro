@@ -28,7 +28,6 @@ export const Route = createFileRoute("/api/public/hooks/relance-signatures")({
           });
         }
 
-
         const { relancerEnvoisEnEchec } = await import("@/lib/signature.server");
         const origine = new URL(request.url).origin;
         const resultat = await relancerEnvoisEnEchec(origine, "relance_auto");

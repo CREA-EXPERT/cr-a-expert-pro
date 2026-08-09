@@ -81,7 +81,6 @@ export const preparerEtEnvoyerSignature = createServerFn({ method: "POST" })
     };
   });
 
-
 /** Renvoie un lien nominatif à un signataire précis (option « réessayer malgré le plafond »). */
 export const renvoyerLienSignature = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -118,7 +117,8 @@ export const corrigerAdresseSignataire = createServerFn({ method: "POST" })
       .eq("id", data.signataireId)
       .maybeSingle();
     if (!visible) throw new Error("Signataire introuvable.");
-    if (visible.horodatage) return { envoye: false, cause: "signataire_indisponible", plafond: false };
+    if (visible.horodatage)
+      return { envoye: false, cause: "signataire_indisponible", plafond: false };
 
     const s = await import("./signature.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -136,7 +136,6 @@ export const corrigerAdresseSignataire = createServerFn({ method: "POST" })
     return s.envoyerAUnSignataire(data.signataireId, origine, "relance_manuelle", true);
   });
 
-
 /** Relance automatique (planificateur) ou manuelle des convocations non délivrées. */
 export const relancerSignaturesEnEchec = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -153,7 +152,6 @@ export const relancerSignaturesEnEchec = createServerFn({ method: "POST" })
     const origine = new URL(getRequestUrl()).origin;
     return s.relancerEnvoisEnEchec(origine, "relance_manuelle", { signatureId: data.signatureId });
   });
-
 
 /** Ouvre l'écran de signature à partir du lien nominatif. */
 export const ouvrirSignature = createServerFn({ method: "POST" })
@@ -220,7 +218,11 @@ export const signerAvecLien = createServerFn({ method: "POST" })
     const empreinte = await s.sha256Hex(octets);
 
     if (data.methode === "trace" && data.tracePng) {
-      await s.enregistrerTrace(ctx.dossier.id, sg.id, data.tracePng.replace(/^data:image\/png;base64,/, ""));
+      await s.enregistrerTrace(
+        ctx.dossier.id,
+        sg.id,
+        data.tracePng.replace(/^data:image\/png;base64,/, ""),
+      );
     }
 
     await supabaseAdmin

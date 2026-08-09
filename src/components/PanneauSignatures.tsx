@@ -37,8 +37,7 @@ const LIBELLE_DECLENCHEUR: Record<string, string> = {
   relance_auto: "relance automatique",
 };
 
-const dateFr = (v: string | null | undefined) =>
-  v ? new Date(v).toLocaleString("fr-FR") : "—";
+const dateFr = (v: string | null | undefined) => (v ? new Date(v).toLocaleString("fr-FR") : "—");
 
 /** État de progression d'un signataire, dans le vocabulaire du cabinet. */
 type Etat = "prepare" | "envoye" | "relance" | "echec" | "epuise" | "succes";
@@ -192,8 +191,7 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
     }
   };
 
-  const nomDe = (id: string | null) =>
-    signataires.find((s) => s.id === id)?.signataire_nom ?? "—";
+  const nomDe = (id: string | null) => signataires.find((s) => s.id === id)?.signataire_nom ?? "—";
   const documentDe = (id: string) => (data?.sigs ?? []).find((s) => s.id === id)?.libelle ?? "—";
 
   const exporterCsv = () => {
@@ -285,7 +283,6 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
       new Uint8Array(octets).slice().buffer,
       "application/pdf",
     );
-
   };
 
   const resume: { etat: Etat; valeur: number }[] = [
@@ -337,10 +334,7 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
           </p>
           <ul className="mt-3 space-y-2">
             {epuises.map((l) => (
-              <li
-                key={l.id}
-                className="rounded-md border border-border bg-background p-3 text-sm"
-              >
+              <li key={l.id} className="rounded-md border border-border bg-background p-3 text-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p>{l.signataire_nom}</p>
@@ -355,9 +349,7 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() =>
-                        setEdition({ id: l.id, email: l.signataire_email ?? "" })
-                      }
+                      onClick={() => setEdition({ id: l.id, email: l.signataire_email ?? "" })}
                     >
                       Corriger l'adresse
                     </Button>
@@ -396,8 +388,8 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
                 <div>
                   <p className="text-sm font-medium">{s.libelle}</p>
                   <p className="text-xs text-muted-foreground">
-                    {lignes.filter((l) => l.horodatage).length} / {lignes.length || "?"} signature(s)
-                    recueillie(s)
+                    {lignes.filter((l) => l.horodatage).length} / {lignes.length || "?"}{" "}
+                    signature(s) recueillie(s)
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -454,8 +446,8 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
                           </p>
                           {!l.horodatage && (
                             <p className="text-xs text-muted-foreground">
-                              {tentatives} tentative(s) d'envoi sur {max} — dont{" "}
-                              {relancesDe(l.id)} relance(s) — dernière le {dateFr(l.dernier_essai_le)}
+                              {tentatives} tentative(s) d'envoi sur {max} — dont {relancesDe(l.id)}{" "}
+                              relance(s) — dernière le {dateFr(l.dernier_essai_le)}
                             </p>
                           )}
                           {!l.horodatage && l.dernier_resultat === "echec" && (
@@ -491,7 +483,9 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
           );
         })}
         {(data?.sigs ?? []).length === 0 && (
-          <li className="text-sm text-muted-foreground">Aucun document à signer pour ce dossier.</li>
+          <li className="text-sm text-muted-foreground">
+            Aucun document à signer pour ce dossier.
+          </li>
         )}
       </ul>
 
