@@ -26,12 +26,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const STATUT_PIECE: Record<string, string> = {
-  a_fournir: "À fournir",
-  recu: "Reçue, à contrôler",
-  valide: "Validée",
-  rejete: "À corriger",
-};
 
 export const Route = createFileRoute("/_authenticated/cabinet/$id")({
   head: () => ({
