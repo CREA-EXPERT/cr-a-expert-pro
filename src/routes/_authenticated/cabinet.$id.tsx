@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Disclaimer } from "@/components/Disclaimer";
+import { RevuePieces } from "@/components/RevuePieces";
+import { LIBELLE_STATUT, normaliserStatut } from "@/lib/pieces";
 import { STATUTS, STATUT_LABEL, euro } from "@/lib/domain";
 import type { Associe, DocumentRow, Dossier } from "@/lib/documents";
 import {
