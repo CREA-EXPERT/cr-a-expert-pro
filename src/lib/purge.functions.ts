@@ -6,11 +6,13 @@ export const lancerPurge = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { dryRun?: boolean }) => ({ dryRun: input?.dryRun === true }))
   .handler(async ({ data, context }) => {
-    const { data: estAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-    if (!estAdmin) throw new Error("Action réservée à l'administration.");
+    const { data: roles } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin");
+    if (!roles || roles.length === 0) throw new Error("Action réservée à l'administration.");
+
 
     const { executerPurge } = await import("@/lib/purge.server");
     return executerPurge({ dryRun: data.dryRun, declencheur: "manuel_admin" });
