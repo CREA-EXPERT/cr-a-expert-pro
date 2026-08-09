@@ -19,11 +19,14 @@ export function BandeauAutorite() {
   const { nom, inscriptionOrdre } = EDITEUR.cabinetPartenaire;
 
   return (
-    <section aria-label="Qui conçoit et administre ce service" className="border-b border-border bg-background">
+    <section
+      aria-label="Qui conçoit et administre ce service"
+      className="border-b border-border bg-background"
+    >
       <div className="container-page py-5">
         <p className="max-w-3xl font-serif text-base leading-relaxed text-foreground sm:text-lg">
-          Un outil conçu et administré par des experts-comptables — au sein d'un cabinet
-          d'expertise comptable inscrit à l'Ordre des experts-comptables.
+          Un outil conçu et administré par des experts-comptables — au sein d'un cabinet d'expertise
+          comptable inscrit à l'Ordre des experts-comptables.
         </p>
         <ul className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs text-muted-foreground">
           {REASSURANCES.map((r, i) => (
