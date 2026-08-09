@@ -23,11 +23,14 @@ import {
 
 const LOT = 200;
 
+export type DetailTechnique = Record<string, string | number | boolean | string[] | null>;
+
 export type LignePurge = {
   type_donnee: string;
   nombre_elements_supprimes: number;
-  details_techniques: Record<string, unknown>;
+  details_techniques: DetailTechnique;
 };
+
 
 type Contexte = {
   dryRun: boolean;
