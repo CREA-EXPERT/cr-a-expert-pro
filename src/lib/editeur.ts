@@ -53,3 +53,6 @@ export function champsIncomplets(objet: unknown = EDITEUR, prefixe = ""): string
 export function mentionsLegalesCompletes() {
   return champsIncomplets().length === 0;
 }
+
+/** Libellé unique de la mention d'autorité, à réutiliser sur tous les écrans. */
+export const LIBELLE_DIPLOMES = "100 % réalisé par des diplômés d'expertise comptable";
