@@ -829,10 +829,10 @@ function Creation() {
 
 
               <div className="space-y-3">
-                <Label>Objet(s) social(aux)</Label>
+                <Label>Vos activités, dans l'ordre</Label>
                 {activites.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    Aucune activité pour l'instant : ajoutez-en une ci-dessus.
+                    Aucune activité pour l'instant : décrivez-en une ci-dessus.
                   </p>
                 )}
                 {activites.map((a, i) => (
@@ -847,15 +847,8 @@ function Creation() {
                     onSupprimer={() => majActivites(activites.filter((x) => x.id !== a.id))}
                   />
                 ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => ajouterActivite(nouvelleActivite({ source: "libre", texte: "" }))}
-                >
-                  <Plus strokeWidth={1.5} /> Ajouter une activité
-                </Button>
                 <Err nom="objets" />
+
                 {activites.length > 0 && (
                   <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed text-justify">
                     Objet social retenu dans vos statuts, dans cet ordre :{" "}
