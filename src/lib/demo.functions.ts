@@ -1,24 +1,21 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHost } from "@tanstack/react-start/server";
+import { estHoteApercu } from "@/lib/apercu";
 
 export const DEMO_ADMIN_EMAIL = "admin.demo@crea-expert.test";
 export const DEMO_DUREE_MINUTES = 60;
 
 function verifierEnvironnement() {
-  const host = getRequestHost();
-  const autorise =
-    host.startsWith("localhost") ||
-    host.startsWith("127.0.0.1") ||
-    host.includes("id-preview--") ||
-    host.includes("-dev.lovable.app");
-  if (!autorise) throw new Error("Indisponible");
+  if (!estHoteApercu(getRequestHost())) throw new Error("Indisponible");
 }
 
+// Mot de passe aléatoire fort (32 caractères), généré à chaque appel côté serveur.
 function motDePasseAleatoire() {
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
-  const octets = crypto.getRandomValues(new Uint8Array(20));
-  return `Demo-${Array.from(octets, (o) => alphabet[o % alphabet.length]).join("")}!`;
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%*-_";
+  const octets = crypto.getRandomValues(new Uint8Array(32));
+  return Array.from(octets, (o) => alphabet[o % alphabet.length]).join("");
 }
+
 
 async function supprimerCompteDemo(supabaseAdmin: any, userId: string) {
   const { data: dossiers } = await supabaseAdmin.from("dossiers").select("id").eq("user_id", userId);
