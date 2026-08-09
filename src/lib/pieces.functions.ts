@@ -10,8 +10,21 @@ const EntreeDecision = z.object({
   motif: z.string().trim().max(1000).optional(),
 });
 
+type ClientAuthentifie = {
+  from: (table: "user_roles") => {
+    select: (colonnes: string) => {
+      eq: (
+        colonne: string,
+        valeur: string,
+      ) => {
+        in: (colonne: string, valeurs: string[]) => Promise<{ data: unknown[] | null }>;
+      };
+    };
+  };
+};
+
 /** Vrai si l'utilisateur appartient au cabinet ou à l'équipe CREA EXPERT. */
-async function verifierHabilitation(supabase: { from: (t: "user_roles") => any }, userId: string) {
+async function verifierHabilitation(supabase: ClientAuthentifie, userId: string) {
   const { data } = await supabase
     .from("user_roles")
     .select("role")
