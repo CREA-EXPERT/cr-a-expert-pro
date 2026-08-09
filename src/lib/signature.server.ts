@@ -66,9 +66,7 @@ export function blocageChronologie(dossier: Dossier, typeDocument: string): stri
     ...dossier,
     date_signature: dossier.date_signature ?? new Date().toISOString().slice(0, 10),
   } as Dossier;
-  const erreurs = verifierDates(provisoire).filter(
-    (e) => !e.includes("n'est pas renseignée"),
-  );
+  const erreurs = verifierDates(provisoire).filter((e) => !e.includes("n'est pas renseignée"));
   return erreurs[0] ?? null;
 }
 
@@ -151,8 +149,30 @@ export type LienAEnvoyer = {
   signataireId: string;
 };
 
-/** Nombre maximal de tentatives d'envoi par signataire, relances comprises. */
+/** Valeurs de repli si le réglage administrable n'est pas encore renseigné. */
 export const MAX_TENTATIVES_ENVOI = 3;
+export const INTERVALLE_RELANCE_DEFAUT = 6;
+
+export type ReglagesRelance = {
+  maxTentatives: number;
+  intervalleHeures: number;
+  relanceAutoActive: boolean;
+};
+
+/** Réglages de relance pilotés par l'administrateur. */
+export async function chargerReglages(): Promise<ReglagesRelance> {
+  const sb = await admin();
+  const { data } = await sb
+    .from("params_signature")
+    .select("max_tentatives, intervalle_relance_heures, relance_auto_active")
+    .limit(1)
+    .maybeSingle();
+  return {
+    maxTentatives: data?.max_tentatives ?? MAX_TENTATIVES_ENVOI,
+    intervalleHeures: data?.intervalle_relance_heures ?? INTERVALLE_RELANCE_DEFAUT,
+    relanceAutoActive: data?.relance_auto_active ?? true,
+  };
+}
 
 /** Ne conserve qu'une forme masquée de l'adresse dans le journal (minimisation RGPD). */
 export function masquerEmail(email: string) {
@@ -169,9 +189,6 @@ function causeGenerique(r: { envoye: false; raison: string; detail?: string }): 
   if (d.includes("rate") || d.includes("429")) return "trop_de_demandes";
   return "envoi_refuse";
 }
-
-
-
 
 /** Envoi des convocations : commun au mode interne et à un futur mode Yousign. */
 export async function envoyerLiensSignature(
@@ -203,7 +220,9 @@ export async function envoyerLiensSignature(
       .eq("id", lien.signataireId)
       .maybeSingle();
     const tentative = (ligne?.tentatives_envoi ?? 0) + 1;
-    const cause = r.envoye ? null : causeGenerique(r as { envoye: false; raison: string; detail?: string });
+    const cause = r.envoye
+      ? null
+      : causeGenerique(r as { envoye: false; raison: string; detail?: string });
 
     await sb
       .from("signatures_signataires")
@@ -234,7 +253,7 @@ export async function envoyerLiensSignature(
 
 /**
  * Relance les convocations non délivrées : uniquement les signataires en échec,
- * non signés, et sous le plafond de tentatives.
+ * non signés, sous le plafond de tentatives et hors délai d'attente.
  */
 export async function relancerEnvoisEnEchec(
   origine: string,
@@ -242,14 +261,22 @@ export async function relancerEnvoisEnEchec(
   filtre?: { signatureId?: string; signataireId?: string },
 ) {
   const sb = await admin();
+  const reglages = await chargerReglages();
+  if (declencheur === "relance_auto" && !reglages.relanceAutoActive)
+    return { traites: 0, envoyes: 0, echoues: 0, plafond: reglages.maxTentatives, inactif: true };
+
   let q = sb
     .from("signatures_signataires")
     .select("*")
     .is("horodatage", null)
     .eq("dernier_resultat", "echec")
-    .lt("tentatives_envoi", MAX_TENTATIVES_ENVOI);
+    .lt("tentatives_envoi", reglages.maxTentatives);
   if (filtre?.signatureId) q = q.eq("signature_id", filtre.signatureId);
   if (filtre?.signataireId) q = q.eq("id", filtre.signataireId);
+  if (declencheur === "relance_auto") {
+    const seuil = new Date(Date.now() - reglages.intervalleHeures * 3600 * 1000).toISOString();
+    q = q.or(`dernier_essai_le.is.null,dernier_essai_le.lt.${seuil}`);
+  }
   const { data } = await q;
   const lignes = ((data ?? []) as SignataireRow[]).filter((l) => l.signataire_email);
 
@@ -277,9 +304,63 @@ export async function relancerEnvoisEnEchec(
     envoyes += r.envoyes;
     echoues += r.echecs.length;
   }
-  return { traites: lignes.length, envoyes, echoues, plafond: MAX_TENTATIVES_ENVOI };
+  return {
+    traites: lignes.length,
+    envoyes,
+    echoues,
+    plafond: reglages.maxTentatives,
+    inactif: false,
+  };
 }
 
+/**
+ * Envoi ciblé à un signataire, éventuellement au-delà du plafond lorsque le
+ * cabinet demande explicitement un nouvel essai.
+ */
+export async function envoyerAUnSignataire(
+  signataireId: string,
+  origine: string,
+  declencheur: "relance_manuelle",
+  forcer = false,
+) {
+  const sb = await admin();
+  const reglages = await chargerReglages();
+  const { data: sg } = await sb
+    .from("signatures_signataires")
+    .select("*")
+    .eq("id", signataireId)
+    .maybeSingle();
+  if (!sg || sg.horodatage || !sg.signataire_email)
+    return { envoye: false, cause: "signataire_indisponible" as string | null, plafond: false };
+  if (!forcer && (sg.tentatives_envoi ?? 0) >= reglages.maxTentatives)
+    return { envoye: false, cause: "plafond_atteint" as string | null, plafond: true };
+
+  const ctx = await chargerContexte(sg.signature_id);
+  if (!ctx)
+    return { envoye: false, cause: "document_indisponible" as string | null, plafond: false };
+
+  const url = await attribuerLien(sg as SignataireRow, origine);
+  const { envoyes, echecs } = await envoyerLiensSignature(
+    [
+      {
+        destinataire: sg.signataire_email,
+        nom: sg.signataire_nom,
+        url,
+        libelle: ctx.sig.libelle,
+        denomination: ctx.dossier.denomination || "",
+        dossierId: ctx.dossier.id,
+        signatureId: ctx.sig.id,
+        signataireId: sg.id,
+      },
+    ],
+    declencheur,
+  );
+  return {
+    envoye: envoyes > 0,
+    cause: (echecs[0]?.cause ?? null) as string | null,
+    plafond: !forcer && (sg.tentatives_envoi ?? 0) + 1 >= reglages.maxTentatives,
+  };
+}
 
 /** Attribue un lien nominatif à un signataire et renvoie l'URL en clair. */
 export async function attribuerLien(signataire: SignataireRow, origine: string) {
@@ -364,12 +445,10 @@ export async function finaliserSiComplet(signatureId: string) {
       empreinte: empreinteBase,
     });
     cheminFinal = cheminSigne(dossier.id, sig.id);
-    await sb.storage
-      .from(BUCKET_SIGNATURES)
-      .upload(cheminFinal, finalPdf as unknown as Blob, {
-        contentType: "application/pdf",
-        upsert: true,
-      });
+    await sb.storage.from(BUCKET_SIGNATURES).upload(cheminFinal, finalPdf as unknown as Blob, {
+      contentType: "application/pdf",
+      upsert: true,
+    });
     empreinteFinale = await sha256Hex(finalPdf);
   }
 
