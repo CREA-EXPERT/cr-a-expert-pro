@@ -113,11 +113,17 @@ function Auth() {
 
   async function connexion(e: React.FormEvent) {
     e.preventDefault();
+    const saisi = loginEmail.trim().toLowerCase();
+    if (saisi === DEMO_ADMIN_EMAIL.toLowerCase() && !estHoteApercu(window.location.hostname)) {
+      toast.error("Compte de démonstration réservé à l'aperçu.");
+      return;
+    }
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({
       email: loginEmail.trim(),
       password: loginPass,
     });
+
     setBusy(false);
     if (error) {
       toast.error("Identifiants incorrects ou compte non confirmé.");
