@@ -29,6 +29,7 @@ import { Route as AuthenticatedCabinetIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedCabinetIdRouteImport } from './routes/_authenticated/cabinet.$id'
 import { Route as AuthenticatedCabinetRappelsRouteImport } from './routes/_authenticated/cabinet.rappels'
 import { Route as ApiPublicHooksPurgeDonneesRouteImport } from './routes/api/public/hooks/purge-donnees'
+import { Route as ApiPublicHooksRelanceSignaturesRouteImport } from './routes/api/public/hooks/relance-signatures'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -133,6 +134,12 @@ const ApiPublicHooksPurgeDonneesRoute =
     path: '/api/public/hooks/purge-donnees',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksRelanceSignaturesRoute =
+  ApiPublicHooksRelanceSignaturesRouteImport.update({
+    id: '/api/public/hooks/relance-signatures',
+    path: '/api/public/hooks/relance-signatures',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByFullPath {
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/cabinet/': typeof AuthenticatedCabinetIndexRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
+  '/api/public/hooks/relance-signatures': typeof ApiPublicHooksRelanceSignaturesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -175,6 +183,7 @@ export interface FileRoutesByTo {
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/cabinet': typeof AuthenticatedCabinetIndexRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
+  '/api/public/hooks/relance-signatures': typeof ApiPublicHooksRelanceSignaturesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -198,6 +207,7 @@ export interface FileRoutesById {
   '/_authenticated/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/_authenticated/cabinet/': typeof AuthenticatedCabinetIndexRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
+  '/api/public/hooks/relance-signatures': typeof ApiPublicHooksRelanceSignaturesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/cabinet/rappels'
     | '/cabinet/'
     | '/api/public/hooks/purge-donnees'
+    | '/api/public/hooks/relance-signatures'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -242,6 +253,7 @@ export interface FileRouteTypes {
     | '/cabinet/rappels'
     | '/cabinet'
     | '/api/public/hooks/purge-donnees'
+    | '/api/public/hooks/relance-signatures'
   id:
     | '__root__'
     | '/'
@@ -264,6 +276,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cabinet/rappels'
     | '/_authenticated/cabinet/'
     | '/api/public/hooks/purge-donnees'
+    | '/api/public/hooks/relance-signatures'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -279,6 +292,7 @@ export interface RootRouteChildren {
   TarifsRoute: typeof TarifsRoute
   SignerJetonRoute: typeof SignerJetonRoute
   ApiPublicHooksPurgeDonneesRoute: typeof ApiPublicHooksPurgeDonneesRoute
+  ApiPublicHooksRelanceSignaturesRoute: typeof ApiPublicHooksRelanceSignaturesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -423,6 +437,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksPurgeDonneesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/relance-signatures': {
+      id: '/api/public/hooks/relance-signatures'
+      path: '/api/public/hooks/relance-signatures'
+      fullPath: '/api/public/hooks/relance-signatures'
+      preLoaderRoute: typeof ApiPublicHooksRelanceSignaturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -464,17 +485,8 @@ const rootRouteChildren: RootRouteChildren = {
   TarifsRoute: TarifsRoute,
   SignerJetonRoute: SignerJetonRoute,
   ApiPublicHooksPurgeDonneesRoute: ApiPublicHooksPurgeDonneesRoute,
+  ApiPublicHooksRelanceSignaturesRoute: ApiPublicHooksRelanceSignaturesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
