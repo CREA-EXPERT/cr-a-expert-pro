@@ -36,8 +36,9 @@ export function BlocActivite({
     <div className="rounded-md border border-border bg-surface p-3">
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="text-xs font-medium text-muted-foreground">
-          {index === 0 ? "Activité principale" : `Activité complémentaire ${index}`}
+          {index === 0 ? "Activité principale" : `Activité accessoire ${index}`}
         </span>
+
         <div className="flex gap-1">
           <Button
             type="button"

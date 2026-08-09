@@ -18,7 +18,7 @@ import {
   FORMES,
   FORMES_COMMUNAUTE,
   MOIS,
-  OBJETS_TYPES,
+  
   REGIMES_AVEC_CONTRAT,
   REGIMES_MARIAGE,
   REGIMES_PACS,
@@ -54,7 +54,7 @@ import {
   tarifMap,
   useTarifs,
 } from "@/lib/tarifs";
-import { NafSelect } from "@/components/NafSelect";
+import { NAF } from "@/lib/naf";
 import { AssocieIdentite } from "@/components/AssocieIdentite";
 import { BlocActivite } from "@/components/BlocActivite";
 import {
@@ -78,7 +78,9 @@ import {
   EncadreTva,
 } from "@/components/EncadresPedago";
 import { estCodeReglemente } from "@/lib/naf-reglemente";
-import { redigerObjetSocial } from "@/lib/objet-social.functions";
+import { analyserActivite } from "@/lib/activite.functions";
+import { estHoteApercu } from "@/lib/apercu";
+
 import { z } from "zod";
 import { ArrowDown, ArrowLeft, ArrowUp, ExternalLink, Plus, Sparkle, Trash2 } from "lucide-react";
 
@@ -249,6 +251,23 @@ function Creation() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  /**
+   * Raccourcis de conception : réservés à un administrateur sur un hôte d'aperçu,
+   * pour parcourir le site sans remplir chaque contrôle obligatoire.
+   */
+  const modeConception =
+    isAdmin && typeof window !== "undefined" && estHoteApercu(window.location.host);
+
+  /** Supprime le dossier de test en cours et en recrée un vierge. */
+  async function reinitialiserDossierTest() {
+    if (!dossier) return;
+    await supabase.from("associes").delete().eq("dossier_id", dossier.id);
+    await supabase.from("dossiers").delete().eq("id", dossier.id);
+    toast.success("Formulaire réinitialisé.");
+    window.location.reload();
+  }
+
+
   /** Contrôles de l'étape courante. Renvoie les erreurs par champ. */
   function controlerEtape(c: Cle): Record<string, string> {
     const e: Record<string, string> = {};
@@ -388,54 +407,43 @@ function Creation() {
     await majActivites(activites.map((a) => (a.id === id ? { ...a, ...valeurs } : a)));
   }
 
-  /** Ajoute une activité à partir d'un code d'activité INSEE, à titre informatif. */
-  async function ajouterDepuisNaf(code: string, libelle: string) {
+  /**
+   * Ajoute une activité à partir de sa description en quelques mots : l'assistant
+   * rédige le bloc statutaire, propose un code d'activité et signale si l'activité
+   * est, en règle générale, réglementée. Tout reste modifiable.
+   */
+  async function ajouterDepuisDescription() {
     if (!dossier) return;
-    setRedaction(true);
-    const gabarit = `L'exercice de l'activité de ${libelle}, ainsi que toutes opérations connexes ne relevant pas d'une activité réglementée.`;
-    let texte = gabarit;
-    try {
-      const res = await redigerObjetSocial({
-        data: { activite: libelle, forme: dossier.forme_juridique, naf: `${code} — ${libelle}` },
-      });
-      if (res?.texte) texte = res.texte;
-    } catch {
-      /* le gabarit déterministe prend le relais */
-    } finally {
-      setRedaction(false);
-    }
-    await ajouterActivite(
-      nouvelleActivite({
-        source: "naf",
-        naf_code: code,
-        naf_libelle: libelle,
-        texte,
-        reglementee: estCodeReglemente(code),
-      }),
-    );
-  }
-
-  async function proposerObjet() {
-    if (!dossier) return;
+    const description = descriptionActivite.trim();
+    if (description.length < 5) return;
     setRedaction(true);
     try {
-      const res = await redigerObjetSocial({
-        data: { activite: descriptionActivite.trim(), forme: dossier.forme_juridique },
-      });
-
-      if (res?.texte) {
-        await ajouterActivite(nouvelleActivite({ source: "libre", texte: res.texte }));
-        setDescriptionActivite("");
-        toast.success("Proposition rédigée. Relisez-la et adaptez-la si nécessaire.");
-      } else {
+      const res = await analyserActivite({ data: { description, forme: dossier.forme_juridique } });
+      if (!res?.texte) {
         toast.error(res?.erreur ?? "Aucune proposition n'a pu être générée.");
+        return;
       }
+      const officiel = res.naf_code ? (NAF.find((n) => n.code === res.naf_code) ?? null) : null;
+      const code = officiel?.code ?? null;
+      await ajouterActivite(
+        nouvelleActivite({
+          source: "libre",
+          texte: res.texte,
+          naf_code: code,
+          naf_libelle: officiel?.label ?? res.naf_libelle ?? null,
+          reglementee: res.reglementee || estCodeReglemente(code),
+          justificatif_detail: res.reglementee && res.motif ? res.motif.slice(0, 500) : null,
+        }),
+      );
+      setDescriptionActivite("");
+      toast.success("Activité ajoutée. Relisez la rédaction et adaptez-la si nécessaire.");
     } catch {
       toast.error("L'assistance à la rédaction est momentanément indisponible.");
     } finally {
       setRedaction(false);
     }
   }
+
 
 
 
@@ -794,60 +802,22 @@ function Creation() {
                 </p>
               </div>
 
-              <div className="space-y-3">
-                <Label>Ajouter une activité</Label>
-                <p className="text-sm text-muted-foreground text-justify">
-                  Partez d'un objet type, d'un code d'activité INSEE, ou décrivez votre activité et
-                  laissez l'assistant en proposer une rédaction que vous pourrez modifier librement.
-                  Chaque activité ajoutée reste indépendante : elle n'écrase jamais les précédentes.
-                  Le premier de la liste est considéré comme l'activité principale.
-                </p>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {OBJETS_TYPES.map((o) => (
-                    <button
-                      key={o.titre}
-                      type="button"
-                      onClick={() =>
-                        ajouterActivite(
-                          nouvelleActivite({
-                            source: "type",
-                            texte: o.texte,
-                            naf_code: o.naf?.code ?? null,
-                            naf_libelle: o.naf?.libelle ?? null,
-                            reglementee: estCodeReglemente(o.naf?.code ?? null),
-                          }),
-                        )
-                      }
-                      className="rounded-md border border-border bg-surface px-3 py-2.5 text-left text-sm hover:border-accent"
-                    >
-                      {o.titre}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="space-y-2 pt-2">
-                  <Label>Code INSEE (pour information)</Label>
-                  <NafSelect
-                    value={dossier.code_naf}
-                    onChange={(n) => ajouterDepuisNaf(n.code, n.label)}
-                  />
-                  <Err nom="naf" />
-                  <p className="text-xs text-muted-foreground">
-                    Ce code est déclaratif et purement informatif : l'INSEE attribue le code APE
-                    définitif au vu de l'activité réellement exercée.
-                  </p>
-                </div>
-              </div>
-
               <div className="rounded-md border border-border bg-surface p-4">
                 <Label htmlFor="descr" className="text-sm font-medium">
-                  Décrivez votre activité en quelques mots
+                  Ajouter une activité — décrivez-la en quelques mots
                 </Label>
+                <p className="mt-1 text-sm text-muted-foreground text-justify">
+                  Votre société peut exercer une seule activité ou plusieurs. La première de la
+                  liste est l'activité principale ; les suivantes sont des activités accessoires.
+                  Décrivez ici une activité à la fois : l'assistant en déduit le code d'activité
+                  INSEE indicatif, rédige le paragraphe à insérer dans les statuts et indique si
+                  l'activité est, en règle générale, réglementée. Vous pouvez tout modifier ensuite.
+                </p>
                 <Textarea
                   id="descr"
                   rows={3}
                   maxLength={600}
-                  className="mt-2"
+                  className="mt-3"
                   placeholder="Ex. : je crée des sites internet pour des artisans et j'assure leur maintenance."
                   value={descriptionActivite}
                   onChange={(e) => setDescriptionActivite(e.target.value)}
@@ -855,25 +825,33 @@ function Creation() {
                 <div className="mt-3 flex flex-wrap items-center gap-3">
                   <Button
                     type="button"
-                    variant="outline"
                     disabled={redaction || descriptionActivite.trim().length < 10}
-                    onClick={proposerObjet}
+                    onClick={ajouterDepuisDescription}
                   >
                     <Sparkle strokeWidth={1.5} />
-                    {redaction ? "Rédaction en cours…" : "Proposer une rédaction"}
+                    {redaction ? "Analyse en cours…" : "Ajouter cette activité"}
                   </Button>
-                  <span className="text-xs text-muted-foreground">
-                    Proposition automatique, à relire et à adapter : elle ne constitue pas un
-                    conseil juridique.
-                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => ajouterActivite(nouvelleActivite({ source: "libre", texte: "" }))}
+                  >
+                    <Plus strokeWidth={1.5} /> Saisir moi-même une activité
+                  </Button>
                 </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Rédaction et code d'activité proposés à titre informatif, à relire et à adapter :
+                  ils ne constituent pas un conseil juridique.
+                </p>
               </div>
 
+
               <div className="space-y-3">
-                <Label>Objet(s) social(aux)</Label>
+                <Label>Vos activités, dans l'ordre</Label>
                 {activites.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    Aucune activité pour l'instant : ajoutez-en une ci-dessus.
+                    Aucune activité pour l'instant : décrivez-en une ci-dessus.
                   </p>
                 )}
                 {activites.map((a, i) => (
@@ -888,15 +866,8 @@ function Creation() {
                     onSupprimer={() => majActivites(activites.filter((x) => x.id !== a.id))}
                   />
                 ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => ajouterActivite(nouvelleActivite({ source: "libre", texte: "" }))}
-                >
-                  <Plus strokeWidth={1.5} /> Ajouter une activité
-                </Button>
                 <Err nom="objets" />
+
                 {activites.length > 0 && (
                   <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed text-justify">
                     Objet social retenu dans vos statuts, dans cet ordre :{" "}
@@ -1776,8 +1747,28 @@ function Creation() {
             {cle !== "recap" && <Button onClick={() => continuer(cle)}>Continuer</Button>}
             <CallbackDialog variant="ghost" />
             <RecommandationDialog variant="ghost" />
-
           </div>
+
+          {modeConception && (
+            <div className="mt-4 rounded-md border border-dashed border-warning/60 bg-warning/10 p-3">
+              <p className="text-xs font-medium">Mode conception (administrateur, aperçu)</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {cle !== "recap" && (
+                  <Button type="button" variant="outline" size="sm" onClick={() => allerA(etape + 1)}>
+                    Passer cette étape pour voir la page suivante
+                  </Button>
+                )}
+                <Button type="button" variant="ghost" size="sm" onClick={reinitialiserDossierTest}>
+                  Réinitialiser le formulaire
+                </Button>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Ces raccourcis ne sont visibles qu'en aperçu, pour un compte administrateur : les
+                contrôles obligatoires restent appliqués pour les clients.
+              </p>
+            </div>
+          )}
+
         </div>
 
         {/* PANNEAU RECAP */}
