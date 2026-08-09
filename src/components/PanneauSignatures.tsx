@@ -80,6 +80,17 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
   const relancerTout = useServerFn(relancerSignaturesEnEchec);
   const corriger = useServerFn(corrigerAdresseSignataire);
   const [edition, setEdition] = useState<{ id: string; email: string } | null>(null);
+  const [filtreDocument, setFiltreDocument] = useState("tous");
+  const [filtreEtat, setFiltreEtat] = useState<"tous" | Etat>("tous");
+  const [recherche, setRecherche] = useState("");
+  const [chronos, setChronos] = useState<Record<string, boolean>>({});
+  const [fJournal, setFJournal] = useState({
+    du: "",
+    au: "",
+    document: "tous",
+    resultat: "tous",
+    signataire: "tous",
+  });
 
   const { data } = useQuery({
     queryKey: ["signatures-cabinet", dossierId],
@@ -131,7 +142,26 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
   }, [signataires, journal, max]);
 
   const compte = (e: Etat) => [...etats.values()].filter((v) => v === e).length;
-  const epuises = signataires.filter((l) => etats.get(l.id) === "epuise");
+
+  /** Signataires appelant une action du cabinet : relance possible ou adresse à corriger. */
+  const actionsRequises = signataires.filter((l) => {
+    if (l.horodatage) return false;
+    const e = etats.get(l.id);
+    return e === "echec" || e === "epuise" || !l.signataire_email;
+  });
+
+  /** Correspondance d'un signataire avec les filtres de la liste. */
+  const correspond = (l: SignataireRow) => {
+    if (filtreEtat !== "tous" && etats.get(l.id) !== filtreEtat) return false;
+    const q = recherche.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      l.signataire_nom.toLowerCase().includes(q) ||
+      (l.signataire_email ?? "").toLowerCase().includes(q)
+    );
+  };
+
+  const filtreActif = filtreEtat !== "tous" || recherche.trim() !== "" || filtreDocument !== "tous";
 
   const rafraichir = () => qc.invalidateQueries({ queryKey: ["signatures-cabinet", dossierId] });
 
@@ -194,6 +224,20 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
   const nomDe = (id: string | null) => signataires.find((s) => s.id === id)?.signataire_nom ?? "—";
   const documentDe = (id: string) => (data?.sigs ?? []).find((s) => s.id === id)?.libelle ?? "—";
 
+  const journalFiltre = useMemo(() => {
+    const debut = fJournal.du ? new Date(`${fJournal.du}T00:00:00`).getTime() : null;
+    const fin = fJournal.au ? new Date(`${fJournal.au}T23:59:59`).getTime() : null;
+    return journal.filter((j) => {
+      const t = new Date(j.created_at).getTime();
+      if (debut !== null && t < debut) return false;
+      if (fin !== null && t > fin) return false;
+      if (fJournal.document !== "tous" && j.signature_id !== fJournal.document) return false;
+      if (fJournal.signataire !== "tous" && j.signataire_id !== fJournal.signataire) return false;
+      if (fJournal.resultat !== "tous" && j.resultat !== fJournal.resultat) return false;
+      return true;
+    });
+  }, [journal, fJournal]);
+
   const exporterCsv = () => {
     const entetes = [
       "Date",
@@ -207,7 +251,7 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
       "Cause",
     ];
     const echapper = (v: string) => `"${v.replace(/"/g, '""')}"`;
-    const lignes = journal.map((j) =>
+    const lignes = journalFiltre.map((j) =>
       [
         dateFr(j.created_at),
         dossierId,
@@ -266,7 +310,7 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
       9,
       gras,
     );
-    journal.forEach((j) => {
+    journalFiltre.forEach((j) => {
       ecrire(
         `${dateFr(j.created_at)} | ${documentDe(j.signature_id).slice(0, 34)} | ${nomDe(
           j.signataire_id,
