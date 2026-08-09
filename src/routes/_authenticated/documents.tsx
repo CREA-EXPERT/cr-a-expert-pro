@@ -96,28 +96,55 @@ function Documents() {
     await supabase.from("dossiers").update(maj as never).eq("id", dossier.id);
   }
 
+  /** Crée une pièce hors checklist lorsque le client dépose un fichier non rattaché. */
+  async function creerPieceLibre(nom: string): Promise<DocumentRow | null> {
+    if (!dossier) return null;
+    const { data, error } = await supabase
+      .from("documents")
+      .insert({
+        dossier_id: dossier.id,
+        type_document: "piece_complementaire",
+        libelle: `Pièce complémentaire — ${nom}`,
+        obligatoire: false,
+        origine: "a_fournir",
+        statut_document: "a_fournir",
+      })
+      .select("*")
+      .maybeSingle();
+    if (error || !data) {
+      toast.error("La pièce complémentaire n'a pas pu être créée.");
+      return null;
+    }
+    return data as DocumentRow;
+  }
+
   async function televerser(doc: DocumentRow, file: File) {
-    if (!dossier) return;
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Le fichier dépasse 10 Mo.");
-      return;
+    if (!dossier) return false;
+    const refus = validerFichier(file);
+    if (refus) {
+      toast.error(refus);
+      return false;
     }
-    if (!["application/pdf", "image/jpeg", "image/png"].includes(file.type)) {
-      toast.error("Formats acceptés : PDF, JPG, PNG.");
-      return;
+    if (estPieceIdentite(doc.type_document) && !mentions[doc.id]) {
+      toast.error(
+        "Avant de déposer votre pièce d'identité, confirmez que la mention manuscrite est recopiée, datée et signée.",
+      );
+      return false;
     }
-    const chemin = `${dossier.id}/${doc.id}-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "")}`;
+    const extension = (file.name.split(".").pop() ?? "pdf").toLowerCase().replace(/[^a-z0-9]/g, "");
+    /** Chemin déterministe : un redépôt remplace le fichier au lieu d'en créer un doublon. */
+    const chemin = `${dossier.id}/${doc.id}.${extension || "pdf"}`;
     const { error } = await supabase.storage.from("documents").upload(chemin, file, { upsert: true });
     if (error) {
-      toast.error("Le dépôt du fichier a échoué.");
-      return;
+      toast.error("Le dépôt du fichier a échoué. Vérifiez votre connexion puis recommencez.");
+      return false;
     }
     const maintenant = new Date().toISOString();
     await supabase
       .from("documents")
       .update({
         fichier_url: chemin,
-        statut_document: "recu",
+        statut_document: "depose",
         motif_rejet: null,
         depose_le: maintenant,
         atteste_conforme: false,
@@ -133,7 +160,32 @@ function Documents() {
     if (dossier.statut === "dossier_valide_client") {
       await supabase.from("dossiers").update({ statut: "pieces_en_cours" }).eq("id", dossier.id);
     }
-    toast.success("Pièce déposée.");
+    return true;
+  }
+
+  /** Dépose une série de fichiers avec suivi de progression, puis rafraîchit la liste. */
+  async function deposer(fichiers: File[], cibleId: string) {
+    for (const f of fichiers) {
+      const idTransfert = `${Date.now()}-${f.name}-${Math.random().toString(16).slice(2)}`;
+      setTransferts((t) => [...t, { id: idTransfert, nom: f.name, taille: f.size, progression: 8 }]);
+      const minuteur = setInterval(() => {
+        setTransferts((t) =>
+          t.map((x) => (x.id === idTransfert ? { ...x, progression: Math.min(92, x.progression + 12) } : x)),
+        );
+      }, 200);
+      const doc = cibleId === CIBLE_LIBRE ? await creerPieceLibre(f.name) : (docs.find((d) => d.id === cibleId) ?? null);
+      const ok = doc ? await televerser(doc, f) : false;
+      clearInterval(minuteur);
+      setTransferts((t) =>
+        t.map((x) =>
+          x.id === idTransfert
+            ? { ...x, progression: 100, ...(ok ? {} : { erreur: "Ce fichier n'a pas été déposé." }) }
+            : x,
+        ),
+      );
+      if (ok) setTimeout(() => setTransferts((t) => t.filter((x) => x.id !== idTransfert)), 2500);
+    }
+    toast.success("Dépôt terminé.");
     charger();
   }
 
