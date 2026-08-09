@@ -11,7 +11,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MentionConfidentialite } from "@/components/MentionConfidentialite";
 import { useServerFn } from "@tanstack/react-start";
-import { preparerCompteDemo } from "@/lib/demo.functions";
+import { preparerCompteDemo, DEMO_ADMIN_EMAIL } from "@/lib/demo.functions";
+import { estHoteApercu } from "@/lib/apercu";
 
 
 const searchSchema = z.object({ redirect: z.string().optional(), forme: z.string().optional() });
@@ -54,14 +55,9 @@ function Auth() {
   const [modeConception, setModeConception] = useState(false);
 
   useEffect(() => {
-    const h = window.location.hostname;
-    setModeConception(
-      h === "localhost" ||
-        h === "127.0.0.1" ||
-        h.includes("id-preview--") ||
-        h.endsWith("-dev.lovable.app"),
-    );
+    setModeConception(estHoteApercu(window.location.hostname));
   }, []);
+
 
   const [identifiantsDemo, setIdentifiantsDemo] = useState<
     { email: string; motdepasse: string; expireLe: string } | null
@@ -117,11 +113,17 @@ function Auth() {
 
   async function connexion(e: React.FormEvent) {
     e.preventDefault();
+    const saisi = loginEmail.trim().toLowerCase();
+    if (saisi === DEMO_ADMIN_EMAIL.toLowerCase() && !estHoteApercu(window.location.hostname)) {
+      toast.error("Compte de démonstration réservé à l'aperçu.");
+      return;
+    }
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({
       email: loginEmail.trim(),
       password: loginPass,
     });
+
     setBusy(false);
     if (error) {
       toast.error("Identifiants incorrects ou compte non confirmé.");
