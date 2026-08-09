@@ -75,7 +75,7 @@ export const preparerEtEnvoyerSignature = createServerFn({ method: "POST" })
   });
 
 
-/** Renvoie un lien nominatif à un signataire précis. */
+/** Renvoie un lien nominatif à un signataire précis (option « réessayer malgré le plafond »). */
 export const renvoyerLienSignature = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => EntreeRenvoyer.parse(input))
@@ -88,43 +88,47 @@ export const renvoyerLienSignature = createServerFn({ method: "POST" })
     if (!visible) throw new Error("Signataire introuvable.");
 
     const s = await import("./signature.server");
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: sg } = await supabaseAdmin
+    const origine = new URL(getRequestUrl()).origin;
+    return s.envoyerAUnSignataire(
+      data.signataireId,
+      origine,
+      "relance_manuelle",
+      data.forcer === true,
+    );
+  });
+
+/**
+ * Corrige l'adresse email d'un signataire non signataire encore, remet le
+ * compteur de tentatives à zéro et renvoie immédiatement le lien.
+ */
+export const corrigerAdresseSignataire = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => EntreeAdresse.parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: visible } = await context.supabase
       .from("signatures_signataires")
-      .select("*")
+      .select("id, horodatage")
       .eq("id", data.signataireId)
       .maybeSingle();
-    if (!sg || sg.horodatage || !sg.signataire_email)
-      return { envoye: false, cause: "signataire_indisponible" as string | null, plafond: false };
-    if ((sg.tentatives_envoi ?? 0) >= s.MAX_TENTATIVES_ENVOI)
-      return { envoye: false, cause: "plafond_atteint" as string | null, plafond: true };
+    if (!visible) throw new Error("Signataire introuvable.");
+    if (visible.horodatage) return { envoye: false, cause: "signataire_indisponible", plafond: false };
 
-    const ctx = await s.chargerContexte(sg.signature_id);
-    if (!ctx) return { envoye: false, cause: "document_indisponible" as string | null, plafond: false };
+    const s = await import("./signature.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin
+      .from("signatures_signataires")
+      .update({
+        signataire_email: data.email,
+        tentatives_envoi: 0,
+        dernier_resultat: null,
+        derniere_cause: null,
+      })
+      .eq("id", data.signataireId);
 
     const origine = new URL(getRequestUrl()).origin;
-    const url = await s.attribuerLien(sg, origine);
-    const { envoyes, echecs } = await s.envoyerLiensSignature(
-      [
-        {
-          destinataire: sg.signataire_email,
-          nom: sg.signataire_nom,
-          url,
-          libelle: ctx.sig.libelle,
-          denomination: ctx.dossier.denomination || "",
-          dossierId: ctx.dossier.id,
-          signatureId: ctx.sig.id,
-          signataireId: sg.id,
-        },
-      ],
-      "relance_manuelle",
-    );
-    return {
-      envoye: envoyes > 0,
-      cause: (echecs[0]?.cause ?? null) as string | null,
-      plafond: (sg.tentatives_envoi ?? 0) + 1 >= s.MAX_TENTATIVES_ENVOI,
-    };
+    return s.envoyerAUnSignataire(data.signataireId, origine, "relance_manuelle", true);
   });
+
 
 /** Relance automatique (planificateur) ou manuelle des convocations non délivrées. */
 export const relancerSignaturesEnEchec = createServerFn({ method: "POST" })
