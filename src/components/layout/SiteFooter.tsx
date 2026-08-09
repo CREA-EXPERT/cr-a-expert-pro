@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Landmark } from "lucide-react";
 import { RecommandationDialog } from "@/components/RecommandationDialog";
 import { CABINET } from "@/lib/domain";
+import { LIBELLE_DIPLOMES } from "@/lib/editeur";
 
 
 export function SiteFooter() {
