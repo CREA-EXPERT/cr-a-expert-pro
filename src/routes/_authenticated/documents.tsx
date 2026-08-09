@@ -59,6 +59,9 @@ function Documents() {
   const [signatures, setSignatures] = useState<SignatureRow[]>([]);
   const [events, setEvents] = useState<EventRow[]>([]);
   const [busy, setBusy] = useState(false);
+  const [transferts, setTransferts] = useState<Transfert[]>([]);
+  const [mentions, setMentions] = useState<Record<string, boolean>>({});
+  const [cible, setCible] = useState<string>(CIBLE_LIBRE);
 
   async function charger() {
     const { data: ds } = await supabase.from("dossiers").select("*").order("created_at", { ascending: false }).limit(1);
