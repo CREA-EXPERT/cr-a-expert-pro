@@ -17,6 +17,8 @@ import { tarifAVerifier } from "@/lib/tarifs";
 import type { DocumentRule } from "@/lib/documents";
 import { champsIncomplets, mentionsLegalesCompletes } from "@/lib/editeur";
 import { etatServices } from "@/lib/services.functions";
+import { PanneauConservation } from "@/components/PanneauConservation";
+
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
