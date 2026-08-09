@@ -279,11 +279,13 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
       );
     });
 
+    const octets = await pdf.save();
     telecharger(
       `journal-emails-signature-${dossierId}.pdf`,
-      await pdf.save(),
+      new Uint8Array(octets).slice().buffer,
       "application/pdf",
     );
+
   };
 
   const resume: { etat: Etat; valeur: number }[] = [
