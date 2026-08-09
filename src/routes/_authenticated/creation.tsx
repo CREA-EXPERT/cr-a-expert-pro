@@ -797,67 +797,48 @@ function Creation() {
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <Label>Activité principale (nomenclature NAF de l'INSEE)</Label>
-                <NafSelect
-                  value={dossier.code_naf}
-                  onChange={(n) => {
-                    const regl = estCodeReglemente(n.code);
-                    const changement = dossier.code_naf !== null && dossier.code_naf !== n.code;
-                    if (changement && objets.length > 0) {
-                      setConserves(objets.map(() => false));
-                      setAvertissementNaf(true);
-                    }
-                    patch({
-                      code_naf: n.code,
-                      code_naf_libelle: n.label,
-                      ...(changement ? { objets_confirmes_le: null } : {}),
-                      ...(regl
-                        ? {
-                            activite_reglementee: true,
-                            routage_cabinet: true,
-                            reglementee_source: "naf",
-                          }
-                        : dossier.reglementee_source === "naf"
-                          ? { reglementee_source: null }
-                          : {}),
-                    });
-                  }}
-                />
-                <Err nom="naf" />
-                <p className="text-xs text-muted-foreground">
-                  Ce code est déclaratif : l'INSEE attribue le code APE définitif au vu de
-                  l'activité réellement exercée.
-                </p>
-              </div>
-
-              {avertissementNaf && (
-                <p className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm leading-relaxed text-justify">
-                  Vous avez changé d'activité principale : vérifiez chaque activité listée ci-dessous
-                  et cochez uniquement celles qui font toujours partie de votre projet. Aucune
-                  activité n'est supprimée sans votre confirmation.
-                </p>
-              )}
-
-              <div className="space-y-2">
+              <div className="space-y-3">
+                <Label>Ajouter une activité</Label>
                 <p className="text-sm text-muted-foreground text-justify">
-                  Partez d'un objet type, ou décrivez votre activité et laissez l'assistant en
-                  proposer une rédaction que vous pourrez modifier librement. Vous pouvez cumuler
-                  plusieurs objets et en modifier l'ordre : le premier cité est considéré comme
-                  l'activité principale.
+                  Partez d'un objet type, d'un code d'activité INSEE, ou décrivez votre activité et
+                  laissez l'assistant en proposer une rédaction que vous pourrez modifier librement.
+                  Chaque activité ajoutée reste indépendante : elle n'écrase jamais les précédentes.
+                  Le premier de la liste est considéré comme l'activité principale.
                 </p>
                 <div className="grid gap-2 sm:grid-cols-2">
                   {OBJETS_TYPES.map((o) => (
                     <button
                       key={o.titre}
                       type="button"
-                      onClick={() => ajouterActivite(o.texte)}
+                      onClick={() =>
+                        ajouterActivite(
+                          nouvelleActivite({
+                            source: "type",
+                            texte: o.texte,
+                            naf_code: o.naf?.code ?? null,
+                            naf_libelle: o.naf?.libelle ?? null,
+                            reglementee: estCodeReglemente(o.naf?.code ?? null),
+                          }),
+                        )
+                      }
                       className="rounded-md border border-border bg-surface px-3 py-2.5 text-left text-sm hover:border-accent"
                     >
                       {o.titre}
                     </button>
                   ))}
+                </div>
 
+                <div className="space-y-2 pt-2">
+                  <Label>Code INSEE (pour information)</Label>
+                  <NafSelect
+                    value={dossier.code_naf}
+                    onChange={(n) => ajouterDepuisNaf(n.code, n.label)}
+                  />
+                  <Err nom="naf" />
+                  <p className="text-xs text-muted-foreground">
+                    Ce code est déclaratif et purement informatif : l'INSEE attribue le code APE
+                    définitif au vu de l'activité réellement exercée.
+                  </p>
                 </div>
               </div>
 
@@ -891,129 +872,41 @@ function Creation() {
                 </div>
               </div>
 
-              <VerifReglementation
-                activite={descriptionActivite}
-                naf={dossier.code_naf ? `${dossier.code_naf} — ${dossier.code_naf_libelle ?? ""}` : null}
-                onResultat={(reglementee, resume) => {
-                  if (!reglementee) {
-                    if (dossier.reglementee_source === "verification_ia")
-                      patch({ reglementee_source: null, activite_reglementee: nafReglemente });
-                    return;
-                  }
-                  patch({
-                    activite_reglementee: true,
-                    routage_cabinet: true,
-                    reglementee_source: nafReglemente ? "naf" : "verification_ia",
-                    ...(dossier.justificatif_detail ? {} : { justificatif_detail: resume.slice(0, 500) }),
-                  });
-                }}
-              />
-
-
               <div className="space-y-3">
                 <Label>Objet(s) social(aux)</Label>
-                {objets.length === 0 && (
+                {activites.length === 0 && (
                   <p className="text-sm text-muted-foreground">
-                    Aucun objet pour l'instant : ajoutez-en un ci-dessous.
+                    Aucune activité pour l'instant : ajoutez-en une ci-dessus.
                   </p>
                 )}
-                {objets.map((texte, i) => (
-                  <div key={i} className="rounded-md border border-border bg-surface p-3">
-                    <div className="mb-2 flex items-center justify-between gap-2">
-                      <span className="text-xs font-medium text-muted-foreground">
-                        {i === 0 ? "Activité principale" : `Activité complémentaire ${i}`}
-                      </span>
-                      <div className="flex gap-1">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label="Monter cet objet"
-                          disabled={i === 0}
-                          onClick={() => majObjets(deplacer(objets, i, i - 1))}
-                        >
-                          <ArrowUp strokeWidth={1.5} />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label="Descendre cet objet"
-                          disabled={i === objets.length - 1}
-                          onClick={() => majObjets(deplacer(objets, i, i + 1))}
-                        >
-                          <ArrowDown strokeWidth={1.5} />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          aria-label="Supprimer cet objet"
-                          onClick={() => majObjets(objets.filter((_, k) => k !== i))}
-                        >
-                          <Trash2 strokeWidth={1.5} />
-                        </Button>
-                      </div>
-                    </div>
-                    <Textarea
-                      rows={4}
-                      maxLength={1000}
-                      value={texte}
-                      onChange={(e) => majObjets(objets.map((t, k) => (k === i ? e.target.value : t)))}
-                    />
-                    <div className="mt-2 flex items-start gap-3">
-                      <Checkbox
-                        id={`conserver-${i}`}
-                        checked={conserves[i] ?? true}
-                        onCheckedChange={(v) =>
-                          setConserves(objets.map((_, k) => (k === i ? v === true : (conserves[k] ?? true))))
-                        }
-                        className="mt-0.5"
-                      />
-                      <Label htmlFor={`conserver-${i}`} className="text-sm font-normal">
-                        Conserver cette activité
-                      </Label>
-                    </div>
-                  </div>
+                {activites.map((a, i) => (
+                  <BlocActivite
+                    key={a.id}
+                    activite={a}
+                    index={i}
+                    dernier={i === activites.length - 1}
+                    onChange={(valeurs) => modifierActivite(a.id, valeurs)}
+                    onMonter={() => majActivites(deplacer(activites, i, i - 1))}
+                    onDescendre={() => majActivites(deplacer(activites, i, i + 1))}
+                    onSupprimer={() => majActivites(activites.filter((x) => x.id !== a.id))}
+                  />
                 ))}
-                <Button type="button" variant="outline" size="sm" onClick={() => majObjets([...objets, ""])}>
-                  <Plus strokeWidth={1.5} /> Ajouter un objet social
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => ajouterActivite(nouvelleActivite({ source: "libre", texte: "" }))}
+                >
+                  <Plus strokeWidth={1.5} /> Ajouter une activité
                 </Button>
                 <Err nom="objets" />
-                {objets.length > 1 && (
+                {activites.length > 0 && (
                   <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed text-justify">
-                    Objet social retenu dans vos statuts, dans cet ordre : {objets.filter(Boolean).join(" ")}
+                    Objet social retenu dans vos statuts, dans cet ordre :{" "}
+                    {activites.map((a) => a.texte.trim()).filter(Boolean).join(" ")}
                   </p>
                 )}
               </div>
-
-              {arbitrage && (
-                <div
-                  role="dialog"
-                  aria-label="Que faire des activités existantes ?"
-                  className="rounded-lg border border-accent/50 bg-accent/5 p-4 text-sm leading-relaxed"
-                >
-                  <p className="font-medium">
-                    Votre objet social contient déjà {objets.length} activité(s). Que souhaitez-vous
-                    faire ?
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-3">
-                    <Button type="button" variant="outline" onClick={() => resoudreArbitrage("zero")}>
-                      Repartir de zéro (les activités non conservées seront supprimées)
-                    </Button>
-                    <Button type="button" onClick={() => resoudreArbitrage("ajouter")}>
-                      Ajouter à la liste existante
-                    </Button>
-                  </div>
-                  <button
-                    type="button"
-                    className="mt-3 text-xs underline underline-offset-2"
-                    onClick={() => setArbitrage(null)}
-                  >
-                    Annuler
-                  </button>
-                </div>
-              )}
 
               <div className="rounded-md border border-border bg-surface p-4">
                 <div className="flex items-start gap-3">
@@ -1035,104 +928,6 @@ function Creation() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
-                <Checkbox
-                  id="regl"
-                  checked={dossier.activite_reglementee}
-                  disabled={verrouReglemente}
-                  onCheckedChange={(v) =>
-                    patch({
-                      activite_reglementee: v === true,
-                      routage_cabinet: v === true || dossier.apport_nature,
-                      reglementee_source: v === true ? "declaration_utilisateur" : null,
-                    })
-                  }
-                  className="mt-0.5"
-                />
-                <Label htmlFor="regl" className="text-sm font-normal">Mon activité est réglementée.</Label>
-              </div>
-
-              {verrouReglemente && (
-                <p className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm leading-relaxed text-justify">
-                  Cette activité est réglementée en France : cette information ne peut pas être
-                  retirée du dossier. Votre dossier est orienté vers le cabinet, qui vérifie la pièce
-                  justificative requise (exemple : l'expertise comptable relève de l'ordonnance
-                  n° 45-2138 du 19 septembre 1945 — inscription à l'Ordre obligatoire). Pour lever ce
-                  point, il faut modifier le code d'activité et la description pour une activité non
-                  réglementée, puis relancer la vérification.
-                </p>
-              )}
-
-
-
-              {dossier.activite_reglementee ? (
-                <div className="space-y-4">
-                  <div className="rounded-md border border-warning/50 bg-warning/10 p-4 text-sm leading-relaxed">
-                    <p className="font-medium">Activité réglementée : une pièce justificative sera demandée</p>
-                    <p className="mt-2">
-                      L'exercice de cette activité est subordonné à une condition de diplôme, de
-                      qualification, d'agrément ou d'autorisation. Une pièce justificative est ajoutée
-                      à votre liste de documents ; selon l'activité, il s'agit de l'un des documents
-                      suivants :
-                    </p>
-                    <ul className="mt-2 space-y-1 pl-5 [&>li]:list-disc">
-                      <li>diplôme, titre ou certificat de qualification professionnelle ;</li>
-                      <li>carte professionnelle (immobilier, sécurité privée, transport…) ;</li>
-                      <li>agrément, licence ou autorisation administrative préfectorale ;</li>
-                      <li>attestation d'inscription à un ordre ou à un organisme professionnel ;</li>
-                      <li>attestation d'assurance de responsabilité civile professionnelle ou décennale ;</li>
-                      <li>justificatif d'expérience professionnelle lorsqu'il remplace le diplôme.</li>
-                    </ul>
-                    <p className="mt-2">
-                      Votre dossier est orienté vers le cabinet, qui vous indique la pièce exacte
-                      attendue et vérifie sa conformité avant dépôt.
-                    </p>
-                  </div>
-
-                  <div className="rounded-md border border-border bg-surface p-4">
-                    <p className="text-sm font-medium">Sur quoi repose votre qualification ?</p>
-                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                      {[
-                        { v: "diplome", t: "Un diplôme ou un titre" },
-                        { v: "experience", t: "Une expérience professionnelle" },
-                      ].map((o) => (
-                        <button
-                          key={o.v}
-                          type="button"
-                          onClick={() => patch({ justificatif_type: o.v })}
-                          className={`rounded-md border px-3 py-2.5 text-left text-sm ${dossier.justificatif_type === o.v ? "border-accent bg-accent/5" : "border-border bg-background"}`}
-                        >
-                          {o.t}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="mt-3 space-y-2">
-                      <Label htmlFor="justif" className="text-sm font-normal">
-                        Précisez (intitulé du diplôme et année, ou fonctions exercées, employeur et
-                        durée)
-                      </Label>
-                      <Textarea
-                        id="justif"
-                        rows={3}
-                        maxLength={500}
-                        value={dossier.justificatif_detail ?? ""}
-                        onChange={(e) => patch({ justificatif_detail: e.target.value })}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Cette information oriente la relecture du cabinet ; le justificatif lui-même
-                        se dépose à l'étape « Mes documents ».
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-
-                <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
-                  Certaines activités sont réglementées et exigent un diplôme, une qualification ou
-                  une autorisation. Si c'est votre cas, cochez la case ci-dessus : votre dossier sera
-                  orienté vers le cabinet et la pièce justificative correspondante vous sera demandée.
-                </p>
-              )}
               <Disclaimer />
             </div>
           )}
