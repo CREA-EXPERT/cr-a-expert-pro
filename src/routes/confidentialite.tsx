@@ -125,6 +125,12 @@ function Confidentialite() {
             données personnelles » ou à contact@crea-expert.fr. Vous pouvez introduire une réclamation
             auprès de la CNIL (www.cnil.fr).
           </p>
+          <p>
+            Le droit à l'effacement s'exerce sous réserve des durées imposées par la loi : les données
+            conservées au titre de la LBC-FT (5 ans) ou des obligations comptables (10 ans) ne peuvent
+            être supprimées avant leur terme (art. 17.3 RGPD).
+          </p>
+
         </Section>
 
         <Section titre="9. Cookies">
