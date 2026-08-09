@@ -426,6 +426,44 @@ function Documents() {
             type de siège. Chaque pièce obligatoire doit être déposée puis cochée conforme avant que
             le dossier puisse partir au cabinet.
           </p>
+
+          <div className="mt-4 rounded-lg border border-border bg-surface p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm font-medium">Dépôt groupé</p>
+              <p className="text-xs text-muted-foreground">
+                {traitees.length} / {obligatoires.length} pièce(s) obligatoire(s) en règle
+              </p>
+            </div>
+            <Progress value={progression} className="mt-2 h-2" aria-label="Progression des pièces obligatoires" />
+            <div className="mt-4 space-y-2">
+              <Label htmlFor="cible">Rattacher les fichiers à</Label>
+              <Select value={cible} onValueChange={setCible}>
+                <SelectTrigger id="cible">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={CIBLE_LIBRE}>Pièce complémentaire (hors liste)</SelectItem>
+                  {aFournir.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.libelle}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <ZoneDepot
+              className="mt-3"
+              disabled={transmis}
+              libelle="Glissez plusieurs fichiers ici"
+              aide={`PDF, JPG ou PNG — 10 Mo maximum par fichier. Formats acceptés : ${ACCEPT_ATTR.replaceAll("application/pdf", "PDF").replaceAll("image/jpeg", "JPG").replaceAll("image/png", "PNG")}.`}
+              onFichiers={(fs) => deposer(fs, cible)}
+            />
+            <ListeTransferts
+              transferts={transferts}
+              onSupprimer={(id) => setTransferts((t) => t.filter((x) => x.id !== id))}
+            />
+          </div>
+
           <ul className="mt-4 space-y-3">
             {aFournir.length === 0 && <li className="text-sm text-muted-foreground">Aucune pièce demandée pour le moment.</li>}
             {aFournir.map((d) => (
