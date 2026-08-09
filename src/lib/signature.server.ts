@@ -170,12 +170,8 @@ function causeGenerique(r: { envoye: false; raison: string; detail?: string }): 
   return "envoi_refuse";
 }
 
-export const LIBELLE_CAUSE: Record<string, string> = {
-  service_indisponible: "Service d'envoi momentanément indisponible.",
-  adresse_invalide: "L'adresse email du signataire semble incorrecte.",
-  trop_de_demandes: "Trop de demandes d'envoi ; réessayez dans quelques minutes.",
-  envoi_refuse: "L'email n'a pas pu être remis au signataire.",
-};
+
+
 
 /** Envoi des convocations : commun au mode interne et à un futur mode Yousign. */
 export async function envoyerLiensSignature(
