@@ -4,7 +4,14 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
 const EntreePreparer = z.object({ signatureId: z.string().uuid() });
-const EntreeRenvoyer = z.object({ signataireId: z.string().uuid() });
+const EntreeRenvoyer = z.object({
+  signataireId: z.string().uuid(),
+  forcer: z.boolean().optional(),
+});
+const EntreeAdresse = z.object({
+  signataireId: z.string().uuid(),
+  email: z.string().trim().email().max(180),
+});
 const EntreeRelance = z.object({ signatureId: z.string().uuid() });
 
 const EntreeJeton = z.object({ jeton: z.string().min(32).max(128) });
