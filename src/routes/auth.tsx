@@ -50,6 +50,34 @@ function Auth() {
   const [busy, setBusy] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPass, setLoginPass] = useState("");
+  const connexionDemo = useServerFn(preparerCompteDemo);
+  const [modeConception, setModeConception] = useState(false);
+
+  useEffect(() => {
+    const h = window.location.hostname;
+    setModeConception(
+      h === "localhost" ||
+        h === "127.0.0.1" ||
+        h.includes("id-preview--") ||
+        h.endsWith("-dev.lovable.app"),
+    );
+  }, []);
+
+  async function entrerEnDemo() {
+    setBusy(true);
+    try {
+      const { email: demoEmail, motdepasse } = await connexionDemo({});
+      const { error } = await supabase.auth.signInWithPassword({ email: demoEmail, password: motdepasse });
+      if (error) throw error;
+      toast.success("Connecté au compte de démonstration (admin + cabinet).");
+      navigate(suite as never);
+    } catch {
+      toast.error("Connexion de démonstration indisponible.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
 
   const [prenom, setPrenom] = useState("");
   const [nom, setNom] = useState("");
