@@ -5,6 +5,21 @@ import type { Associe, Dossier } from "./documents";
 export type SignatureRow = Tables<"signatures_electroniques">;
 export type SignataireRow = Tables<"signatures_signataires">;
 
+/** Causes génériques d'échec d'envoi — aucun détail technique n'est exposé. */
+export const LIBELLE_CAUSE: Record<string, string> = {
+  service_indisponible: "Service d'envoi momentanément indisponible.",
+  adresse_invalide: "L'adresse email du signataire semble incorrecte.",
+  trop_de_demandes: "Trop de demandes d'envoi ; réessayez dans quelques minutes.",
+  envoi_refuse: "L'email n'a pas pu être remis au signataire.",
+  plafond_atteint: "Nombre maximal de tentatives atteint.",
+  signataire_indisponible: "Ce signataire ne peut pas être relancé.",
+  document_indisponible: "Document momentanément indisponible.",
+};
+
+export const texteCause = (cause: string | null | undefined) =>
+  (cause && LIBELLE_CAUSE[cause]) || "L'envoi n'a pas abouti. Vous pouvez réessayer.";
+
+
 export type SignatureDraft = {
   dossier_id: string;
   type_document: string;

@@ -5,6 +5,8 @@ import { z } from "zod";
 
 const EntreePreparer = z.object({ signatureId: z.string().uuid() });
 const EntreeRenvoyer = z.object({ signataireId: z.string().uuid() });
+const EntreeRelance = z.object({ signatureId: z.string().uuid() });
+
 const EntreeJeton = z.object({ jeton: z.string().min(32).max(128) });
 const EntreeSigner = z.object({
   jeton: z.string().min(32).max(128),
@@ -50,9 +52,12 @@ export const preparerEtEnvoyerSignature = createServerFn({ method: "POST" })
         url,
         libelle: ctx.sig.libelle,
         denomination: ctx.dossier.denomination || "",
+        dossierId: ctx.dossier.id,
+        signatureId: ctx.sig.id,
+        signataireId: sg.id,
       });
     }
-    const envoyes = await s.envoyerLiensSignature(liens);
+    const { envoyes, echecs } = await s.envoyerLiensSignature(liens);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin
@@ -60,8 +65,15 @@ export const preparerEtEnvoyerSignature = createServerFn({ method: "POST" })
       .update({ statut: "a_signer", envoye_le: new Date().toISOString() })
       .eq("id", ctx.sig.id);
 
-    return { envoyes, requis: signataires.length, blocage: null as string | null };
+    return {
+      envoyes,
+      requis: signataires.length,
+      echecs: echecs.length,
+      cause: echecs[0]?.cause ?? null,
+      blocage: null as string | null,
+    };
   });
+
 
 /** Renvoie un lien nominatif à un signataire précis. */
 export const renvoyerLienSignature = createServerFn({ method: "POST" })
@@ -82,24 +94,55 @@ export const renvoyerLienSignature = createServerFn({ method: "POST" })
       .select("*")
       .eq("id", data.signataireId)
       .maybeSingle();
-    if (!sg || sg.horodatage || !sg.signataire_email) return { envoye: false };
+    if (!sg || sg.horodatage || !sg.signataire_email)
+      return { envoye: false, cause: "signataire_indisponible" as string | null, plafond: false };
+    if ((sg.tentatives_envoi ?? 0) >= s.MAX_TENTATIVES_ENVOI)
+      return { envoye: false, cause: "plafond_atteint" as string | null, plafond: true };
 
     const ctx = await s.chargerContexte(sg.signature_id);
-    if (!ctx) return { envoye: false };
+    if (!ctx) return { envoye: false, cause: "document_indisponible" as string | null, plafond: false };
 
     const origine = new URL(getRequestUrl()).origin;
     const url = await s.attribuerLien(sg, origine);
-    const envoyes = await s.envoyerLiensSignature([
-      {
-        destinataire: sg.signataire_email,
-        nom: sg.signataire_nom,
-        url,
-        libelle: ctx.sig.libelle,
-        denomination: ctx.dossier.denomination || "",
-      },
-    ]);
-    return { envoye: envoyes > 0 };
+    const { envoyes, echecs } = await s.envoyerLiensSignature(
+      [
+        {
+          destinataire: sg.signataire_email,
+          nom: sg.signataire_nom,
+          url,
+          libelle: ctx.sig.libelle,
+          denomination: ctx.dossier.denomination || "",
+          dossierId: ctx.dossier.id,
+          signatureId: ctx.sig.id,
+          signataireId: sg.id,
+        },
+      ],
+      "relance_manuelle",
+    );
+    return {
+      envoye: envoyes > 0,
+      cause: (echecs[0]?.cause ?? null) as string | null,
+      plafond: (sg.tentatives_envoi ?? 0) + 1 >= s.MAX_TENTATIVES_ENVOI,
+    };
   });
+
+/** Relance automatique (planificateur) ou manuelle des convocations non délivrées. */
+export const relancerSignaturesEnEchec = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => EntreeRelance.parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: visible } = await context.supabase
+      .from("signatures_electroniques")
+      .select("id")
+      .eq("id", data.signatureId)
+      .maybeSingle();
+    if (!visible) throw new Error("Document introuvable.");
+
+    const s = await import("./signature.server");
+    const origine = new URL(getRequestUrl()).origin;
+    return s.relancerEnvoisEnEchec(origine, "relance_manuelle", { signatureId: data.signatureId });
+  });
+
 
 /** Ouvre l'écran de signature à partir du lien nominatif. */
 export const ouvrirSignature = createServerFn({ method: "POST" })

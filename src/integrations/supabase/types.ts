@@ -650,6 +650,67 @@ export type Database = {
           },
         ]
       }
+      journal_emails_signature: {
+        Row: {
+          cause: string | null
+          created_at: string
+          declencheur: string
+          destinataire_masque: string
+          dossier_id: string
+          id: string
+          resultat: string
+          signataire_id: string | null
+          signature_id: string
+          tentative: number
+        }
+        Insert: {
+          cause?: string | null
+          created_at?: string
+          declencheur?: string
+          destinataire_masque: string
+          dossier_id: string
+          id?: string
+          resultat: string
+          signataire_id?: string | null
+          signature_id: string
+          tentative?: number
+        }
+        Update: {
+          cause?: string | null
+          created_at?: string
+          declencheur?: string
+          destinataire_masque?: string
+          dossier_id?: string
+          id?: string
+          resultat?: string
+          signataire_id?: string | null
+          signature_id?: string
+          tentative?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_emails_signature_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_emails_signature_signataire_id_fkey"
+            columns: ["signataire_id"]
+            isOneToOne: false
+            referencedRelation: "signatures_signataires"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_emails_signature_signature_id_fkey"
+            columns: ["signature_id"]
+            isOneToOne: false
+            referencedRelation: "signatures_electroniques"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       journal_purge: {
         Row: {
           created_at: string
@@ -898,6 +959,9 @@ export type Database = {
           associe_id: string | null
           consentement: boolean
           created_at: string
+          dernier_essai_le: string | null
+          dernier_resultat: string | null
+          derniere_cause: string | null
           envoye_le: string | null
           hash_document: string | null
           horodatage: string | null
@@ -908,6 +972,7 @@ export type Database = {
           signataire_email: string | null
           signataire_nom: string
           signature_id: string
+          tentatives_envoi: number
           user_agent: string | null
         }
         Insert: {
@@ -915,6 +980,9 @@ export type Database = {
           associe_id?: string | null
           consentement?: boolean
           created_at?: string
+          dernier_essai_le?: string | null
+          dernier_resultat?: string | null
+          derniere_cause?: string | null
           envoye_le?: string | null
           hash_document?: string | null
           horodatage?: string | null
@@ -925,6 +993,7 @@ export type Database = {
           signataire_email?: string | null
           signataire_nom: string
           signature_id: string
+          tentatives_envoi?: number
           user_agent?: string | null
         }
         Update: {
@@ -932,6 +1001,9 @@ export type Database = {
           associe_id?: string | null
           consentement?: boolean
           created_at?: string
+          dernier_essai_le?: string | null
+          dernier_resultat?: string | null
+          derniere_cause?: string | null
           envoye_le?: string | null
           hash_document?: string | null
           horodatage?: string | null
@@ -942,6 +1014,7 @@ export type Database = {
           signataire_email?: string | null
           signataire_nom?: string
           signature_id?: string
+          tentatives_envoi?: number
           user_agent?: string | null
         }
         Relationships: [
