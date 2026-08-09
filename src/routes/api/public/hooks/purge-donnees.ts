@@ -2,22 +2,26 @@ import { createFileRoute } from "@tanstack/react-router";
 
 /**
  * Purge quotidienne des données arrivées à échéance (appelée par le planificateur).
- * Authentification par clé publique du projet transmise dans l'en-tête `apikey`.
- * Aucune donnée personnelle n'est renvoyée ni journalisée.
+ * Authentification par secret dédié transmis dans l'en-tête `x-purge-secret`
+ * (ou `Authorization: Bearer …`). Aucun secret ni donnée personnelle n'est journalisé.
  */
 export const Route = createFileRoute("/api/public/hooks/purge-donnees")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const cle = request.headers.get("apikey");
-        const attendue =
-          process.env["SUPABASE_ANON_KEY"] ?? process.env["SUPABASE_PUBLISHABLE_KEY"];
-        if (!attendue || cle !== attendue) {
+        const attendu = process.env["PURGE_HOOK_SECRET"];
+        const fourni =
+          request.headers.get("x-purge-secret") ??
+          request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ??
+          null;
+
+        if (!attendu || !fourni || fourni !== attendu) {
           return new Response(JSON.stringify({ erreur: "non_autorise" }), {
             status: 401,
             headers: { "Content-Type": "application/json" },
           });
         }
+
 
         let dryRun = false;
         try {
