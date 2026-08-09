@@ -328,6 +328,62 @@ export type Database = {
           },
         ]
       }
+      dossier_kyc: {
+        Row: {
+          archive_le: string
+          associe_id: string | null
+          categorie: string
+          chemin_archive: string | null
+          conserver_jusqu_au: string | null
+          created_at: string
+          date_fin_relation: string | null
+          document_id: string | null
+          dossier_id: string
+          id: string
+          libelle: string
+          metadonnees: Json
+          type_document: string
+        }
+        Insert: {
+          archive_le?: string
+          associe_id?: string | null
+          categorie: string
+          chemin_archive?: string | null
+          conserver_jusqu_au?: string | null
+          created_at?: string
+          date_fin_relation?: string | null
+          document_id?: string | null
+          dossier_id: string
+          id?: string
+          libelle: string
+          metadonnees?: Json
+          type_document: string
+        }
+        Update: {
+          archive_le?: string
+          associe_id?: string | null
+          categorie?: string
+          chemin_archive?: string | null
+          conserver_jusqu_au?: string | null
+          created_at?: string
+          date_fin_relation?: string | null
+          document_id?: string | null
+          dossier_id?: string
+          id?: string
+          libelle?: string
+          metadonnees?: Json
+          type_document?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossier_kyc_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dossiers: {
         Row: {
           activite_artisanale: boolean
@@ -336,16 +392,21 @@ export type Database = {
           apport_industrie: boolean
           apport_nature: boolean
           autovalidation_le: string | null
+          cabinet_engage: boolean
           capital_liberation: number
           capital_montant: number
           cloture_mois: number
           code_naf: string | null
           code_naf_libelle: string | null
           created_at: string
+          date_archivage_kyc: string | null
           date_cloture_exercice: string
           date_depot_fonds: string | null
+          date_derniere_activite: string
+          date_fin_relation: string | null
           date_parution: string | null
           date_signature: string | null
+          date_statut: string
           demande_acre: boolean
           denomination: string
           denomination_verifiee: boolean
@@ -408,16 +469,21 @@ export type Database = {
           apport_industrie?: boolean
           apport_nature?: boolean
           autovalidation_le?: string | null
+          cabinet_engage?: boolean
           capital_liberation?: number
           capital_montant?: number
           cloture_mois?: number
           code_naf?: string | null
           code_naf_libelle?: string | null
           created_at?: string
+          date_archivage_kyc?: string | null
           date_cloture_exercice?: string
           date_depot_fonds?: string | null
+          date_derniere_activite?: string
+          date_fin_relation?: string | null
           date_parution?: string | null
           date_signature?: string | null
+          date_statut?: string
           demande_acre?: boolean
           denomination?: string
           denomination_verifiee?: boolean
@@ -480,16 +546,21 @@ export type Database = {
           apport_industrie?: boolean
           apport_nature?: boolean
           autovalidation_le?: string | null
+          cabinet_engage?: boolean
           capital_liberation?: number
           capital_montant?: number
           cloture_mois?: number
           code_naf?: string | null
           code_naf_libelle?: string | null
           created_at?: string
+          date_archivage_kyc?: string | null
           date_cloture_exercice?: string
           date_depot_fonds?: string | null
+          date_derniere_activite?: string
+          date_fin_relation?: string | null
           date_parution?: string | null
           date_signature?: string | null
+          date_statut?: string
           demande_acre?: boolean
           denomination?: string
           denomination_verifiee?: boolean
@@ -578,6 +649,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      journal_purge: {
+        Row: {
+          created_at: string
+          date_execution: string
+          details_techniques: Json
+          dry_run: boolean
+          execution_id: string
+          id: string
+          nombre_elements_supprimes: number
+          type_donnee: string
+        }
+        Insert: {
+          created_at?: string
+          date_execution?: string
+          details_techniques?: Json
+          dry_run?: boolean
+          execution_id: string
+          id?: string
+          nombre_elements_supprimes?: number
+          type_donnee: string
+        }
+        Update: {
+          created_at?: string
+          date_execution?: string
+          details_techniques?: Json
+          dry_run?: boolean
+          execution_id?: string
+          id?: string
+          nombre_elements_supprimes?: number
+          type_donnee?: string
+        }
+        Relationships: []
       }
       journal_rgpd: {
         Row: {
@@ -817,6 +921,44 @@ export type Database = {
           resultat?: string | null
         }
         Relationships: []
+      }
+      traces_verification_identite: {
+        Row: {
+          created_at: string
+          date_suppression: string
+          date_verification: string | null
+          dossier_id: string
+          id: string
+          piece_verifiee: boolean
+          type_piece: string
+        }
+        Insert: {
+          created_at?: string
+          date_suppression?: string
+          date_verification?: string | null
+          dossier_id: string
+          id?: string
+          piece_verifiee?: boolean
+          type_piece: string
+        }
+        Update: {
+          created_at?: string
+          date_suppression?: string
+          date_verification?: string | null
+          dossier_id?: string
+          id?: string
+          piece_verifiee?: boolean
+          type_piece?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "traces_verification_identite_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
