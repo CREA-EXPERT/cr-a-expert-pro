@@ -12,7 +12,7 @@ import { FormesDetail } from "@/components/FormesDetail";
 import { SyntheseImmobilier } from "@/components/SyntheseImmobilier";
 import { Disclaimer } from "@/components/Disclaimer";
 import { CallbackDialog } from "@/components/CallbackDialog";
-
+import { BandeauAutorite } from "@/components/BandeauAutorite";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -48,8 +48,16 @@ const ETAPES = [
     t: "Simulez votre forme juridique (facultatif)",
     d: "Cinq questions, une restitution comparative et neutre. Cette étape est optionnelle : si vous savez déjà quelle forme créer, passez directement au dossier.",
   },
-  { n: 2, t: "Complétez votre dossier en ligne", d: "Un formulaire guidé, sauvegardé à chaque étape." },
-  { n: 3, t: "Déposez vos pièces", d: "Une checklist personnalisée, avec une aide pour chaque document." },
+  {
+    n: 2,
+    t: "Complétez votre dossier en ligne",
+    d: "Un formulaire guidé, sauvegardé à chaque étape.",
+  },
+  {
+    n: 3,
+    t: "Déposez vos pièces",
+    d: "Une checklist personnalisée, avec une aide pour chaque document.",
+  },
   {
     n: 4,
     t: "Vous validez vos documents",
@@ -57,7 +65,6 @@ const ETAPES = [
   },
   { n: 5, t: "Votre société est immatriculée", d: "Vous suivez l'avancement depuis votre espace." },
 ];
-
 
 const FAQ = [
   {
@@ -106,6 +113,8 @@ const FAQ = [
 function Accueil() {
   return (
     <PageShell>
+      <BandeauAutorite />
+
       {/* HERO */}
       <section className="border-b border-border bg-surface">
         <div className="container-page py-14 lg:py-20">
@@ -115,7 +124,6 @@ function Accueil() {
           <h1 className="mt-3 max-w-4xl font-serif text-3xl leading-tight text-balance sm:text-4xl lg:text-5xl">
             Créez votre société en ligne. Honoraires offerts*.
           </h1>
-
 
           <ul className="mt-7 grid gap-3 sm:grid-cols-3">
             {BADGES.map((b) => (
@@ -135,7 +143,6 @@ function Accueil() {
             pas un centime et n'y prend aucune marge. En contrepartie, vous vous engagez sur une
             mission comptable de 3 mois (199 € HT/mois).
           </p>
-
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg">
@@ -183,7 +190,9 @@ function Accueil() {
       {/* FORMES JURIDIQUES */}
       <section className="border-t border-border py-14">
         <div className="container-page">
-          <h2 className="font-serif text-2xl sm:text-3xl">Les formes juridiques que nous créons en ligne</h2>
+          <h2 className="font-serif text-2xl sm:text-3xl">
+            Les formes juridiques que nous créons en ligne
+          </h2>
           <p className="mt-4 text-base leading-relaxed">
             Dépliez chaque forme pour en connaître les caractéristiques, les avantages, les
             inconvénients et les obligations. Ces éléments sont des faits juridiques, applicables à
@@ -191,9 +200,9 @@ function Accueil() {
           </p>
           <FormesDetail />
           <p className="mt-6 text-base leading-relaxed">
-            D'autres formes juridiques existent (SA, SNC, sociétés en commandite, sociétés d'exercice
-            libéral…) ; nous ne les proposons pas en ligne. Si votre projet l'exige, le cabinet peut
-            vous accompagner sur devis.
+            D'autres formes juridiques existent (SA, SNC, sociétés en commandite, sociétés
+            d'exercice libéral…) ; nous ne les proposons pas en ligne. Si votre projet l'exige, le
+            cabinet peut vous accompagner sur devis.
           </p>
           <Disclaimer className="mt-6" />
         </div>
@@ -201,7 +210,6 @@ function Accueil() {
 
       {/* IMMOBILIER : LMNP, SARL DE FAMILLE, SCI */}
       <SyntheseImmobilier />
-
 
       {/* FAQ */}
       <section className="border-t border-border py-14">
