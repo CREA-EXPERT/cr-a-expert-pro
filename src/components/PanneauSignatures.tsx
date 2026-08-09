@@ -78,13 +78,16 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
   const envoyer = async (signatureId: string) => {
     try {
       const r = await preparer({ data: { signatureId } });
+      const echecs = r.echecs ?? 0;
+      const cause = "cause" in r ? r.cause : null;
       if (r.blocage) toast.error(r.blocage);
-      else if (r.envoyes === 0 && r.echecs > 0) toast.error(texteCause(r.cause));
+      else if (r.envoyes === 0 && echecs > 0) toast.error(texteCause(cause));
       else if (r.envoyes === 0)
         toast.message("Document préparé. Aucun email n'a pu être envoyé (adresse manquante).");
-      else if (r.echecs > 0)
-        toast.warning(`${r.envoyes} envoi(s) réussi(s), ${r.echecs} en échec. ${texteCause(r.cause)}`);
+      else if (echecs > 0)
+        toast.warning(`${r.envoyes} envoi(s) réussi(s), ${echecs} en échec. ${texteCause(cause)}`);
       else toast.success(`Lien de signature envoyé à ${r.envoyes} signataire(s).`);
+
       rafraichir();
     } catch {
       toast.error("L'envoi n'a pas abouti. Vous pouvez réessayer.");
