@@ -388,7 +388,20 @@ function Creation() {
   }
 
   async function majAssocie(id: string, valeurs: Partial<Associe>) {
-    setAssocies((list) => list.map((a) => (a.id === id ? { ...a, ...valeurs } : a)));
+    setAssocies((list) =>
+      list.map((a) => {
+        if (a.id !== id) return a;
+        const suivant = { ...a, ...valeurs };
+        // Contrôle d'âge dès la saisie de la date de naissance de l'associé.
+        if (valeurs.date_naissance && !estMineur(a) && estMineur(suivant)) {
+          toast.info(
+            "Cet associé est mineur : la création en ligne n'est pas possible. Rapprochez-vous d'un expert-comptable ou d'un professionnel du droit, ou retirez le mineur pour poursuivre.",
+            { duration: 9000 },
+          );
+        }
+        return suivant;
+      }),
+    );
     await supabase.from("associes").update(valeurs).eq("id", id);
   }
 
