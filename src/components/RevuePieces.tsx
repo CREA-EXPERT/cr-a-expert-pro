@@ -69,7 +69,7 @@ export function RevuePieces({
     ...(liens[d.id] ? { url: liens[d.id] as string } : {}),
   }));
 
-  const groupes = useMemo(() => {
+  const groupes = (() => {
     const map = new Map<string, PieceApercu[]>();
     apercus.forEach((p) => {
       const lot = map.get(p.personne) ?? [];
@@ -77,7 +77,7 @@ export function RevuePieces({
       map.set(p.personne, lot);
     });
     return [...map.entries()];
-  }, [JSON.stringify(apercus.map((a) => [a.id, a.url ? 1 : 0]))]);
+  })();
 
   const attendues = useMemo(
     () => analyserChecklist(dossier, associes).pieces.filter((p) => p.statut === "a_televerser"),
