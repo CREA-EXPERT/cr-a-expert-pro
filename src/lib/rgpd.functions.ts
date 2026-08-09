@@ -1,6 +1,43 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+/** Colonnes techniques exclues de l'export : données de paiement non nécessaires. */
+const CHAMPS_DOSSIER_EXCLUS = [
+  "stripe_customer_id",
+  "stripe_payment_method_id",
+] as const;
+
+function retirerChampsSensibles<T extends Record<string, unknown>>(ligne: T) {
+  const copie = { ...ligne } as Record<string, unknown>;
+  for (const champ of CHAMPS_DOSSIER_EXCLUS) delete copie[champ];
+  return copie;
+}
+
+/**
+ * Journalisation sécurisée : uniquement l'identifiant technique du compte,
+ * l'action, son résultat et un compteur. Aucune donnée personnelle en clair.
+ */
+async function journaliser(entree: {
+  userId: string;
+  action: "export" | "suppression";
+  resultat: "succes" | "echec";
+  codeErreur?: string;
+  nbElements?: number;
+}) {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("journal_rgpd").insert({
+      user_id: entree.userId,
+      action: entree.action,
+      resultat: entree.resultat,
+      code_erreur: entree.codeErreur ?? null,
+      nb_elements: entree.nbElements ?? 0,
+    });
+  } catch {
+    // La journalisation ne doit jamais faire échouer l'action de l'utilisateur.
+  }
+}
+
 /**
  * Export des données personnelles de l'utilisateur connecté (art. 15 et 20 RGPD).
  * Lecture via le client authentifié : la RLS garantit le périmètre du compte.
@@ -10,42 +47,74 @@ export const exporterMesDonnees = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
 
-    const [{ data: profil }, { data: dossiers }] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
-      supabase.from("dossiers").select("*").eq("user_id", userId),
-    ]);
+    try {
+      const [{ data: profil }, { data: dossiers }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, prenom, nom, email, telephone, consent_marketing, created_at")
+          .eq("id", userId)
+          .maybeSingle(),
+        supabase.from("dossiers").select("*").eq("user_id", userId),
+      ]);
 
-    const ids = (dossiers ?? []).map((d) => d.id);
-    const vide = ids.length === 0;
+      const ids = (dossiers ?? []).map((d) => d.id);
+      const vide = ids.length === 0;
 
-    const [associes, documents, signatures, evenements, rappels] = await Promise.all([
-      vide ? { data: [] } : supabase.from("associes").select("*").in("dossier_id", ids),
-      vide
-        ? { data: [] }
-        : supabase
-            .from("documents")
-            .select(
-              "id, dossier_id, type_document, libelle, obligatoire, origine, statut_document, depose_le, atteste_conforme, atteste_le, valide_le, created_at, updated_at",
-            )
-            .in("dossier_id", ids),
-      vide ? { data: [] } : supabase.from("signatures_electroniques").select("*").in("dossier_id", ids),
-      vide ? { data: [] } : supabase.from("events_dossier").select("*").in("dossier_id", ids),
-      supabase.from("callbacks").select("*").eq("user_id", userId),
-    ]);
+      const [associes, documents, signatures, evenements, rappels] = await Promise.all([
+        vide ? { data: [] } : supabase.from("associes").select("*").in("dossier_id", ids),
+        vide
+          ? { data: [] }
+          : supabase
+              .from("documents")
+              .select(
+                "id, dossier_id, type_document, libelle, obligatoire, origine, statut_document, depose_le, atteste_conforme, atteste_le, valide_le, created_at, updated_at",
+              )
+              .in("dossier_id", ids),
+        vide
+          ? { data: [] }
+          : supabase
+              .from("signatures_electroniques")
+              .select(
+                "id, dossier_id, type_document, libelle, ordre, statut, envoye_le, signe_le, created_at, updated_at",
+              )
+              .in("dossier_id", ids),
+        vide ? { data: [] } : supabase.from("events_dossier").select("*").in("dossier_id", ids),
+        supabase
+          .from("callbacks")
+          .select("id, telephone, creneau_souhaite, statut, created_at")
+          .eq("user_id", userId),
+      ]);
 
-    return {
-      genere_le: new Date().toISOString(),
-      note:
-        "Export des données personnelles associées à votre compte CREA EXPERT. Les pièces justificatives elles-mêmes restent téléchargeables depuis votre espace « Mes documents » ; seules leurs métadonnées figurent ici.",
-      profil: profil ?? null,
-      dossiers: dossiers ?? [],
-      associes: associes.data ?? [],
-      documents: documents.data ?? [],
-      signatures: signatures.data ?? [],
-      evenements: evenements.data ?? [],
-      demandes_de_rappel: rappels.data ?? [],
-    };
+      await journaliser({
+        userId,
+        action: "export",
+        resultat: "succes",
+        nbElements: ids.length,
+      });
+
+      return {
+        genere_le: new Date().toISOString(),
+        note:
+          "Export des données personnelles associées à votre compte CREA EXPERT. Les pièces justificatives elles-mêmes restent téléchargeables depuis votre espace « Mes documents » ; seules leurs métadonnées figurent ici. Les identifiants techniques du prestataire de paiement, non nécessaires à l'exercice de vos droits, sont exclus.",
+        profil: profil ?? null,
+        dossiers: (dossiers ?? []).map(retirerChampsSensibles),
+        associes: associes.data ?? [],
+        documents: documents.data ?? [],
+        signatures: signatures.data ?? [],
+        evenements: evenements.data ?? [],
+        demandes_de_rappel: rappels.data ?? [],
+      };
+    } catch (e) {
+      await journaliser({
+        userId,
+        action: "export",
+        resultat: "echec",
+        codeErreur: e instanceof Error ? e.name : "inconnu",
+      });
+      throw new Error("L'export n'a pas pu être généré.");
+    }
   });
+
 
 /**
  * Suppression du compte (art. 17 RGPD).
