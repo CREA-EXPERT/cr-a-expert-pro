@@ -70,7 +70,13 @@ function Confidentialite() {
             légale (art. 6.1.c). Sécurité, prévention des abus, amélioration du service, réponses aux
             demandes : intérêt légitime (art. 6.1.f).
           </p>
+          <p>
+            Conservation des pièces d'identité et des données de vigilance au titre de la lutte contre
+            le blanchiment (LBC-FT) : obligation légale (art. 6.1.c RGPD ; art. L.561-2 et L.561-12 du
+            Code monétaire et financier).
+          </p>
         </Section>
+
 
         <Section titre="4. Destinataires et sous-traitants">
           <p>
@@ -93,12 +99,17 @@ function Confidentialite() {
 
         <Section titre="6. Durées de conservation">
           <p>
-            Compte : durée de la relation, puis suppression ou anonymisation. Pièces d'identité :
-            supprimées dès la vérification/création réalisée. Facturation : 10 ans (obligation
-            comptable). Documents constitutifs et preuves de signature : durée justifiée par leur
-            valeur probante. Demandes de contact non abouties : 3 ans.
+            Compte : durée de la relation, puis suppression ou anonymisation. Pièces d'identité et
+            données de vigilance (KYC) : lorsque vous engagez le cabinet ODEON, elles sont conservées
+            par celui-ci 5 ans à compter de la fin de la relation d'affaires, au titre de ses
+            obligations de lutte contre le blanchiment (art. L.561-12 CMF), puis supprimées. Si vous
+            n'engagez pas le cabinet, elles sont supprimées dès la finalité atteinte ou, en cas
+            d'abandon, après 6 mois. Facturation : 10 ans (obligation comptable). Documents
+            constitutifs et preuves de signature : durée justifiée par leur valeur probante. Demandes
+            de contact non abouties : 3 ans.
           </p>
         </Section>
+
 
         <Section titre="7. Sécurité">
           <p>
@@ -114,6 +125,12 @@ function Confidentialite() {
             données personnelles » ou à contact@crea-expert.fr. Vous pouvez introduire une réclamation
             auprès de la CNIL (www.cnil.fr).
           </p>
+          <p>
+            Le droit à l'effacement s'exerce sous réserve des durées imposées par la loi : les données
+            conservées au titre de la LBC-FT (5 ans) ou des obligations comptables (10 ans) ne peuvent
+            être supprimées avant leur terme (art. 17.3 RGPD).
+          </p>
+
         </Section>
 
         <Section titre="9. Cookies">
