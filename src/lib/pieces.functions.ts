@@ -11,10 +11,7 @@ const EntreeDecision = z.object({
 });
 
 /** Vrai si l'utilisateur appartient au cabinet ou à l'équipe CREA EXPERT. */
-async function verifierHabilitation(
-  supabase: { from: (t: "user_roles") => any },
-  userId: string,
-) {
+async function verifierHabilitation(supabase: { from: (t: "user_roles") => any }, userId: string) {
   const { data } = await supabase
     .from("user_roles")
     .select("role")
@@ -114,7 +111,11 @@ export const deciderPiece = createServerFn({ method: "POST" })
         .eq("id", doc.dossier_id)
         .maybeSingle();
       const { data: profil } = dossier
-        ? await supabaseAdmin.from("profiles").select("email").eq("id", dossier.user_id).maybeSingle()
+        ? await supabaseAdmin
+            .from("profiles")
+            .select("email")
+            .eq("id", dossier.user_id)
+            .maybeSingle()
         : { data: null };
 
       if (profil?.email) {

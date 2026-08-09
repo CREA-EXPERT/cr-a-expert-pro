@@ -43,7 +43,9 @@ export function VisionneusePiece({
         <DialogHeader>
           <DialogTitle className="text-left text-base">
             {piece.libelle}
-            <span className="block text-sm font-normal text-muted-foreground">{piece.personne}</span>
+            <span className="block text-sm font-normal text-muted-foreground">
+              {piece.personne}
+            </span>
           </DialogTitle>
         </DialogHeader>
 
@@ -96,11 +98,17 @@ export function VisionneusePiece({
           )}
           {piece.url && estPdf(piece.chemin) && (
             <object data={piece.url} type="application/pdf" className="h-[70vh] w-full">
-              <iframe src={piece.url} title={`Aperçu de ${piece.libelle}`} className="h-[70vh] w-full" />
+              <iframe
+                src={piece.url}
+                title={`Aperçu de ${piece.libelle}`}
+                className="h-[70vh] w-full"
+              />
             </object>
           )}
           {piece.url && !estImage(piece.chemin) && !estPdf(piece.chemin) && (
-            <p className="p-6 text-sm text-muted-foreground">Ce format ne peut pas être affiché en ligne.</p>
+            <p className="p-6 text-sm text-muted-foreground">
+              Ce format ne peut pas être affiché en ligne.
+            </p>
           )}
         </div>
       </DialogContent>

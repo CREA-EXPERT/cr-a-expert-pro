@@ -9,11 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  EncadreJustificatifs,
-  EncadreSignatureElectronique,
-} from "@/components/EncadresPedago";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { EncadreJustificatifs, EncadreSignatureElectronique } from "@/components/EncadresPedago";
 import { GuideIdentite } from "@/components/GuideIdentite";
 import { ApercuChecklist } from "@/components/ApercuChecklist";
 import { MentionConfidentialite } from "@/components/MentionConfidentialite";
@@ -37,9 +40,16 @@ export const Route = createFileRoute("/_authenticated/documents")({
   head: () => ({
     meta: [
       { title: "Mes documents — CREA EXPERT" },
-      { name: "description", content: "Déposez vos pièces, suivez les signatures et consultez le journal de validation de votre dossier." },
+      {
+        name: "description",
+        content:
+          "Déposez vos pièces, suivez les signatures et consultez le journal de validation de votre dossier.",
+      },
       { property: "og:title", content: "Mes documents — CREA EXPERT" },
-      { property: "og:description", content: "Checklist personnalisée des pièces de votre dossier." },
+      {
+        property: "og:description",
+        content: "Checklist personnalisée des pièces de votre dossier.",
+      },
     ],
   }),
   component: Documents,
@@ -64,7 +74,11 @@ function Documents() {
   const [cible, setCible] = useState<string>(CIBLE_LIBRE);
 
   async function charger() {
-    const { data: ds } = await supabase.from("dossiers").select("*").order("created_at", { ascending: false }).limit(1);
+    const { data: ds } = await supabase
+      .from("dossiers")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(1);
     const d = ds?.[0] ?? null;
     setDossier(d);
     if (!d) return;
@@ -72,7 +86,11 @@ function Documents() {
       supabase.from("associes").select("*").eq("dossier_id", d.id),
       supabase.from("documents").select("*").eq("dossier_id", d.id).order("created_at"),
       supabase.from("signatures_electroniques").select("*").eq("dossier_id", d.id).order("ordre"),
-      supabase.from("events_dossier").select("*").eq("dossier_id", d.id).order("created_at", { ascending: false }),
+      supabase
+        .from("events_dossier")
+        .select("*")
+        .eq("dossier_id", d.id)
+        .order("created_at", { ascending: false }),
     ]);
     setAssocies(as ?? []);
     setDocs(dc ?? []);
@@ -86,14 +104,22 @@ function Documents() {
 
   /** Écrit une ligne au journal d'audit du dossier (table en insertion seule). */
   async function journaliser(dossierId: string, type: string, message: string) {
-    await supabase.from("events_dossier").insert({ dossier_id: dossierId, type_event: type, message });
+    await supabase
+      .from("events_dossier")
+      .insert({ dossier_id: dossierId, type_event: type, message });
   }
 
-  async function majDate(champ: "date_signature" | "date_depot_fonds" | "date_parution", v: string) {
+  async function majDate(
+    champ: "date_signature" | "date_depot_fonds" | "date_parution",
+    v: string,
+  ) {
     if (!dossier) return;
     setDossier({ ...dossier, [champ]: v || null });
     const maj: Record<string, string | null> = { [champ]: v || null };
-    await supabase.from("dossiers").update(maj as never).eq("id", dossier.id);
+    await supabase
+      .from("dossiers")
+      .update(maj as never)
+      .eq("id", dossier.id);
   }
 
   /** Crée une pièce hors checklist lorsque le client dépose un fichier non rattaché. */
@@ -134,7 +160,9 @@ function Documents() {
     const extension = (file.name.split(".").pop() ?? "pdf").toLowerCase().replace(/[^a-z0-9]/g, "");
     /** Chemin déterministe : un redépôt remplace le fichier au lieu d'en créer un doublon. */
     const chemin = `${dossier.id}/${doc.id}.${extension || "pdf"}`;
-    const { error } = await supabase.storage.from("documents").upload(chemin, file, { upsert: true });
+    const { error } = await supabase.storage
+      .from("documents")
+      .upload(chemin, file, { upsert: true });
     if (error) {
       toast.error("Le dépôt du fichier a échoué. Vérifiez votre connexion puis recommencez.");
       return false;
@@ -167,19 +195,31 @@ function Documents() {
   async function deposer(fichiers: File[], cibleId: string) {
     for (const f of fichiers) {
       const idTransfert = `${Date.now()}-${f.name}-${Math.random().toString(16).slice(2)}`;
-      setTransferts((t) => [...t, { id: idTransfert, nom: f.name, taille: f.size, progression: 8 }]);
+      setTransferts((t) => [
+        ...t,
+        { id: idTransfert, nom: f.name, taille: f.size, progression: 8 },
+      ]);
       const minuteur = setInterval(() => {
         setTransferts((t) =>
-          t.map((x) => (x.id === idTransfert ? { ...x, progression: Math.min(92, x.progression + 12) } : x)),
+          t.map((x) =>
+            x.id === idTransfert ? { ...x, progression: Math.min(92, x.progression + 12) } : x,
+          ),
         );
       }, 200);
-      const doc = cibleId === CIBLE_LIBRE ? await creerPieceLibre(f.name) : (docs.find((d) => d.id === cibleId) ?? null);
+      const doc =
+        cibleId === CIBLE_LIBRE
+          ? await creerPieceLibre(f.name)
+          : (docs.find((d) => d.id === cibleId) ?? null);
       const ok = doc ? await televerser(doc, f) : false;
       clearInterval(minuteur);
       setTransferts((t) =>
         t.map((x) =>
           x.id === idTransfert
-            ? { ...x, progression: 100, ...(ok ? {} : { erreur: "Ce fichier n'a pas été déposé." }) }
+            ? {
+                ...x,
+                progression: 100,
+                ...(ok ? {} : { erreur: "Ce fichier n'a pas été déposé." }),
+              }
             : x,
         ),
       );
@@ -218,7 +258,11 @@ function Documents() {
     }
     const octets = await genererPdf(doc.type_document, dossier, associes, doc.associe_id);
     telechargerPdf(octets, doc.libelle);
-    await journaliser(dossier.id, "document_telecharge", `Document généré et téléchargé : ${doc.libelle}.`);
+    await journaliser(
+      dossier.id,
+      "document_telecharge",
+      `Document généré et téléchargé : ${doc.libelle}.`,
+    );
     charger();
   }
 
@@ -244,9 +288,13 @@ function Documents() {
   const traitees = obligatoires.filter((d) => !manquants.includes(d));
   const progression =
     obligatoires.length === 0 ? 100 : Math.round((traitees.length / obligatoires.length) * 100);
-  const transmis = ["en_revue_cabinet", "valide_cabinet", "pret_au_depot", "depose", "immatricule"].includes(
-    dossier.statut,
-  );
+  const transmis = [
+    "en_revue_cabinet",
+    "valide_cabinet",
+    "pret_au_depot",
+    "depose",
+    "immatricule",
+  ].includes(dossier.statut);
 
   async function transmettre() {
     if (!dossier || manquants.length > 0) return;
@@ -277,7 +325,9 @@ function Documents() {
                 <span className="text-sm font-normal text-muted-foreground"> — facultatif</span>
               )}
             </p>
-            <span className={`mt-1.5 inline-block rounded-full px-2.5 py-0.5 text-xs ${badge.cls}`}>{badge.label}</span>
+            <span className={`mt-1.5 inline-block rounded-full px-2.5 py-0.5 text-xs ${badge.cls}`}>
+              {badge.label}
+            </span>
           </div>
           {genere && (
             <Button size="sm" variant="outline" onClick={() => telecharger(d)}>
@@ -300,8 +350,8 @@ function Documents() {
                   />
                   <Label htmlFor={`kyc-${d.id}`} className="text-sm font-normal text-justify">
                     J'ai recopié à la main sur la copie la mention « Je soussigné(e) [prénom NOM],
-                    certifie la présente copie conforme à l'original de ma pièce d'identité », suivie
-                    du lieu, de la date du jour et de ma signature.
+                    certifie la présente copie conforme à l'original de ma pièce d'identité »,
+                    suivie du lieu, de la date du jour et de ma signature.
                   </Label>
                 </div>
                 <p className="mt-2 text-xs text-muted-foreground">
@@ -341,8 +391,8 @@ function Documents() {
                 onCheckedChange={(v) => attester(d, v === true)}
               />
               <Label htmlFor={`att-${d.id}`} className="text-sm font-normal text-justify">
-                Je certifie que cette pièce est complète, lisible, en cours de validité et conforme à
-                l'original.
+                Je certifie que cette pièce est complète, lisible, en cours de validité et conforme
+                à l'original.
               </Label>
             </div>
             <p className="text-xs text-muted-foreground">
@@ -354,7 +404,8 @@ function Documents() {
 
         {aRedeposer(statut) && d.motif_rejet && (
           <p className="mt-3 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
-            <strong>{statut === "refuse" ? "Pièce refusée" : "Pièce à corriger"} :</strong> {d.motif_rejet}
+            <strong>{statut === "refuse" ? "Pièce refusée" : "Pièce à corriger"} :</strong>{" "}
+            {d.motif_rejet}
           </p>
         )}
 
@@ -381,7 +432,6 @@ function Documents() {
         </p>
         <MentionConfidentialite className="mt-2" />
 
-
         <div className="mt-6 space-y-5">
           {dossier && <ApercuChecklist dossier={dossier} associes={associes} />}
           <EncadreJustificatifs />
@@ -393,15 +443,30 @@ function Documents() {
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
             <div className="space-y-2">
               <Label htmlFor="ds">Signature des statuts</Label>
-              <Input id="ds" type="date" value={dossier.date_signature ?? ""} onChange={(e) => majDate("date_signature", e.target.value)} />
+              <Input
+                id="ds"
+                type="date"
+                value={dossier.date_signature ?? ""}
+                onChange={(e) => majDate("date_signature", e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="dd">Dépôt des fonds</Label>
-              <Input id="dd" type="date" value={dossier.date_depot_fonds ?? ""} onChange={(e) => majDate("date_depot_fonds", e.target.value)} />
+              <Input
+                id="dd"
+                type="date"
+                value={dossier.date_depot_fonds ?? ""}
+                onChange={(e) => majDate("date_depot_fonds", e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="dp">Parution de l'annonce</Label>
-              <Input id="dp" type="date" value={dossier.date_parution ?? ""} onChange={(e) => majDate("date_parution", e.target.value)} />
+              <Input
+                id="dp"
+                type="date"
+                value={dossier.date_parution ?? ""}
+                onChange={(e) => majDate("date_parution", e.target.value)}
+              />
             </div>
           </div>
           {erreursDates.length > 0 && (
@@ -434,7 +499,11 @@ function Documents() {
                 {traitees.length} / {obligatoires.length} pièce(s) obligatoire(s) en règle
               </p>
             </div>
-            <Progress value={progression} className="mt-2 h-2" aria-label="Progression des pièces obligatoires" />
+            <Progress
+              value={progression}
+              className="mt-2 h-2"
+              aria-label="Progression des pièces obligatoires"
+            />
             <div className="mt-4 space-y-2">
               <Label htmlFor="cible">Rattacher les fichiers à</Label>
               <Select value={cible} onValueChange={setCible}>
@@ -465,7 +534,11 @@ function Documents() {
           </div>
 
           <ul className="mt-4 space-y-3">
-            {aFournir.length === 0 && <li className="text-sm text-muted-foreground">Aucune pièce demandée pour le moment.</li>}
+            {aFournir.length === 0 && (
+              <li className="text-sm text-muted-foreground">
+                Aucune pièce demandée pour le moment.
+              </li>
+            )}
             {aFournir.map((d) => (
               <Ligne key={d.id} d={d} genere={false} />
             ))}
@@ -527,7 +600,9 @@ function Documents() {
                 return (
                   <li key={s.id} className="rounded-lg border border-border bg-surface p-4">
                     <p className="font-medium">{s.libelle}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">{LABEL_SIGNATURE(s.statut)}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {LABEL_SIGNATURE(s.statut)}
+                    </p>
                     <ol className="mt-3 grid gap-2 sm:grid-cols-4">
                       {ORDRE_SIGNATURE.map((etape, i) => (
                         <li
@@ -563,7 +638,11 @@ function Documents() {
             Ces documents portent le filigrane « PROJET — soumis à la validation du cabinet ».
           </p>
           <ul className="mt-4 space-y-3">
-            {generes.length === 0 && <li className="text-sm text-muted-foreground">Aucun document généré pour le moment.</li>}
+            {generes.length === 0 && (
+              <li className="text-sm text-muted-foreground">
+                Aucun document généré pour le moment.
+              </li>
+            )}
             {generes.map((d) => (
               <Ligne key={d.id} d={d} genere />
             ))}
@@ -578,7 +657,9 @@ function Documents() {
             vérifier à tout moment l'historique de votre dossier.
           </p>
           <ol className="mt-4 space-y-3">
-            {events.length === 0 && <li className="text-sm text-muted-foreground">Aucun événement enregistré.</li>}
+            {events.length === 0 && (
+              <li className="text-sm text-muted-foreground">Aucun événement enregistré.</li>
+            )}
             {events.map((e) => (
               <li key={e.id} className="rounded-lg border border-border bg-surface p-3">
                 <p className="text-xs text-muted-foreground">{horodatage(e.created_at)}</p>

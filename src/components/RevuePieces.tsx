@@ -33,7 +33,8 @@ export function RevuePieces({
   const [enCours, setEnCours] = useState<string | null>(null);
 
   const deposees = useMemo(
-    () => docs.filter((d) => d.fichier_url).sort((a, b) => a.libelle.localeCompare(b.libelle, "fr")),
+    () =>
+      docs.filter((d) => d.fichier_url).sort((a, b) => a.libelle.localeCompare(b.libelle, "fr")),
     [docs],
   );
 
@@ -83,7 +84,10 @@ export function RevuePieces({
     [dossier, associes],
   );
 
-  async function decider(documentId: string, decision: "en_revue" | "valide" | "a_corriger" | "refuse") {
+  async function decider(
+    documentId: string,
+    decision: "en_revue" | "valide" | "a_corriger" | "refuse",
+  ) {
     setEnCours(documentId);
     try {
       const r = await deciderPiece({
@@ -111,8 +115,8 @@ export function RevuePieces({
     <section className="rounded-lg border border-border bg-surface p-6">
       <h2 className="font-serif text-xl">Revue des pièces</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        {deposees.length} pièce(s) déposée(s) sur {attendues.length} attendue(s) par la checklist. Les
-        aperçus sont ouverts par liens signés temporaires, sans quitter cet écran.
+        {deposees.length} pièce(s) déposée(s) sur {attendues.length} attendue(s) par la checklist.
+        Les aperçus sont ouverts par liens signés temporaires, sans quitter cet écran.
       </p>
 
       {groupes.length === 0 && (
@@ -140,7 +144,11 @@ export function RevuePieces({
                       {p.url && estImage(p.chemin) ? (
                         <img src={p.url} alt="" className="size-full object-cover" />
                       ) : (
-                        <FileText className="size-6 text-muted-foreground" strokeWidth={1.5} aria-hidden />
+                        <FileText
+                          className="size-6 text-muted-foreground"
+                          strokeWidth={1.5}
+                          aria-hidden
+                        />
                       )}
                     </button>
                     <div className="min-w-0 flex-1">
@@ -163,7 +171,11 @@ export function RevuePieces({
                         >
                           En revue
                         </Button>
-                        <Button size="sm" disabled={enCours === p.id} onClick={() => decider(p.id, "valide")}>
+                        <Button
+                          size="sm"
+                          disabled={enCours === p.id}
+                          onClick={() => decider(p.id, "valide")}
+                        >
                           Valider
                         </Button>
                         <Input
@@ -216,7 +228,12 @@ export function RevuePieces({
         </ul>
       </div>
 
-      <VisionneusePiece pieces={apercus} index={index} onIndex={setIndex} onFermer={() => setIndex(null)} />
+      <VisionneusePiece
+        pieces={apercus}
+        index={index}
+        onIndex={setIndex}
+        onFermer={() => setIndex(null)}
+      />
     </section>
   );
 }

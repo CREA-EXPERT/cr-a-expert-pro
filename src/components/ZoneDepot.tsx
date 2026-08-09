@@ -79,7 +79,8 @@ export function ZoneDepot({
       }}
       className={cn(
         "flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-input bg-background p-6 text-center transition-colors",
-        !disabled && "cursor-pointer hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        !disabled &&
+          "cursor-pointer hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         survol && "border-accent bg-accent/10",
         disabled && "opacity-60",
         className,
