@@ -63,20 +63,47 @@ function Auth() {
     );
   }, []);
 
-  async function entrerEnDemo() {
+  const [identifiantsDemo, setIdentifiantsDemo] = useState<
+    { email: string; motdepasse: string; expireLe: string } | null
+  >(null);
+
+  async function actionDemo(action: "connexion" | "reinitialiser" | "supprimer") {
     setBusy(true);
     try {
-      const { email: demoEmail, motdepasse } = await connexionDemo({});
-      const { error } = await supabase.auth.signInWithPassword({ email: demoEmail, password: motdepasse });
+      const res = await connexionDemo({ data: { action } });
+      if (res.supprime) {
+        setIdentifiantsDemo(null);
+        await supabase.auth.signOut();
+        toast.success("Compte de démonstration supprimé.");
+        return;
+      }
+      setIdentifiantsDemo({ email: res.email, motdepasse: res.motdepasse, expireLe: res.expireLe });
+      const { error } = await supabase.auth.signInWithPassword({
+        email: res.email,
+        password: res.motdepasse,
+      });
       if (error) throw error;
-      toast.success("Connecté au compte de démonstration (admin + cabinet).");
+      // Déconnexion automatique à l'expiration de la session de démonstration.
+      window.setTimeout(
+        () => {
+          void supabase.auth.signOut();
+          toast.message("Session de démonstration expirée.");
+        },
+        res.dureeMinutes * 60_000,
+      );
+      toast.success(
+        action === "reinitialiser"
+          ? "Compte de démonstration recréé (vierge)."
+          : "Connecté au compte de démonstration (admin + cabinet).",
+      );
       navigate(suite as never);
     } catch {
-      toast.error("Connexion de démonstration indisponible.");
+      toast.error("Action de démonstration indisponible.");
     } finally {
       setBusy(false);
     }
   }
+
 
 
   const [prenom, setPrenom] = useState("");
@@ -157,13 +184,65 @@ function Auth() {
             <p className="text-sm font-medium">Mode conception</p>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
               Accès temporaire à un compte de démonstration (rôles admin et cabinet) pour parcourir
-              toutes les pages. Visible uniquement en aperçu, jamais sur le site publié.
+              toutes les pages. Visible uniquement en aperçu, jamais sur le site publié. Le mot de
+              passe est régénéré à chaque clic et la session expire au bout de 60 minutes.
             </p>
-            <Button className="mt-3 w-full" variant="outline" disabled={busy} onClick={entrerEnDemo}>
-              {busy ? "Connexion…" : "Se connecter en Admin (démo)"}
+            <Button
+              className="mt-3 w-full"
+              variant="outline"
+              disabled={busy}
+              onClick={() => void actionDemo("connexion")}
+            >
+              {busy ? "Patientez…" : "Se connecter en Admin (démo)"}
             </Button>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={busy}
+                onClick={() => void actionDemo("reinitialiser")}
+              >
+                Recréer un compte vierge
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={busy}
+                onClick={() => void actionDemo("supprimer")}
+              >
+                Supprimer le compte démo
+              </Button>
+            </div>
+            {identifiantsDemo && (
+              <div className="mt-3 rounded-md border border-border bg-surface p-3 text-xs">
+                <p className="font-medium">Identifiants de démonstration</p>
+                <p className="mt-1 break-all">
+                  Email : <code>{identifiantsDemo.email}</code>
+                </p>
+                <p className="break-all">
+                  Mot de passe : <code>{identifiantsDemo.motdepasse}</code>
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  Valable jusqu'à {new Date(identifiantsDemo.expireLe).toLocaleTimeString("fr-FR")}.
+                </p>
+                <Button
+                  className="mt-2"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(
+                      `${identifiantsDemo.email} / ${identifiantsDemo.motdepasse}`,
+                    );
+                    toast.success("Identifiants copiés.");
+                  }}
+                >
+                  Copier
+                </Button>
+              </div>
+            )}
           </div>
         )}
+
 
 
         {confirmation ? (
