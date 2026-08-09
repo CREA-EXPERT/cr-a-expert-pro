@@ -5,6 +5,8 @@ import { z } from "zod";
 
 const EntreePreparer = z.object({ signatureId: z.string().uuid() });
 const EntreeRenvoyer = z.object({ signataireId: z.string().uuid() });
+const EntreeRelance = z.object({ signatureId: z.string().uuid() });
+
 const EntreeJeton = z.object({ jeton: z.string().min(32).max(128) });
 const EntreeSigner = z.object({
   jeton: z.string().min(32).max(128),
