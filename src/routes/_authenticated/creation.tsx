@@ -1795,8 +1795,10 @@ function Creation() {
                 </Button>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                Ces raccourcis ne sont visibles qu'en aperçu, pour un compte administrateur : les
-                contrôles obligatoires restent appliqués pour les clients.
+                Ces raccourcis ne sont visibles qu'en aperçu, pour un compte administrateur.
+                Passer une étape ne modifie ni n'efface aucune donnée déjà saisie : seule la
+                position dans le parcours change, et l'ensemble des contrôles obligatoires est
+                revérifié à la validation finale du dossier.
               </p>
             </div>
           )}
