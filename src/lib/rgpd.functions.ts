@@ -7,11 +7,14 @@ const CHAMPS_DOSSIER_EXCLUS = [
   "stripe_payment_method_id",
 ] as const;
 
-function retirerChampsSensibles<T extends Record<string, unknown>>(ligne: T) {
-  const copie = { ...ligne } as Record<string, unknown>;
+function retirerChampsSensibles<T extends Record<string, unknown>>(
+  ligne: T,
+): Omit<T, (typeof CHAMPS_DOSSIER_EXCLUS)[number]> {
+  const copie = { ...ligne };
   for (const champ of CHAMPS_DOSSIER_EXCLUS) delete copie[champ];
   return copie;
 }
+
 
 /**
  * Journalisation sécurisée : uniquement l'identifiant technique du compte,
