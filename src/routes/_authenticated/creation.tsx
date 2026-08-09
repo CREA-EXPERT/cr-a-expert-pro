@@ -388,54 +388,43 @@ function Creation() {
     await majActivites(activites.map((a) => (a.id === id ? { ...a, ...valeurs } : a)));
   }
 
-  /** Ajoute une activité à partir d'un code d'activité INSEE, à titre informatif. */
-  async function ajouterDepuisNaf(code: string, libelle: string) {
+  /**
+   * Ajoute une activité à partir de sa description en quelques mots : l'assistant
+   * rédige le bloc statutaire, propose un code d'activité et signale si l'activité
+   * est, en règle générale, réglementée. Tout reste modifiable.
+   */
+  async function ajouterDepuisDescription() {
     if (!dossier) return;
-    setRedaction(true);
-    const gabarit = `L'exercice de l'activité de ${libelle}, ainsi que toutes opérations connexes ne relevant pas d'une activité réglementée.`;
-    let texte = gabarit;
-    try {
-      const res = await redigerObjetSocial({
-        data: { activite: libelle, forme: dossier.forme_juridique, naf: `${code} — ${libelle}` },
-      });
-      if (res?.texte) texte = res.texte;
-    } catch {
-      /* le gabarit déterministe prend le relais */
-    } finally {
-      setRedaction(false);
-    }
-    await ajouterActivite(
-      nouvelleActivite({
-        source: "naf",
-        naf_code: code,
-        naf_libelle: libelle,
-        texte,
-        reglementee: estCodeReglemente(code),
-      }),
-    );
-  }
-
-  async function proposerObjet() {
-    if (!dossier) return;
+    const description = descriptionActivite.trim();
+    if (description.length < 5) return;
     setRedaction(true);
     try {
-      const res = await redigerObjetSocial({
-        data: { activite: descriptionActivite.trim(), forme: dossier.forme_juridique },
-      });
-
-      if (res?.texte) {
-        await ajouterActivite(nouvelleActivite({ source: "libre", texte: res.texte }));
-        setDescriptionActivite("");
-        toast.success("Proposition rédigée. Relisez-la et adaptez-la si nécessaire.");
-      } else {
+      const res = await analyserActivite({ data: { description, forme: dossier.forme_juridique } });
+      if (!res?.texte) {
         toast.error(res?.erreur ?? "Aucune proposition n'a pu être générée.");
+        return;
       }
+      const officiel = res.naf_code ? (NAF.find((n) => n.code === res.naf_code) ?? null) : null;
+      const code = officiel?.code ?? null;
+      await ajouterActivite(
+        nouvelleActivite({
+          source: "libre",
+          texte: res.texte,
+          naf_code: code,
+          naf_libelle: officiel?.label ?? res.naf_libelle ?? null,
+          reglementee: res.reglementee || estCodeReglemente(code),
+          justificatif_detail: res.reglementee && res.motif ? res.motif.slice(0, 500) : null,
+        }),
+      );
+      setDescriptionActivite("");
+      toast.success("Activité ajoutée. Relisez la rédaction et adaptez-la si nécessaire.");
     } catch {
       toast.error("L'assistance à la rédaction est momentanément indisponible.");
     } finally {
       setRedaction(false);
     }
   }
+
 
 
 
