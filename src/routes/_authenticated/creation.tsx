@@ -60,6 +60,8 @@ import { BlocActivite } from "@/components/BlocActivite";
 import {
   activitesDuDossier,
   derivesActivites,
+  libelleActivite,
+
   nouvelleActivite,
   type Activite,
 } from "@/lib/activites";
