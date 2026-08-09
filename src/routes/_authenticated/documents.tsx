@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PageShell } from "@/components/layout/PageShell";
@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   EncadreJustificatifs,
   EncadreSignatureElectronique,
@@ -15,9 +17,18 @@ import {
 import { GuideIdentite } from "@/components/GuideIdentite";
 import { ApercuChecklist } from "@/components/ApercuChecklist";
 import { MentionConfidentialite } from "@/components/MentionConfidentialite";
+import { ListeTransferts, ZoneDepot, type Transfert } from "@/components/ZoneDepot";
 
 import { genererPdf, telechargerPdf } from "@/lib/pdf";
 import { verifierDates, type Associe, type Dossier, type DocumentRow } from "@/lib/documents";
+import {
+  ACCEPT_ATTR,
+  LIBELLE_STATUT,
+  aRedeposer,
+  estPieceIdentite,
+  normaliserStatut,
+  validerFichier,
+} from "@/lib/pieces";
 import { LABEL_SIGNATURE, ORDRE_SIGNATURE, type SignatureRow } from "@/lib/signatures";
 import type { Tables } from "@/integrations/supabase/types";
 import { Download, HelpCircle, Upload } from "lucide-react";
