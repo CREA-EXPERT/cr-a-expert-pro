@@ -366,30 +366,38 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
         ))}
       </dl>
 
-      {epuises.length > 0 && (
+      {actionsRequises.length > 0 && (
         <div className="mt-4 rounded-md border border-destructive/40 bg-destructive/5 p-4">
           <p className="text-sm font-medium text-destructive">
-            {epuises.length} signataire(s) ne reçoivent plus de relance automatique
+            Actions requises — {actionsRequises.length} signataire(s)
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Le plafond de {max} tentative(s) est atteint. Deux actions sont possibles : réessayer un
-            envoi malgré le plafond, ou corriger l'adresse email — la correction remet le compteur à
-            zéro et renvoie aussitôt le lien.
+            Cette liste ne présente que les signataires à traiter : envoi en échec, plafond de {max}{" "}
+            tentative(s) atteint, ou adresse email manquante. Deux actions sont possibles :
+            réessayer un envoi, ou corriger l'adresse email — la correction remet le compteur à zéro
+            et renvoie aussitôt le lien.
           </p>
           <ul className="mt-3 space-y-2">
-            {epuises.map((l) => (
+            {actionsRequises.map((l) => (
               <li key={l.id} className="rounded-md border border-border bg-background p-3 text-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p>{l.signataire_nom}</p>
                     <p className="text-xs text-muted-foreground">
-                      {documentDe(l.signature_id)} — {texteCause(l.derniere_cause)}
+                      {documentDe(l.signature_id)} —{" "}
+                      {!l.signataire_email
+                        ? "adresse email manquante"
+                        : etats.get(l.id) === "epuise"
+                          ? `relances épuisées (${max} tentatives) — ${texteCause(l.derniere_cause)}`
+                          : texteCause(l.derniere_cause)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline" onClick={() => relancer(l.id, true)}>
-                      Réessayer
-                    </Button>
+                    {l.signataire_email && (
+                      <Button size="sm" variant="outline" onClick={() => relancer(l.id, true)}>
+                        Réessayer
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       variant="ghost"
@@ -422,17 +430,76 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
         </div>
       )}
 
+      <div className="mt-6 flex flex-wrap items-end gap-3">
+        <label className="text-xs text-muted-foreground">
+          Document
+          <select
+            value={filtreDocument}
+            onChange={(e) => setFiltreDocument(e.target.value)}
+            className="mt-1 block h-9 rounded-md border border-border bg-background px-2 text-sm text-foreground"
+          >
+            <option value="tous">Tous les documents</option>
+            {(data?.sigs ?? []).map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.libelle}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs text-muted-foreground">
+          Statut
+          <select
+            value={filtreEtat}
+            onChange={(e) => setFiltreEtat(e.target.value as "tous" | Etat)}
+            className="mt-1 block h-9 rounded-md border border-border bg-background px-2 text-sm text-foreground"
+          >
+            <option value="tous">Tous les statuts</option>
+            {(Object.keys(LIBELLE_ETAT) as Etat[]).map((e) => (
+              <option key={e} value={e}>
+                {LIBELLE_ETAT[e]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-xs text-muted-foreground">
+          Signataire
+          <Input
+            value={recherche}
+            onChange={(e) => setRecherche(e.target.value)}
+            placeholder="Rechercher un nom ou une adresse"
+            className="mt-1 h-9 w-64"
+          />
+        </label>
+        {filtreActif && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setFiltreDocument("tous");
+              setFiltreEtat("tous");
+              setRecherche("");
+            }}
+          >
+            Réinitialiser
+          </Button>
+        )}
+      </div>
+
       <ul className="mt-4 space-y-3">
-        {(data?.sigs ?? []).map((s) => {
-          const lignes = signataires.filter((x) => x.signature_id === s.id);
-          const enEchec = lignes.filter((l) => etats.get(l.id) === "echec");
+        {(data?.sigs ?? [])
+          .filter((s) => filtreDocument === "tous" || s.id === filtreDocument)
+          .map((s) => {
+          const toutes = signataires.filter((x) => x.signature_id === s.id);
+          const lignes = toutes.filter(correspond);
+          if (filtreActif && lignes.length === 0 && toutes.length > 0) return null;
+          const enEchec = toutes.filter((l) => etats.get(l.id) === "echec");
           return (
             <li key={s.id} className="rounded-md border border-border p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium">{s.libelle}</p>
                   <p className="text-xs text-muted-foreground">
-                    {lignes.filter((l) => l.horodatage).length} / {lignes.length || "?"}{" "}
+                    {toutes.filter((l) => l.horodatage).length} / {toutes.length || "?"}{" "}
                     signature(s) recueillie(s)
                   </p>
                 </div>
@@ -447,7 +514,7 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
                   )}
                   {s.statut !== "signe" && (
                     <Button size="sm" variant="outline" onClick={() => envoyer(s.id)}>
-                      {lignes.length === 0 ? "Préparer et envoyer" : "Renvoyer à tous"}
+                      {toutes.length === 0 ? "Préparer et envoyer" : "Renvoyer à tous"}
                     </Button>
                   )}
                 </div>
