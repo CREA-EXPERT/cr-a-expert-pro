@@ -38,10 +38,14 @@ export function ReglagesRelanceSignature() {
     if (!data?.id) return;
     const n = Number(maxTentatives);
     const h = Number(intervalle);
-    if (!Number.isInteger(n) || n < 1 || n > 10)
-      return toast.error("Le nombre de tentatives doit être compris entre 1 et 10.");
-    if (!Number.isInteger(h) || h < 1 || h > 168)
-      return toast.error("L'intervalle doit être compris entre 1 et 168 heures.");
+    if (!Number.isInteger(n) || n < 1 || n > 10) {
+      toast.error("Le nombre de tentatives doit être compris entre 1 et 10.");
+      return;
+    }
+    if (!Number.isInteger(h) || h < 1 || h > 168) {
+      toast.error("L'intervalle doit être compris entre 1 et 168 heures.");
+      return;
+    }
 
     setEnregistrement(true);
     const { error } = await supabase
@@ -53,7 +57,10 @@ export function ReglagesRelanceSignature() {
       })
       .eq("id", data.id);
     setEnregistrement(false);
-    if (error) return toast.error("Les réglages n'ont pas pu être enregistrés.");
+    if (error) {
+      toast.error("Les réglages n'ont pas pu être enregistrés.");
+      return;
+    }
     toast.success("Réglages de relance enregistrés.");
     refetch();
   };
