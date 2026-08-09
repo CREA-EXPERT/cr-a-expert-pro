@@ -489,110 +489,155 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
         {(data?.sigs ?? [])
           .filter((s) => filtreDocument === "tous" || s.id === filtreDocument)
           .map((s) => {
-          const toutes = signataires.filter((x) => x.signature_id === s.id);
-          const lignes = toutes.filter(correspond);
-          if (filtreActif && lignes.length === 0 && toutes.length > 0) return null;
-          const enEchec = toutes.filter((l) => etats.get(l.id) === "echec");
-          return (
-            <li key={s.id} className="rounded-md border border-border p-4">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-medium">{s.libelle}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {toutes.filter((l) => l.horodatage).length} / {toutes.length || "?"}{" "}
-                    signature(s) recueillie(s)
-                  </p>
+            const toutes = signataires.filter((x) => x.signature_id === s.id);
+            const lignes = toutes.filter(correspond);
+            if (filtreActif && lignes.length === 0 && toutes.length > 0) return null;
+            const enEchec = toutes.filter((l) => etats.get(l.id) === "echec");
+            return (
+              <li key={s.id} className="rounded-md border border-border p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium">{s.libelle}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {toutes.filter((l) => l.horodatage).length} / {toutes.length || "?"}{" "}
+                      signature(s) recueillie(s)
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={s.statut === "signe" ? "default" : "secondary"}>
+                      {LABEL_SIGNATURE(s.statut)}
+                    </Badge>
+                    {enEchec.length > 0 && (
+                      <Button size="sm" variant="secondary" onClick={() => relancerEchecs(s.id)}>
+                        Relancer les envois en échec ({enEchec.length})
+                      </Button>
+                    )}
+                    {s.statut !== "signe" && (
+                      <Button size="sm" variant="outline" onClick={() => envoyer(s.id)}>
+                        {toutes.length === 0 ? "Préparer et envoyer" : "Renvoyer à tous"}
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={s.statut === "signe" ? "default" : "secondary"}>
-                    {LABEL_SIGNATURE(s.statut)}
-                  </Badge>
-                  {enEchec.length > 0 && (
-                    <Button size="sm" variant="secondary" onClick={() => relancerEchecs(s.id)}>
-                      Relancer les envois en échec ({enEchec.length})
-                    </Button>
-                  )}
-                  {s.statut !== "signe" && (
-                    <Button size="sm" variant="outline" onClick={() => envoyer(s.id)}>
-                      {toutes.length === 0 ? "Préparer et envoyer" : "Renvoyer à tous"}
-                    </Button>
-                  )}
-                </div>
-              </div>
 
-              {lignes.length > 0 && (
-                <ul className="mt-3 space-y-2">
-                  {lignes.map((l) => {
-                    const tentatives = l.tentatives_envoi ?? 0;
-                    const etat = etats.get(l.id) ?? "prepare";
-                    const plafond = etat === "epuise";
-                    return (
-                      <li
-                        key={l.id}
-                        className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-background p-3"
-                      >
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="text-sm">{l.signataire_nom}</p>
-                            <Badge
-                              variant={
-                                etat === "succes"
-                                  ? "default"
-                                  : etat === "echec" || etat === "epuise"
-                                    ? "destructive"
-                                    : "secondary"
-                              }
-                            >
-                              {LIBELLE_ETAT[etat]}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {l.horodatage
-                              ? `Signé le ${dateFr(l.horodatage)} — ${
-                                  l.methode === "trace" ? "tracé manuscrit" : "saisie du nom"
-                                }`
-                              : l.signataire_email
-                                ? "En attente de signature"
-                                : "Adresse email manquante"}
-                          </p>
-                          {!l.horodatage && (
+                {lignes.length > 0 && (
+                  <ul className="mt-3 space-y-2">
+                    {lignes.map((l) => {
+                      const tentatives = l.tentatives_envoi ?? 0;
+                      const etat = etats.get(l.id) ?? "prepare";
+                      const plafond = etat === "epuise";
+                      return (
+                        <li
+                          key={l.id}
+                          className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-background p-3"
+                        >
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm">{l.signataire_nom}</p>
+                              <Badge
+                                variant={
+                                  etat === "succes"
+                                    ? "default"
+                                    : etat === "echec" || etat === "epuise"
+                                      ? "destructive"
+                                      : "secondary"
+                                }
+                              >
+                                {LIBELLE_ETAT[etat]}
+                              </Badge>
+                            </div>
                             <p className="text-xs text-muted-foreground">
-                              {tentatives} tentative(s) d'envoi sur {max} — dont {relancesDe(l.id)}{" "}
-                              relance(s) — dernière le {dateFr(l.dernier_essai_le)}
+                              {l.horodatage
+                                ? `Signé le ${dateFr(l.horodatage)} — ${
+                                    l.methode === "trace" ? "tracé manuscrit" : "saisie du nom"
+                                  }`
+                                : l.signataire_email
+                                  ? "En attente de signature"
+                                  : "Adresse email manquante"}
                             </p>
+                            {!l.horodatage && (
+                              <p className="text-xs text-muted-foreground">
+                                {tentatives} tentative(s) d'envoi sur {max} — dont{" "}
+                                {relancesDe(l.id)} relance(s) — dernière le{" "}
+                                {dateFr(l.dernier_essai_le)}
+                              </p>
+                            )}
+                            {!l.horodatage && l.dernier_resultat === "echec" && (
+                              <p className="text-xs text-destructive">
+                                {texteCause(l.derniere_cause)}
+                                {plafond
+                                  ? " Plafond de tentatives atteint : réessayez ou corrigez l'adresse ci-dessus."
+                                  : ""}
+                              </p>
+                            )}
+                            {l.hash_document && (
+                              <p className="mt-1 break-all text-xs text-muted-foreground">
+                                Empreinte SHA-256 : {l.hash_document}
+                              </p>
+                            )}
+                            {(() => {
+                              const evenements = journal
+                                .filter((j) => j.signataire_id === l.id)
+                                .slice()
+                                .sort((a, b) => a.created_at.localeCompare(b.created_at));
+                              if (evenements.length === 0) return null;
+                              const ouvert = chronos[l.id] === true;
+                              return (
+                                <div className="mt-2">
+                                  <button
+                                    type="button"
+                                    className="text-xs underline underline-offset-2 text-muted-foreground hover:text-foreground"
+                                    onClick={() => setChronos((c) => ({ ...c, [l.id]: !c[l.id] }))}
+                                  >
+                                    {ouvert ? "Masquer" : "Afficher"} la chronologie des tentatives
+                                    ({evenements.length})
+                                  </button>
+                                  {ouvert && (
+                                    <ol className="mt-2 space-y-1 border-l border-border pl-3">
+                                      {evenements.map((j) => (
+                                        <li key={j.id} className="text-xs text-muted-foreground">
+                                          <span className="text-foreground">
+                                            {dateFr(j.created_at)}
+                                          </span>{" "}
+                                          — tentative {j.tentative} —{" "}
+                                          {LIBELLE_DECLENCHEUR[j.declencheur] ?? j.declencheur} —{" "}
+                                          <span
+                                            className={
+                                              j.resultat === "succes"
+                                                ? "text-foreground"
+                                                : "text-destructive"
+                                            }
+                                          >
+                                            {j.resultat === "succes"
+                                              ? "envoyé"
+                                              : `échec — ${texteCause(j.cause)}`}
+                                          </span>
+                                        </li>
+                                      ))}
+                                    </ol>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </div>
+                          {!l.horodatage && l.signataire_email && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              disabled={plafond}
+                              onClick={() => relancer(l.id)}
+                            >
+                              {plafond ? "Relances épuisées" : "Renvoyer le lien"}
+                            </Button>
                           )}
-                          {!l.horodatage && l.dernier_resultat === "echec" && (
-                            <p className="text-xs text-destructive">
-                              {texteCause(l.derniere_cause)}
-                              {plafond
-                                ? " Plafond de tentatives atteint : réessayez ou corrigez l'adresse ci-dessus."
-                                : ""}
-                            </p>
-                          )}
-                          {l.hash_document && (
-                            <p className="mt-1 break-all text-xs text-muted-foreground">
-                              Empreinte SHA-256 : {l.hash_document}
-                            </p>
-                          )}
-                        </div>
-                        {!l.horodatage && l.signataire_email && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            disabled={plafond}
-                            onClick={() => relancer(l.id)}
-                          >
-                            {plafond ? "Relances épuisées" : "Renvoyer le lien"}
-                          </Button>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </li>
-          );
-        })}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
         {(data?.sigs ?? []).length === 0 && (
           <li className="text-sm text-muted-foreground">
             Aucun document à signer pour ce dossier.
@@ -615,10 +660,94 @@ export function PanneauSignatures({ dossierId }: { dossierId: string }) {
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
             Trace d'audit des tentatives d'envoi. Les adresses email n'y figurent que sous forme
-            masquée, conformément au principe de minimisation des données.
+            masquée, conformément au principe de minimisation des données. Les exports reprennent
+            exactement les lignes filtrées ci-dessous.
           </p>
+
+          <div className="mt-3 flex flex-wrap items-end gap-3">
+            <label className="text-xs text-muted-foreground">
+              Du
+              <Input
+                type="date"
+                value={fJournal.du}
+                onChange={(e) => setFJournal({ ...fJournal, du: e.target.value })}
+                className="mt-1 h-9 w-40"
+              />
+            </label>
+            <label className="text-xs text-muted-foreground">
+              Au
+              <Input
+                type="date"
+                value={fJournal.au}
+                onChange={(e) => setFJournal({ ...fJournal, au: e.target.value })}
+                className="mt-1 h-9 w-40"
+              />
+            </label>
+            <label className="text-xs text-muted-foreground">
+              Document
+              <select
+                value={fJournal.document}
+                onChange={(e) => setFJournal({ ...fJournal, document: e.target.value })}
+                className="mt-1 block h-9 rounded-md border border-border bg-background px-2 text-sm text-foreground"
+              >
+                <option value="tous">Tous</option>
+                {(data?.sigs ?? []).map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.libelle}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-xs text-muted-foreground">
+              Signataire
+              <select
+                value={fJournal.signataire}
+                onChange={(e) => setFJournal({ ...fJournal, signataire: e.target.value })}
+                className="mt-1 block h-9 rounded-md border border-border bg-background px-2 text-sm text-foreground"
+              >
+                <option value="tous">Tous</option>
+                {signataires.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.signataire_nom}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-xs text-muted-foreground">
+              Statut
+              <select
+                value={fJournal.resultat}
+                onChange={(e) => setFJournal({ ...fJournal, resultat: e.target.value })}
+                className="mt-1 block h-9 rounded-md border border-border bg-background px-2 text-sm text-foreground"
+              >
+                <option value="tous">Tous</option>
+                <option value="succes">Envoyé</option>
+                <option value="echec">En échec</option>
+              </select>
+            </label>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() =>
+                setFJournal({
+                  du: "",
+                  au: "",
+                  document: "tous",
+                  resultat: "tous",
+                  signataire: "tous",
+                })
+              }
+            >
+              Réinitialiser
+            </Button>
+          </div>
+
+          <p className="mt-2 text-xs text-muted-foreground">
+            {journalFiltre.length} ligne(s) correspondent aux filtres.
+          </p>
+
           <ul className="mt-3 space-y-1">
-            {journal.slice(0, 50).map((j) => (
+            {journalFiltre.slice(0, 50).map((j) => (
               <li key={j.id} className="text-xs text-muted-foreground">
                 {dateFr(j.created_at)} — {j.destinataire_masque} — tentative {j.tentative} (
                 {LIBELLE_DECLENCHEUR[j.declencheur] ?? j.declencheur}) —{" "}
