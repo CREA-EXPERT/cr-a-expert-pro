@@ -18,6 +18,8 @@ import type { DocumentRule } from "@/lib/documents";
 import { champsIncomplets, mentionsLegalesCompletes } from "@/lib/editeur";
 import { etatServices } from "@/lib/services.functions";
 import { PanneauConservation } from "@/components/PanneauConservation";
+import { ReglagesRelanceSignature } from "@/components/ReglagesRelanceSignature";
+
 
 
 export const Route = createFileRoute("/_authenticated/admin")({
