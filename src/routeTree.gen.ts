@@ -22,6 +22,7 @@ import { Route as TarifsRouteImport } from './routes/tarifs'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedCreationRouteImport } from './routes/_authenticated/creation'
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
+import { Route as AuthenticatedMonCompteRouteImport } from './routes/_authenticated/mon-compte'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
 import { Route as AuthenticatedCabinetIndexRouteImport } from './routes/_authenticated/cabinet.index'
 import { Route as AuthenticatedCabinetIdRouteImport } from './routes/_authenticated/cabinet.$id'
@@ -91,6 +92,11 @@ const AuthenticatedDocumentsRoute = AuthenticatedDocumentsRouteImport.update({
   path: '/documents',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMonCompteRoute = AuthenticatedMonCompteRouteImport.update({
+  id: '/mon-compte',
+  path: '/mon-compte',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTableauDeBordRoute =
   AuthenticatedTableauDeBordRouteImport.update({
     id: '/tableau-de-bord',
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/creation': typeof AuthenticatedCreationRoute
   '/documents': typeof AuthenticatedDocumentsRoute
+  '/mon-compte': typeof AuthenticatedMonCompteRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/creation': typeof AuthenticatedCreationRoute
   '/documents': typeof AuthenticatedDocumentsRoute
+  '/mon-compte': typeof AuthenticatedMonCompteRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/creation': typeof AuthenticatedCreationRoute
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
+  '/_authenticated/mon-compte': typeof AuthenticatedMonCompteRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/_authenticated/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/_authenticated/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/creation'
     | '/documents'
+    | '/mon-compte'
     | '/tableau-de-bord'
     | '/cabinet/$id'
     | '/cabinet/rappels'
@@ -204,6 +214,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/creation'
     | '/documents'
+    | '/mon-compte'
     | '/tableau-de-bord'
     | '/cabinet/$id'
     | '/cabinet/rappels'
@@ -223,6 +234,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/creation'
     | '/_authenticated/documents'
+    | '/_authenticated/mon-compte'
     | '/_authenticated/tableau-de-bord'
     | '/_authenticated/cabinet/$id'
     | '/_authenticated/cabinet/rappels'
@@ -335,6 +347,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDocumentsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/mon-compte': {
+      id: '/_authenticated/mon-compte'
+      path: '/mon-compte'
+      fullPath: '/mon-compte'
+      preLoaderRoute: typeof AuthenticatedMonCompteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tableau-de-bord': {
       id: '/_authenticated/tableau-de-bord'
       path: '/tableau-de-bord'
@@ -370,6 +389,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedCreationRoute: typeof AuthenticatedCreationRoute
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
+  AuthenticatedMonCompteRoute: typeof AuthenticatedMonCompteRoute
   AuthenticatedTableauDeBordRoute: typeof AuthenticatedTableauDeBordRoute
   AuthenticatedCabinetIdRoute: typeof AuthenticatedCabinetIdRoute
   AuthenticatedCabinetRappelsRoute: typeof AuthenticatedCabinetRappelsRoute
@@ -380,6 +400,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedCreationRoute: AuthenticatedCreationRoute,
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
+  AuthenticatedMonCompteRoute: AuthenticatedMonCompteRoute,
   AuthenticatedTableauDeBordRoute: AuthenticatedTableauDeBordRoute,
   AuthenticatedCabinetIdRoute: AuthenticatedCabinetIdRoute,
   AuthenticatedCabinetRappelsRoute: AuthenticatedCabinetRappelsRoute,

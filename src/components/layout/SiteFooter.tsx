@@ -37,6 +37,12 @@ export function SiteFooter() {
                 Conditions générales d'utilisation
               </Link>
             </li>
+            <li>
+              <Link to="/cgv" className="hover:text-foreground">
+                CGV
+              </Link>
+            </li>
+
           </ul>
         </nav>
 
