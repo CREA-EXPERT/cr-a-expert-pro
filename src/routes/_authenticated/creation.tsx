@@ -297,9 +297,19 @@ function Creation() {
       const liste = (d.objets_social ?? []).map((t) => t.trim()).filter(Boolean);
       if (liste.length === 0 && !(d.objet_social ?? "").trim())
         e["objets"] = "Indiquez au moins une activité.";
+      const manquants = activitesDuDossier(d).filter(
+        (a) =>
+          a.reglementee &&
+          (!a.justificatif_type || (a.justificatif_detail ?? "").trim().length < 3),
+      );
+      if (manquants.length > 0)
+        e["justificatifs"] = `Pour chaque activité réglementée, indiquez la nature du justificatif (diplôme ou expérience) et précisez-la : ${manquants
+          .map((a, i) => libelleActivite(a, i))
+          .join(" ; ")}.`;
       if (!d.objets_confirmes_le)
         e["objets_confirmes"] = "Confirmez que la liste des activités est exacte pour continuer.";
     }
+
     if (c === "capital") {
       const montant = Number(d.capital_montant);
       const lib = Number(d.capital_liberation);
