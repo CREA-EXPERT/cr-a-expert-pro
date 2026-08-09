@@ -47,12 +47,7 @@ export const Route = createFileRoute("/_authenticated/documents")({
 
 type EventRow = Tables<"events_dossier">;
 
-const STATUT_BADGE: Record<string, { label: string; cls: string }> = {
-  a_fournir: { label: "À fournir", cls: "bg-muted text-foreground" },
-  recu: { label: "Déposé", cls: "bg-info text-info-foreground" },
-  valide: { label: "Accepté par le cabinet", cls: "bg-success text-success-foreground" },
-  rejete: { label: "À corriger", cls: "bg-destructive text-destructive-foreground" },
-};
+const CIBLE_LIBRE = "autre";
 
 const horodatage = (v: string | null | undefined) =>
   v ? new Date(v).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "—";
