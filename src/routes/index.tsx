@@ -94,9 +94,26 @@ const FAQ = [
   },
 
   {
-    q: "Combien de temps prend une création ?",
-    r: "Le délai dépend principalement de la rapidité de dépôt de vos pièces, du dépôt du capital en banque et du délai de traitement du greffe compétent. Le parcours en ligne se complète généralement en moins de 30 minutes.",
+    q: "Concrètement, comment se déroule une création, étape par étape ?",
+    r: "1) Vous complétez votre dossier en ligne (forme juridique, associés, siège, activité, capital, gouvernance). 2) Vos documents sont générés à partir de vos réponses : statuts, formulaires, attestations. 3) Vous les validez vous-même, ou vous demandez leur relecture par un expert-comptable (option payante). 4) Vous déposez le capital social auprès de votre banque, qui délivre une attestation de dépôt des fonds. 5) L'annonce légale est publiée. 6) Le dossier complet est déposé auprès du guichet des formalités des entreprises, qui le transmet au greffe. 7) Après immatriculation, vous recevez votre extrait Kbis et votre numéro SIREN.",
   },
+  {
+    q: "Quelles pièces dois-je fournir ?",
+    r: "La liste exacte dépend de votre situation et vous est affichée dans votre espace, pièce par pièce : pièce d'identité de chaque associé et dirigeant, justificatif de jouissance du siège (bail, attestation de domiciliation ou justificatif de domicile), attestation de dépôt des fonds, et selon les cas des pièces complémentaires (attestation de non-condamnation, justificatif de diplôme pour une activité réglementée, acte de mariage, etc.).",
+  },
+  {
+    q: "Combien de temps prend une création ?",
+    r: "Le parcours en ligne se complète généralement en moins de 30 minutes. Ensuite, les délais ne dépendent plus de nous : dépôt du capital en banque (de quelques jours à quelques semaines selon l'établissement), publication de l'annonce légale (généralement sous 24 à 48 heures), puis traitement par l'administration et le greffe, qui peut aller de quelques jours à plusieurs semaines selon les périodes et le greffe compétent. Aucun délai d'immatriculation ne peut être garanti.",
+  },
+  {
+    q: "Qu'est-ce qui peut allonger les délais ?",
+    r: "Les trois causes les plus fréquentes : des pièces manquantes ou illisibles, un délai bancaire long pour le dépôt du capital, et une demande de pièce complémentaire ou rectificative de l'administration. Dans ce dernier cas, vous êtes prévenu dans votre espace et accompagné jusqu'à la régularisation.",
+  },
+  {
+    q: "Quand puis-je commencer mon activité ?",
+    r: "Une société n'acquiert la personnalité morale qu'à compter de son immatriculation au registre du commerce et des sociétés. Les actes accomplis avant l'immatriculation le sont pour le compte de la société en formation et doivent ensuite être repris par celle-ci.",
+  },
+
   {
     q: "Les frais légaux sont-ils les mêmes partout ?",
     r: "Les frais de greffe et de déclaration des bénéficiaires effectifs sont fixés par voie réglementaire : ils sont identiques quel que soit le prestataire. Le tarif de l'annonce légale est forfaitaire par forme juridique pour la France métropolitaine. Ces montants sont révisés, généralement au 1er janvier ; notre grille est mise à jour en conséquence.",
