@@ -277,6 +277,8 @@ function Documents() {
         <p className="mt-2 text-sm text-muted-foreground">
           Formats acceptés : PDF, JPG, PNG. 10 Mo maximum par fichier.
         </p>
+        <MentionConfidentialite className="mt-2" />
+
 
         <div className="mt-6 space-y-5">
           {dossier && <ApercuChecklist dossier={dossier} associes={associes} />}
