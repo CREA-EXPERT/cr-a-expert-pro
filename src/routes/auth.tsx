@@ -55,14 +55,9 @@ function Auth() {
   const [modeConception, setModeConception] = useState(false);
 
   useEffect(() => {
-    const h = window.location.hostname;
-    setModeConception(
-      h === "localhost" ||
-        h === "127.0.0.1" ||
-        h.includes("id-preview--") ||
-        h.endsWith("-dev.lovable.app"),
-    );
+    setModeConception(estHoteApercu(window.location.hostname));
   }, []);
+
 
   const [identifiantsDemo, setIdentifiantsDemo] = useState<
     { email: string; motdepasse: string; expireLe: string } | null
