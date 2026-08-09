@@ -144,7 +144,30 @@ export function SituationChecklist({
           checked={dossier.activite_artisanale}
           onChange={(v) => patch({ activite_artisanale: v })}
         />
+        {reglementees.length > 0 && (
+          <div className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm leading-relaxed">
+            <p className="font-medium">
+              Activités réglementées déclarées à l'étape « Objet social »
+            </p>
+            <ul className="mt-2 space-y-1 pl-5 [&>li]:list-disc">
+              {reglementees.map((a, i) => (
+                <li key={a.id}>
+                  {libelleActivite(a, i)} — justificatif attendu :{" "}
+                  {a.justificatif_type === "diplome"
+                    ? "diplôme ou titre"
+                    : a.justificatif_type === "experience"
+                      ? "expérience professionnelle"
+                      : "à préciser à l'étape « Objet social »"}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Récapitulatif en lecture seule : modifiez ces informations à l'étape « Objet social ».
+            </p>
+          </div>
+        )}
       </Bloc>
+
 
       <Bloc
         titre="Autres entreprises et interdiction de gérer"
