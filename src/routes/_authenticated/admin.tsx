@@ -81,7 +81,9 @@ function Admin() {
             <TabsTrigger value="regles">Règles documentaires</TabsTrigger>
             <TabsTrigger value="roles">Rôles</TabsTrigger>
             <TabsTrigger value="signatures">Signatures</TabsTrigger>
+            <TabsTrigger value="conservation">Conservation</TabsTrigger>
           </TabsList>
+
           <TabsContent value="tarifs" className="mt-6">
             <OngletTarifs />
           </TabsContent>
