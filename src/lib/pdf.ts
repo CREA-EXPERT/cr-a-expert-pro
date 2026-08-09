@@ -582,6 +582,10 @@ export async function genererPdf(
       return courrierConjoint(dossier, cible);
     case "renonciation_conjoint":
       return renonciationConjoint(dossier, cible);
+    case "confidentialite_adresse":
+      return confidentialiteAdresse(dossier, associes);
+    case "mandat_guichet_unique":
+      return mandatGuichetUnique(dossier, associes);
     case "declaration_ei":
       return declarationEi(dossier, associes);
     default: {
