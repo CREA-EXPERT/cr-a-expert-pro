@@ -257,7 +257,7 @@ export async function envoyerLiensSignature(
 
 /**
  * Relance les convocations non délivrées : uniquement les signataires en échec,
- * non signés, et sous le plafond de tentatives.
+ * non signés, sous le plafond de tentatives et hors délai d'attente.
  */
 export async function relancerEnvoisEnEchec(
   origine: string,
@@ -265,14 +265,22 @@ export async function relancerEnvoisEnEchec(
   filtre?: { signatureId?: string; signataireId?: string },
 ) {
   const sb = await admin();
+  const reglages = await chargerReglages();
+  if (declencheur === "relance_auto" && !reglages.relanceAutoActive)
+    return { traites: 0, envoyes: 0, echoues: 0, plafond: reglages.maxTentatives, inactif: true };
+
   let q = sb
     .from("signatures_signataires")
     .select("*")
     .is("horodatage", null)
     .eq("dernier_resultat", "echec")
-    .lt("tentatives_envoi", MAX_TENTATIVES_ENVOI);
+    .lt("tentatives_envoi", reglages.maxTentatives);
   if (filtre?.signatureId) q = q.eq("signature_id", filtre.signatureId);
   if (filtre?.signataireId) q = q.eq("id", filtre.signataireId);
+  if (declencheur === "relance_auto") {
+    const seuil = new Date(Date.now() - reglages.intervalleHeures * 3600 * 1000).toISOString();
+    q = q.or(`dernier_essai_le.is.null,dernier_essai_le.lt.${seuil}`);
+  }
   const { data } = await q;
   const lignes = ((data ?? []) as SignataireRow[]).filter((l) => l.signataire_email);
 
@@ -300,8 +308,64 @@ export async function relancerEnvoisEnEchec(
     envoyes += r.envoyes;
     echoues += r.echecs.length;
   }
-  return { traites: lignes.length, envoyes, echoues, plafond: MAX_TENTATIVES_ENVOI };
+  return {
+    traites: lignes.length,
+    envoyes,
+    echoues,
+    plafond: reglages.maxTentatives,
+    inactif: false,
+  };
 }
+
+/**
+ * Envoi ciblé à un signataire, éventuellement au-delà du plafond lorsque le
+ * cabinet demande explicitement un nouvel essai.
+ */
+export async function envoyerAUnSignataire(
+  signataireId: string,
+  origine: string,
+  declencheur: "relance_manuelle",
+  forcer = false,
+) {
+  const sb = await admin();
+  const reglages = await chargerReglages();
+  const { data: sg } = await sb
+    .from("signatures_signataires")
+    .select("*")
+    .eq("id", signataireId)
+    .maybeSingle();
+  if (!sg || sg.horodatage || !sg.signataire_email)
+    return { envoye: false, cause: "signataire_indisponible" as string | null, plafond: false };
+  if (!forcer && (sg.tentatives_envoi ?? 0) >= reglages.maxTentatives)
+    return { envoye: false, cause: "plafond_atteint" as string | null, plafond: true };
+
+  const ctx = await chargerContexte(sg.signature_id);
+  if (!ctx)
+    return { envoye: false, cause: "document_indisponible" as string | null, plafond: false };
+
+  const url = await attribuerLien(sg as SignataireRow, origine);
+  const { envoyes, echecs } = await envoyerLiensSignature(
+    [
+      {
+        destinataire: sg.signataire_email,
+        nom: sg.signataire_nom,
+        url,
+        libelle: ctx.sig.libelle,
+        denomination: ctx.dossier.denomination || "",
+        dossierId: ctx.dossier.id,
+        signatureId: ctx.sig.id,
+        signataireId: sg.id,
+      },
+    ],
+    declencheur,
+  );
+  return {
+    envoye: envoyes > 0,
+    cause: (echecs[0]?.cause ?? null) as string | null,
+    plafond: !forcer && (sg.tentatives_envoi ?? 0) + 1 >= reglages.maxTentatives,
+  };
+}
+
 
 
 /** Attribue un lien nominatif à un signataire et renvoie l'URL en clair. */
