@@ -8,10 +8,13 @@ export async function envoyerEmail({
   destinataire,
   sujet,
   html,
+  expediteur,
 }: {
   destinataire: string;
   sujet: string;
   html: string;
+  /** Adresse d'expédition ; par défaut l'adresse de contact. */
+  expediteur?: string;
 }): Promise<ResultatEnvoi> {
   const cle = process.env["RESEND_API_KEY"];
   if (!cle) return { envoye: false, raison: "non_configure" };
@@ -24,7 +27,7 @@ export async function envoyerEmail({
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        from: "CREA EXPERT <contact@creaexpert.fr>",
+        from: expediteur ?? "CREA EXPERT <contact@creaexpert.fr>",
         to: [destinataire],
         subject: sujet,
         html,
