@@ -236,8 +236,14 @@ function Documents() {
   const aFournir = docs.filter((d) => d.origine === "a_fournir");
   const generes = docs.filter((d) => d.origine === "genere");
   const manquants = aFournir.filter(
-    (d) => d.obligatoire && (!d.fichier_url || !d.atteste_conforme || d.statut_document === "rejete"),
+    (d) =>
+      d.obligatoire &&
+      (!d.fichier_url || !d.atteste_conforme || aRedeposer(normaliserStatut(d.statut_document))),
   );
+  const obligatoires = aFournir.filter((d) => d.obligatoire);
+  const traitees = obligatoires.filter((d) => !manquants.includes(d));
+  const progression =
+    obligatoires.length === 0 ? 100 : Math.round((traitees.length / obligatoires.length) * 100);
   const transmis = ["en_revue_cabinet", "valide_cabinet", "pret_au_depot", "depose", "immatricule"].includes(
     dossier.statut,
   );
