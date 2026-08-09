@@ -63,20 +63,47 @@ function Auth() {
     );
   }, []);
 
-  async function entrerEnDemo() {
+  const [identifiantsDemo, setIdentifiantsDemo] = useState<
+    { email: string; motdepasse: string; expireLe: string } | null
+  >(null);
+
+  async function actionDemo(action: "connexion" | "reinitialiser" | "supprimer") {
     setBusy(true);
     try {
-      const { email: demoEmail, motdepasse } = await connexionDemo({});
-      const { error } = await supabase.auth.signInWithPassword({ email: demoEmail, password: motdepasse });
+      const res = await connexionDemo({ data: { action } });
+      if (res.supprime) {
+        setIdentifiantsDemo(null);
+        await supabase.auth.signOut();
+        toast.success("Compte de démonstration supprimé.");
+        return;
+      }
+      setIdentifiantsDemo({ email: res.email, motdepasse: res.motdepasse, expireLe: res.expireLe });
+      const { error } = await supabase.auth.signInWithPassword({
+        email: res.email,
+        password: res.motdepasse,
+      });
       if (error) throw error;
-      toast.success("Connecté au compte de démonstration (admin + cabinet).");
+      // Déconnexion automatique à l'expiration de la session de démonstration.
+      window.setTimeout(
+        () => {
+          void supabase.auth.signOut();
+          toast.message("Session de démonstration expirée.");
+        },
+        res.dureeMinutes * 60_000,
+      );
+      toast.success(
+        action === "reinitialiser"
+          ? "Compte de démonstration recréé (vierge)."
+          : "Connecté au compte de démonstration (admin + cabinet).",
+      );
       navigate(suite as never);
     } catch {
-      toast.error("Connexion de démonstration indisponible.");
+      toast.error("Action de démonstration indisponible.");
     } finally {
       setBusy(false);
     }
   }
+
 
 
   const [prenom, setPrenom] = useState("");
