@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MentionConfidentialite } from "@/components/MentionConfidentialite";
+import { useServerFn } from "@tanstack/react-start";
+import { preparerCompteDemo } from "@/lib/demo.functions";
 
 
 const searchSchema = z.object({ redirect: z.string().optional(), forme: z.string().optional() });
@@ -48,6 +50,34 @@ function Auth() {
   const [busy, setBusy] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPass, setLoginPass] = useState("");
+  const connexionDemo = useServerFn(preparerCompteDemo);
+  const [modeConception, setModeConception] = useState(false);
+
+  useEffect(() => {
+    const h = window.location.hostname;
+    setModeConception(
+      h === "localhost" ||
+        h === "127.0.0.1" ||
+        h.includes("id-preview--") ||
+        h.endsWith("-dev.lovable.app"),
+    );
+  }, []);
+
+  async function entrerEnDemo() {
+    setBusy(true);
+    try {
+      const { email: demoEmail, motdepasse } = await connexionDemo({});
+      const { error } = await supabase.auth.signInWithPassword({ email: demoEmail, password: motdepasse });
+      if (error) throw error;
+      toast.success("Connecté au compte de démonstration (admin + cabinet).");
+      navigate(suite as never);
+    } catch {
+      toast.error("Connexion de démonstration indisponible.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
 
   const [prenom, setPrenom] = useState("");
   const [nom, setNom] = useState("");
@@ -121,6 +151,20 @@ function Auth() {
         <p className="mt-2 text-sm text-muted-foreground">
           Créez votre compte pour compléter votre dossier et suivre son avancement.
         </p>
+
+        {modeConception && (
+          <div className="mt-6 rounded-lg border border-dashed border-accent/60 bg-accent/5 p-4">
+            <p className="text-sm font-medium">Mode conception</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              Accès temporaire à un compte de démonstration (rôles admin et cabinet) pour parcourir
+              toutes les pages. Visible uniquement en aperçu, jamais sur le site publié.
+            </p>
+            <Button className="mt-3 w-full" variant="outline" disabled={busy} onClick={entrerEnDemo}>
+              {busy ? "Connexion…" : "Se connecter en Admin (démo)"}
+            </Button>
+          </div>
+        )}
+
 
         {confirmation ? (
           <div className="mt-8 rounded-lg border border-border bg-surface p-6">
