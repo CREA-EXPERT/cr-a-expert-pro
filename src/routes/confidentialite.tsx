@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageShell } from "@/components/layout/PageShell";
-import { EDITEUR } from "@/lib/editeur";
 
 export const Route = createFileRoute("/confidentialite")({
   head: () => ({
@@ -21,98 +20,109 @@ export const Route = createFileRoute("/confidentialite")({
   component: Confidentialite,
 });
 
+function Section({ titre, children }: { titre: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-2">
+      <h2 className="font-serif text-2xl">{titre}</h2>
+      {children}
+    </section>
+  );
+}
+
 function Confidentialite() {
   return (
     <PageShell>
-      <article className="container-page max-w-3xl space-y-8 py-12">
-        <header>
-          <h1 className="font-serif text-4xl">Politique de confidentialité</h1>
+      <article className="container-page max-w-3xl space-y-8 py-12 leading-relaxed">
+        <header className="space-y-2">
+          <h1 className="font-serif text-3xl sm:text-4xl">POLITIQUE DE CONFIDENTIALITÉ — CREA EXPERT</h1>
+          <p className="text-sm text-muted-foreground">Dernière mise à jour : [DATE À COMPLÉTER]</p>
         </header>
 
-        <section className="space-y-2">
-          <h2 className="font-serif text-2xl">1. Responsable de traitement</h2>
+        <Section titre="1. Responsable de vos données">
           <p>
-            {EDITEUR.denomination}, {EDITEUR.formeJuridique}, dont le siège social est situé{" "}
-            {EDITEUR.siegeAdresse}, est responsable du traitement des données personnelles collectées
-            sur ce site. Contact : {EDITEUR.emailContact}.
+            CREA EXPERT [forme, capital, SIREN À COMPLÉTER], dont le siège est à Paris [adresse À
+            COMPLÉTER], édite et exploite la plateforme crea-expert.fr et en est responsable de
+            traitement pour l'exploitation du service (compte, sécurité, facturation, support).
           </p>
           <p>
-            Délégué à la protection des données : {EDITEUR.delegueProtectionDonnees.email}
+            La prestation de création de société est réalisée sous la responsabilité du cabinet
+            d'expertise comptable partenaire ODEON [SIREN, adresse À COMPLÉTER], inscrit à l'Ordre des
+            experts-comptables : pour cette prestation, ODEON est responsable de traitement et CREA
+            EXPERT agit comme sous-traitant, sur ses instructions et dans le respect du secret
+            professionnel.
           </p>
-        </section>
+          <p>Contact : contact@crea-expert.fr</p>
+        </Section>
 
-        <section className="space-y-2">
-          <h2 className="font-serif text-2xl">2. Données collectées</h2>
-          <ul className="list-disc space-y-1 pl-5">
-            <li>Données d'identification : civilité, prénom, nom, date et lieu de naissance, nationalité.</li>
-            <li>Coordonnées : adresse postale, adresse électronique, numéro de téléphone.</li>
-            <li>Données relatives au projet : forme juridique, dénomination, siège, capital, objet.</li>
-            <li>Situation matrimoniale et régime matrimonial, lorsqu'ils conditionnent la constitution.</li>
-            <li>Pièces justificatives déposées dans votre espace.</li>
-            <li>Données de simulation : réponses au simulateur et adresse électronique.</li>
-          </ul>
-        </section>
-
-        <section className="space-y-2">
-          <h2 className="font-serif text-2xl">3. Finalités et bases légales</h2>
-          <ul className="list-disc space-y-1 pl-5">
-            <li>Constitution et suivi de votre dossier de création : exécution du contrat.</li>
-            <li>Revue du dossier par le cabinet d'expertise comptable : exécution du contrat et obligation légale.</li>
-            <li>Conservation des pièces : obligations légales et réglementaires.</li>
-            <li>Envoi d'informations commerciales : consentement, révocable à tout moment.</li>
-          </ul>
-        </section>
-
-        <section className="space-y-2">
-          <h2 className="font-serif text-2xl">4. Destinataires</h2>
+        <Section titre="2. Données traitées">
           <p>
-            Vos données sont accessibles à vous-même, aux personnels habilités de l'éditeur et au
-            cabinet d'expertise comptable partenaire ({EDITEUR.cabinetPartenaire.nom}) en charge de
-            votre dossier, ainsi qu'à l'hébergeur ({EDITEUR.hebergeur.nom}) et, le cas échéant, aux
-            prestataires techniques strictement nécessaires au fonctionnement du site, tenus aux
-            mêmes obligations de confidentialité.
+            Identification et compte (nom, prénom, email, identifiants) ; données du projet (activité,
+            forme, associés, bénéficiaires effectifs) ; pièces justificatives déposées (dont pièce
+            d'identité) ; documents générés et preuves de signature ; données de facturation ; données
+            techniques nécessaires au fonctionnement et à la sécurité.
           </p>
-        </section>
+        </Section>
 
-        <section className="space-y-2">
-          <h2 className="font-serif text-2xl">5. Localisation et transferts</h2>
+        <Section titre="3. Finalités et bases légales">
           <p>
-            Les données et les pièces justificatives sont hébergées dans l'Union européenne, chez{" "}
-            {EDITEUR.hebergeur.nom}. Aucun transfert de données hors Union européenne n'est réalisé.
+            Gestion du compte, fourniture du service, dépôt et génération de documents, signature :
+            exécution du contrat (art. 6.1.b RGPD). Facturation et conservation comptable : obligation
+            légale (art. 6.1.c). Sécurité, prévention des abus, amélioration du service, réponses aux
+            demandes : intérêt légitime (art. 6.1.f).
           </p>
-        </section>
+        </Section>
 
-        <section className="space-y-2">
-          <h2 className="font-serif text-2xl">6. Durées de conservation</h2>
+        <Section titre="4. Destinataires et sous-traitants">
           <p>
-            Les données relatives à votre dossier de création sont conservées pendant la durée de la
-            relation contractuelle, puis archivées pour la durée des obligations légales et
-            comptables applicables (notamment les délais de prescription commerciale et fiscale). Les
-            données de simulation non suivies d'un dossier sont conservées pour une durée limitée,
-            nécessaire à la relance commerciale, avant suppression ou anonymisation.
+            Personnel habilité de CREA EXPERT et du cabinet ODEON, et sous-traitants techniques
+            agissant sur instructions : Supabase (hébergement, UE – Francfort), OVH (domaine et
+            messagerie, France), Resend (emails), Stripe (paiement), prestataire de signature
+            électronique. Chacun est lié par un contrat conforme à l'article 28 RGPD. Vos données ne
+            sont jamais vendues.
           </p>
-        </section>
+        </Section>
 
-        <section className="space-y-2">
-          <h2 className="font-serif text-2xl">7. Vos droits</h2>
+        <Section titre="5. Transferts hors Union européenne">
           <p>
-            Vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation,
-            d'opposition et à la portabilité de vos données, ainsi que du droit de définir des
-            directives relatives à leur sort après votre décès. Vous pouvez les exercer à l'adresse
-            suivante : {EDITEUR.delegueProtectionDonnees.email}. Vous pouvez également introduire une
-            réclamation auprès de la CNIL.
+            L'hébergement principal est situé dans l'UE (Francfort). Certains prestataires (Resend,
+            Stripe) peuvent impliquer un transfert vers les États-Unis, encadré par la décision
+            d'adéquation « EU-US Data Privacy Framework » et, en complément, par des clauses
+            contractuelles types.
           </p>
-        </section>
+        </Section>
 
-        <section className="space-y-2">
-          <h2 className="font-serif text-2xl">8. Cookies</h2>
+        <Section titre="6. Durées de conservation">
           <p>
-            Le site utilise des cookies strictement nécessaires à son fonctionnement (authentification,
-            sécurité, mémorisation de vos préférences). Des cookies de mesure d'audience peuvent être
-            déposés, sous réserve de votre consentement, afin d'améliorer le service. Vous pouvez à
-            tout moment gérer vos préférences depuis les paramètres de votre navigateur.
+            Compte : durée de la relation, puis suppression ou anonymisation. Pièces d'identité :
+            supprimées dès la vérification/création réalisée. Facturation : 10 ans (obligation
+            comptable). Documents constitutifs et preuves de signature : durée justifiée par leur
+            valeur probante. Demandes de contact non abouties : 3 ans.
           </p>
-        </section>
+        </Section>
+
+        <Section titre="7. Sécurité">
+          <p>
+            Chiffrement des échanges (HTTPS) et des données au repos, stockage privé à accès restreint,
+            liens de téléchargement temporaires, contrôle des accès et journalisation.
+          </p>
+        </Section>
+
+        <Section titre="8. Vos droits">
+          <p>
+            Vous disposez des droits d'accès, de rectification, d'effacement, de limitation,
+            d'opposition et de portabilité (art. 15 à 22 RGPD), exerçables depuis votre espace « Mes
+            données personnelles » ou à contact@crea-expert.fr. Vous pouvez introduire une réclamation
+            auprès de la CNIL (www.cnil.fr).
+          </p>
+        </Section>
+
+        <Section titre="9. Cookies">
+          <p>
+            La plateforme n'utilise que des cookies strictement nécessaires (session, authentification,
+            sécurité), exemptés de consentement. Aucun cookie de mesure d'audience, de publicité ou de
+            suivi tiers n'est déposé.
+          </p>
+        </Section>
       </article>
     </PageShell>
   );
