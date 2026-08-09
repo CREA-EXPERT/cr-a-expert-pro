@@ -151,8 +151,31 @@ export type LienAEnvoyer = {
   signataireId: string;
 };
 
-/** Nombre maximal de tentatives d'envoi par signataire, relances comprises. */
+/** Valeurs de repli si le réglage administrable n'est pas encore renseigné. */
 export const MAX_TENTATIVES_ENVOI = 3;
+export const INTERVALLE_RELANCE_DEFAUT = 6;
+
+export type ReglagesRelance = {
+  maxTentatives: number;
+  intervalleHeures: number;
+  relanceAutoActive: boolean;
+};
+
+/** Réglages de relance pilotés par l'administrateur. */
+export async function chargerReglages(): Promise<ReglagesRelance> {
+  const sb = await admin();
+  const { data } = await sb
+    .from("params_signature")
+    .select("max_tentatives, intervalle_relance_heures, relance_auto_active")
+    .limit(1)
+    .maybeSingle();
+  return {
+    maxTentatives: data?.max_tentatives ?? MAX_TENTATIVES_ENVOI,
+    intervalleHeures: data?.intervalle_relance_heures ?? INTERVALLE_RELANCE_DEFAUT,
+    relanceAutoActive: data?.relance_auto_active ?? true,
+  };
+}
+
 
 /** Ne conserve qu'une forme masquée de l'adresse dans le journal (minimisation RGPD). */
 export function masquerEmail(email: string) {
