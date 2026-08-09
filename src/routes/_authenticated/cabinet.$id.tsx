@@ -243,6 +243,9 @@ function CabinetDossier() {
             onChangement={() => qc.invalidateQueries({ queryKey: ["cabinet-dossier", id] })}
           />
 
+          <PanneauSignatures dossierId={id} />
+
+
           <section className="rounded-lg border border-border bg-surface p-6">
             <h2 className="font-serif text-xl">Toutes les pièces attendues</h2>
             <ul className="mt-4 space-y-3">
