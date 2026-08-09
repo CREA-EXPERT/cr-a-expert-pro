@@ -56,7 +56,13 @@ import {
 } from "@/lib/tarifs";
 import { NafSelect } from "@/components/NafSelect";
 import { AssocieIdentite } from "@/components/AssocieIdentite";
-import { VerifReglementation } from "@/components/VerifReglementation";
+import { BlocActivite } from "@/components/BlocActivite";
+import {
+  activitesDuDossier,
+  derivesActivites,
+  nouvelleActivite,
+  type Activite,
+} from "@/lib/activites";
 import { RecommandationDialog } from "@/components/RecommandationDialog";
 import {
   EncadreCloture,
@@ -184,11 +190,6 @@ function Creation() {
   const [redaction, setRedaction] = useState(false);
   /** Erreurs de l'étape courante, affichées sous les champs concernés. */
   const [erreurs, setErreurs] = useState<Record<string, string>>({});
-  /** Activités de l'objet social explicitement conservées par l'utilisateur. */
-  const [conserves, setConserves] = useState<boolean[]>([]);
-  const [avertissementNaf, setAvertissementNaf] = useState(false);
-  /** Arbitrage demandé avant l'ajout d'une nouvelle activité. */
-  const [arbitrage, setArbitrage] = useState<{ texte: string } | null>(null);
 
 
 
@@ -277,7 +278,6 @@ function Creation() {
       const liste = (d.objets_social ?? []).map((t) => t.trim()).filter(Boolean);
       if (liste.length === 0 && !(d.objet_social ?? "").trim())
         e["objets"] = "Indiquez au moins une activité.";
-      if (!d.code_naf) e["naf"] = "Sélectionnez le code d'activité principal (NAF).";
       if (!d.objets_confirmes_le)
         e["objets_confirmes"] = "Confirmez que la liste des activités est exacte pour continuer.";
     }
@@ -565,9 +565,6 @@ function Creation() {
         : TITRES[cle];
   const cout = coutParForme(tarifs, forme);
   const relectureHt = prixRelectureHt(tarifs);
-  /** Le caractère réglementé établi par le système ne peut pas être retiré du dossier. */
-  const nafReglemente = estCodeReglemente(dossier.code_naf);
-  const verrouReglemente = nafReglemente || dossier.reglementee_source === "verification_ia";
 
   const relecture = dossier.voie_validation === "cabinet" ? relectureHt * 1.2 : 0;
   /** Aperçu dynamique de la checklist, recalculé à chaque réponse. */
