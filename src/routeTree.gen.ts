@@ -27,6 +27,7 @@ import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authen
 import { Route as AuthenticatedCabinetIndexRouteImport } from './routes/_authenticated/cabinet.index'
 import { Route as AuthenticatedCabinetIdRouteImport } from './routes/_authenticated/cabinet.$id'
 import { Route as AuthenticatedCabinetRappelsRouteImport } from './routes/_authenticated/cabinet.rappels'
+import { Route as ApiPublicHooksPurgeDonneesRouteImport } from './routes/api/public/hooks/purge-donnees'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -120,6 +121,12 @@ const AuthenticatedCabinetRappelsRoute =
     path: '/cabinet/rappels',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicHooksPurgeDonneesRoute =
+  ApiPublicHooksPurgeDonneesRouteImport.update({
+    id: '/api/public/hooks/purge-donnees',
+    path: '/api/public/hooks/purge-donnees',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/cabinet/': typeof AuthenticatedCabinetIndexRoute
+  '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -158,6 +166,7 @@ export interface FileRoutesByTo {
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/cabinet': typeof AuthenticatedCabinetIndexRoute
+  '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -179,6 +188,7 @@ export interface FileRoutesById {
   '/_authenticated/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/_authenticated/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/_authenticated/cabinet/': typeof AuthenticatedCabinetIndexRoute
+  '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -200,6 +210,7 @@ export interface FileRouteTypes {
     | '/cabinet/$id'
     | '/cabinet/rappels'
     | '/cabinet/'
+    | '/api/public/hooks/purge-donnees'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -219,6 +230,7 @@ export interface FileRouteTypes {
     | '/cabinet/$id'
     | '/cabinet/rappels'
     | '/cabinet'
+    | '/api/public/hooks/purge-donnees'
   id:
     | '__root__'
     | '/'
@@ -239,6 +251,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cabinet/$id'
     | '/_authenticated/cabinet/rappels'
     | '/_authenticated/cabinet/'
+    | '/api/public/hooks/purge-donnees'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -252,6 +265,7 @@ export interface RootRouteChildren {
   MentionsLegalesRoute: typeof MentionsLegalesRoute
   SimulateurRoute: typeof SimulateurRoute
   TarifsRoute: typeof TarifsRoute
+  ApiPublicHooksPurgeDonneesRoute: typeof ApiPublicHooksPurgeDonneesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -382,6 +396,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCabinetRappelsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/hooks/purge-donnees': {
+      id: '/api/public/hooks/purge-donnees'
+      path: '/api/public/hooks/purge-donnees'
+      fullPath: '/api/public/hooks/purge-donnees'
+      preLoaderRoute: typeof ApiPublicHooksPurgeDonneesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -421,6 +442,7 @@ const rootRouteChildren: RootRouteChildren = {
   MentionsLegalesRoute: MentionsLegalesRoute,
   SimulateurRoute: SimulateurRoute,
   TarifsRoute: TarifsRoute,
+  ApiPublicHooksPurgeDonneesRoute: ApiPublicHooksPurgeDonneesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

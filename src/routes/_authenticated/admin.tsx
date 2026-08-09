@@ -17,6 +17,8 @@ import { tarifAVerifier } from "@/lib/tarifs";
 import type { DocumentRule } from "@/lib/documents";
 import { champsIncomplets, mentionsLegalesCompletes } from "@/lib/editeur";
 import { etatServices } from "@/lib/services.functions";
+import { PanneauConservation } from "@/components/PanneauConservation";
+
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
@@ -81,7 +83,9 @@ function Admin() {
             <TabsTrigger value="regles">Règles documentaires</TabsTrigger>
             <TabsTrigger value="roles">Rôles</TabsTrigger>
             <TabsTrigger value="signatures">Signatures</TabsTrigger>
+            <TabsTrigger value="conservation">Conservation</TabsTrigger>
           </TabsList>
+
           <TabsContent value="tarifs" className="mt-6">
             <OngletTarifs />
           </TabsContent>
@@ -94,7 +98,11 @@ function Admin() {
           <TabsContent value="signatures" className="mt-6">
             <OngletSignatures />
           </TabsContent>
+          <TabsContent value="conservation" className="mt-6">
+            <PanneauConservation />
+          </TabsContent>
         </Tabs>
+
       </div>
     </PageShell>
   );
