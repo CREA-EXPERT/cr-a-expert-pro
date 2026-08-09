@@ -251,6 +251,23 @@ function Creation() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  /**
+   * Raccourcis de conception : réservés à un administrateur sur un hôte d'aperçu,
+   * pour parcourir le site sans remplir chaque contrôle obligatoire.
+   */
+  const modeConception =
+    isAdmin && typeof window !== "undefined" && estHoteApercu(window.location.host);
+
+  /** Supprime le dossier de test en cours et en recrée un vierge. */
+  async function reinitialiserDossierTest() {
+    if (!dossier) return;
+    await supabase.from("associes").delete().eq("dossier_id", dossier.id);
+    await supabase.from("dossiers").delete().eq("id", dossier.id);
+    toast.success("Formulaire réinitialisé.");
+    window.location.reload();
+  }
+
+
   /** Contrôles de l'étape courante. Renvoie les erreurs par champ. */
   function controlerEtape(c: Cle): Record<string, string> {
     const e: Record<string, string> = {};
