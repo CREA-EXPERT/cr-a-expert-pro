@@ -879,6 +879,8 @@ function Creation() {
                   />
                 ))}
                 <Err nom="objets" />
+                <Err nom="justificatifs" />
+
 
                 {activites.length > 0 && (
                   <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed text-justify">
