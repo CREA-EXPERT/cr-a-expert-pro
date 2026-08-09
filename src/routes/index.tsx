@@ -13,6 +13,7 @@ import { SyntheseImmobilier } from "@/components/SyntheseImmobilier";
 import { Disclaimer } from "@/components/Disclaimer";
 import { CallbackDialog } from "@/components/CallbackDialog";
 import { BandeauAutorite } from "@/components/BandeauAutorite";
+import { LIBELLE_DIPLOMES } from "@/lib/editeur";
 
 export const Route = createFileRoute("/")({
   head: () => ({
