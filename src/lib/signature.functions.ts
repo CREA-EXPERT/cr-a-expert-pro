@@ -50,9 +50,12 @@ export const preparerEtEnvoyerSignature = createServerFn({ method: "POST" })
         url,
         libelle: ctx.sig.libelle,
         denomination: ctx.dossier.denomination || "",
+        dossierId: ctx.dossier.id,
+        signatureId: ctx.sig.id,
+        signataireId: sg.id,
       });
     }
-    const envoyes = await s.envoyerLiensSignature(liens);
+    const { envoyes, echecs } = await s.envoyerLiensSignature(liens);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin
@@ -60,8 +63,15 @@ export const preparerEtEnvoyerSignature = createServerFn({ method: "POST" })
       .update({ statut: "a_signer", envoye_le: new Date().toISOString() })
       .eq("id", ctx.sig.id);
 
-    return { envoyes, requis: signataires.length, blocage: null as string | null };
+    return {
+      envoyes,
+      requis: signataires.length,
+      echecs: echecs.length,
+      cause: echecs[0]?.cause ?? null,
+      blocage: null as string | null,
+    };
   });
+
 
 /** Renvoie un lien nominatif à un signataire précis. */
 export const renvoyerLienSignature = createServerFn({ method: "POST" })
