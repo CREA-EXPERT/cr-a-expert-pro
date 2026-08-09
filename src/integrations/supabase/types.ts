@@ -774,6 +774,36 @@ export type Database = {
         }
         Relationships: []
       }
+      params_signature: {
+        Row: {
+          created_at: string
+          id: string
+          intervalle_relance_heures: number
+          max_tentatives: number
+          relance_auto_active: boolean
+          singleton: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          intervalle_relance_heures?: number
+          max_tentatives?: number
+          relance_auto_active?: boolean
+          singleton?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          intervalle_relance_heures?: number
+          max_tentatives?: number
+          relance_auto_active?: boolean
+          singleton?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       params_tarifs: {
         Row: {
           cle: string
