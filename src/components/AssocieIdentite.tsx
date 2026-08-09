@@ -52,6 +52,8 @@ export function AssocieIdentite({
       date_naissance: `${suivant.a}-${String(Number(suivant.mo)).padStart(2, "0")}-${String(Number(suivant.j)).padStart(2, "0")}`,
     });
   }
+  /** Une date partiellement renseignée n'est pas enregistrable : on le signale. */
+  const dateIncomplete = Boolean((d.j || d.mo || d.a) && !(d.j && d.mo && d.a));
 
 
   return (
