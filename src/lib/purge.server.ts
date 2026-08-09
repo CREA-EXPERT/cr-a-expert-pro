@@ -354,30 +354,49 @@ async function anonymiserComptesInactifs(ctx: Contexte): Promise<LignePurge> {
   let anonymises = 0;
 
   try {
-    const { data } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: LOT });
-    for (const u of data?.users ?? []) {
-      const derniere = u.last_sign_in_at ?? u.created_at;
-      if (!derniere || new Date(derniere).getTime() > seuil) continue;
+    let page = 1;
+    // Pagination complète : tous les comptes sont examinés, pas seulement la première page.
+    for (;;) {
+      const { data } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: LOT });
+      const utilisateurs = data?.users ?? [];
+      if (utilisateurs.length === 0) break;
 
-      const { count } = await supabaseAdmin
-        .from("dossiers")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", u.id)
-        .eq("cabinet_engage", true);
-      // Un dossier suivi par le cabinet reste soumis à la vigilance : pas d'anonymisation.
-      if ((count ?? 0) > 0) continue;
+      for (const u of utilisateurs) {
+        const derniere = u.last_sign_in_at ?? u.created_at;
+        if (!derniere || new Date(derniere).getTime() > seuil) continue;
+        if (u.email?.startsWith("anonymise+")) continue;
 
-      if (!ctx.dryRun) {
-        await supabaseAdmin
-          .from("profiles")
-          .update({ prenom: "Compte", nom: "anonymisé", email: `anonymise+${u.id}@invalid`, telephone: null, consent_marketing: false })
-          .eq("id", u.id);
+        const { count } = await supabaseAdmin
+          .from("dossiers")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", u.id)
+          .eq("cabinet_engage", true);
+        // Un dossier suivi par le cabinet reste soumis à la vigilance : pas d'anonymisation.
+        if ((count ?? 0) > 0) continue;
+
+        if (!ctx.dryRun) {
+          const emailAnonyme = `anonymise+${u.id}@invalid`;
+          await supabaseAdmin
+            .from("profiles")
+            .update({ prenom: "Compte", nom: "anonymisé", email: emailAnonyme, telephone: null, consent_marketing: false })
+            .eq("id", u.id);
+          // Neutralisation du compte d'authentification : sinon l'e-mail personnel subsiste.
+          await supabaseAdmin.auth.admin.updateUserById(u.id, {
+            email: emailAnonyme,
+            phone: undefined,
+            user_metadata: { anonymise: true },
+          });
+        }
+        anonymises += 1;
       }
-      anonymises += 1;
+
+      if (utilisateurs.length < LOT) break;
+      page += 1;
     }
   } catch (e) {
     noterErreur(ctx, "anonymisation_comptes", e);
   }
+
 
   return {
     type_donnee: "comptes_inactifs",
