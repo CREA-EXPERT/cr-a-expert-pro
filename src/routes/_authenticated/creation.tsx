@@ -78,7 +78,9 @@ import {
   EncadreTva,
 } from "@/components/EncadresPedago";
 import { estCodeReglemente } from "@/lib/naf-reglemente";
-import { redigerObjetSocial } from "@/lib/objet-social.functions";
+import { analyserActivite } from "@/lib/activite.functions";
+import { estHoteApercu } from "@/lib/apercu";
+
 import { z } from "zod";
 import { ArrowDown, ArrowLeft, ArrowUp, ExternalLink, Plus, Sparkle, Trash2 } from "lucide-react";
 
