@@ -241,8 +241,15 @@ function CabinetDossier() {
             </ul>
           </section>
 
+          <RevuePieces
+            dossier={dossier}
+            associes={data?.associes ?? []}
+            docs={data?.docs ?? []}
+            onChangement={() => qc.invalidateQueries({ queryKey: ["cabinet-dossier", id] })}
+          />
+
           <section className="rounded-lg border border-border bg-surface p-6">
-            <h2 className="font-serif text-xl">Pièces du dossier</h2>
+            <h2 className="font-serif text-xl">Toutes les pièces attendues</h2>
             <ul className="mt-4 space-y-3">
               {(data?.docs ?? []).map((d) => (
                 <li key={d.id} className="rounded-md border border-border p-4">
@@ -251,32 +258,19 @@ function CabinetDossier() {
                       <p className="text-sm font-medium">{d.libelle}</p>
                       <p className="text-xs text-muted-foreground">
                         {d.origine === "genere" ? "Généré par la plateforme" : "À fournir par le client"} ·{" "}
-                        {d.obligatoire ? "Obligatoire" : "Facultative"} · {STATUT_PIECE[d.statut_document] ?? d.statut_document}
+                        {d.obligatoire ? "Obligatoire" : "Facultative"} ·{" "}
+                        {LIBELLE_STATUT[normaliserStatut(d.statut_document)].label}
                       </p>
                       {d.motif_rejet && <p className="mt-1 text-xs text-destructive">Motif : {d.motif_rejet}</p>}
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        disabled={!d.fichier_url}
-                        onClick={() => ouvrirPiece(d.fichier_url)}
-                      >
-                        {d.fichier_url ? "Voir la pièce" : "Non déposée"}
-                      </Button>
-                      <Input
-                        className="h-9 w-48"
-                        placeholder="Motif de rejet (obligatoire)"
-                        value={motifs[d.id] ?? ""}
-                        onChange={(e) => setMotifs((m) => ({ ...m, [d.id]: e.target.value }))}
-                      />
-                      <Button size="sm" variant="outline" onClick={() => majDocument(d.id, "rejete", motifs[d.id])}>
-                        Rejeter
-                      </Button>
-                      <Button size="sm" onClick={() => majDocument(d.id, "valide")}>
-                        Valider
-                      </Button>
-                    </div>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      disabled={!d.fichier_url}
+                      onClick={() => ouvrirPiece(d.fichier_url)}
+                    >
+                      {d.fichier_url ? "Ouvrir dans un onglet" : "Non déposée"}
+                    </Button>
                   </div>
                 </li>
               ))}
