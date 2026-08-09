@@ -579,6 +579,36 @@ export type Database = {
           },
         ]
       }
+      journal_rgpd: {
+        Row: {
+          action: string
+          code_erreur: string | null
+          created_at: string
+          id: string
+          nb_elements: number
+          resultat: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          code_erreur?: string | null
+          created_at?: string
+          id?: string
+          nb_elements?: number
+          resultat: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          code_erreur?: string | null
+          created_at?: string
+          id?: string
+          nb_elements?: number
+          resultat?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       params_tarifs: {
         Row: {
           cle: string
