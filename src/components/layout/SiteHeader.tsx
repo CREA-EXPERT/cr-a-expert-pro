@@ -58,6 +58,10 @@ export function SiteHeader() {
               <Button asChild variant="ghost" size="sm">
                 <Link to="/tableau-de-bord">Mon espace</Link>
               </Button>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/mon-compte">Mon compte</Link>
+              </Button>
+
               {isCabinet && (
                 <Button asChild variant="ghost" size="sm">
                   <Link to="/cabinet">Cabinet</Link>
