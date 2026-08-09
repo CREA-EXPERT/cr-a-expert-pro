@@ -1,3 +1,4 @@
+import { activitesDuDossier, activitesReglementees, libelleActivite } from "./activites";
 import { isCivile, isEI, isSas, REGIMES_COMMUNAUTAIRES } from "./domain";
 import type { Associe, Dossier, DocumentDraft } from "./documents";
 
@@ -460,7 +461,26 @@ export function analyserChecklist(dossier: Dossier, associes: Associe[]): Analys
   }
 
   /* ---------------- Activité ---------------- */
-  if (dossier.activite_reglementee) {
+  const reglementees = activitesReglementees(activitesDuDossier(dossier));
+  if (reglementees.length > 0) {
+    // Une pièce distincte par activité réglementée, libellée avec son intitulé.
+    reglementees.forEach((a, i) => {
+      const intitule = libelleActivite(a, i);
+      add({
+        code: `titre_reglemente_${a.id}`,
+        libelle: `Justificatif — ${intitule}`,
+        pourquoi: `L'activité « ${intitule} » est réglementée : l'autorité compétente doit avoir délivré le titre correspondant.`,
+        exigences:
+          a.justificatif_type === "experience"
+            ? "Justificatif d'expérience professionnelle (attestations d'employeur, bulletins de salaire ou contrats) couvrant la durée exigée."
+            : a.justificatif_type === "diplome"
+              ? "Diplôme, titre ou certificat de qualification, en cours de validité."
+              : "Diplôme, titre, agrément, autorisation ou carte professionnelle délivré par l'autorité compétente, en cours de validité.",
+        statut: "a_televerser",
+        obligatoire: true,
+      });
+    });
+  } else if (dossier.activite_reglementee) {
     add({
       code: "titre_reglemente",
       libelle: "Diplôme, agrément, autorisation ou carte professionnelle",
