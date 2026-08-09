@@ -68,9 +68,11 @@ export function EncadreMineur({ signale = false }: { signale?: boolean }) {
         </li>
       </ul>
       <p className="mt-2">
-        Par protection des personnes concernées, <strong>CREA EXPERT ne prend pas en charge</strong>{" "}
-        les créations comportant un associé mineur. Nous vous invitons à faire appel à un
-        expert-comptable : {CABINET.mention}.
+        Par protection des personnes concernées, <strong>nous ne prenons pas en charge</strong> les
+        créations comportant un associé mineur. Deux possibilités : vous rapprocher d'un
+        expert-comptable ou d'un professionnel du droit (notaire, avocat) pour être accompagné, ou
+        retirer le ou les associés mineurs afin de poursuivre la création en ligne.{" "}
+        {CABINET.mention}.
       </p>
       <div className="mt-3">
         <CallbackDialog label="Être rappelé par un expert-comptable" size="sm" />

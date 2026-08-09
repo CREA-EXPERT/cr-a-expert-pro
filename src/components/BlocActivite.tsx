@@ -74,8 +74,12 @@ export function BlocActivite({
 
       {activite.naf_code && (
         <p className="mb-2 text-xs text-muted-foreground">
-          Code INSEE (information) : {activite.naf_code}
+          Code INSEE estimé : {activite.naf_code}
           {activite.naf_libelle ? ` — ${activite.naf_libelle}` : ""}
+          <span className="block">
+            Estimation automatique, non officielle : le code définitif est attribué par l'INSEE
+            après immatriculation.
+          </span>
         </p>
       )}
 
@@ -112,6 +116,7 @@ export function BlocActivite({
         </div>
 
         <VerifReglementation
+          auto
           activite={activite.texte}
           naf={activite.naf_code ? `${activite.naf_code} — ${activite.naf_libelle ?? ""}` : null}
           onResultat={(reglementee, resume) => {
