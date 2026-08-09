@@ -11,7 +11,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MentionConfidentialite } from "@/components/MentionConfidentialite";
 import { useServerFn } from "@tanstack/react-start";
-import { preparerCompteDemo } from "@/lib/demo.functions";
+import { preparerCompteDemo, DEMO_ADMIN_EMAIL } from "@/lib/demo.functions";
+import { estHoteApercu } from "@/lib/apercu";
 
 
 const searchSchema = z.object({ redirect: z.string().optional(), forme: z.string().optional() });
