@@ -185,7 +185,9 @@ function Auth() {
                 <Button type="submit" className="w-full" disabled={busy}>
                   {busy ? "Création…" : "Créer mon compte"}
                 </Button>
+                <MentionConfidentialite />
               </form>
+
             </TabsContent>
 
             <TabsContent value="connexion">
