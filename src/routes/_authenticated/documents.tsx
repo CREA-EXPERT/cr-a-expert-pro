@@ -263,7 +263,10 @@ function Documents() {
   }
 
   const Ligne = ({ d, genere }: { d: DocumentRow; genere: boolean }) => {
-    const badge = STATUT_BADGE[d.statut_document] ?? STATUT_BADGE["a_fournir"]!;
+    const statut = normaliserStatut(d.statut_document);
+    const badge = LIBELLE_STATUT[statut];
+    const kyc = !genere && estPieceIdentite(d.type_document);
+    const mentionOk = !kyc || mentions[d.id] === true;
     return (
       <li className="rounded-lg border border-border bg-surface p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -276,26 +279,56 @@ function Documents() {
             </p>
             <span className={`mt-1.5 inline-block rounded-full px-2.5 py-0.5 text-xs ${badge.cls}`}>{badge.label}</span>
           </div>
-          {genere ? (
+          {genere && (
             <Button size="sm" variant="outline" onClick={() => telecharger(d)}>
               <Download strokeWidth={1.5} /> Télécharger
             </Button>
-          ) : (
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-input px-3 py-2 text-sm hover:border-accent">
-              <Upload className="size-4" strokeWidth={1.5} aria-hidden />
-              {d.fichier_url ? "Remplacer" : "Déposer"}
-              <input
-                type="file"
-                className="sr-only"
-                accept="application/pdf,image/jpeg,image/png"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) televerser(d, f);
-                }}
-              />
-            </label>
           )}
         </div>
+
+        {!genere && (
+          <>
+            {kyc && (
+              <div className="mt-3 rounded-md border border-border bg-muted/40 p-3">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id={`kyc-${d.id}`}
+                    className="mt-0.5"
+                    checked={mentions[d.id] === true}
+                    disabled={transmis}
+                    onCheckedChange={(v) => setMentions((m) => ({ ...m, [d.id]: v === true }))}
+                  />
+                  <Label htmlFor={`kyc-${d.id}`} className="text-sm font-normal text-justify">
+                    J'ai recopié à la main sur la copie la mention « Je soussigné(e) [prénom NOM],
+                    certifie la présente copie conforme à l'original de ma pièce d'identité », suivie
+                    du lieu, de la date du jour et de ma signature.
+                  </Label>
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Le dépôt reste bloqué tant que cette case n'est pas cochée. Le{" "}
+                  <Link to="/documents" className="underline underline-offset-2">
+                    gabarit à imprimer
+                  </Link>{" "}
+                  est disponible plus haut sur cette page.
+                </p>
+              </div>
+            )}
+            <div className="mt-3">
+              <ZoneDepot
+                multiple={false}
+                disabled={transmis || !mentionOk}
+                libelle={d.fichier_url ? "Déposer une nouvelle version" : "Glissez le fichier ici"}
+                aide={
+                  mentionOk
+                    ? "PDF, JPG ou PNG — 10 Mo maximum."
+                    : "Cochez d'abord la case ci-dessus pour débloquer le dépôt."
+                }
+                className="p-4"
+                onFichiers={(fs) => fs[0] && deposer([fs[0]], d.id)}
+              />
+            </div>
+          </>
+        )}
 
         {!genere && (
           <div className="mt-3 space-y-2">
@@ -319,9 +352,9 @@ function Documents() {
           </div>
         )}
 
-        {d.statut_document === "rejete" && d.motif_rejet && (
+        {aRedeposer(statut) && d.motif_rejet && (
           <p className="mt-3 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
-            <strong>Pièce à corriger :</strong> {d.motif_rejet}
+            <strong>{statut === "refuse" ? "Pièce refusée" : "Pièce à corriger"} :</strong> {d.motif_rejet}
           </p>
         )}
 
