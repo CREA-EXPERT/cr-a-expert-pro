@@ -783,60 +783,22 @@ function Creation() {
                 </p>
               </div>
 
-              <div className="space-y-3">
-                <Label>Ajouter une activité</Label>
-                <p className="text-sm text-muted-foreground text-justify">
-                  Partez d'un objet type, d'un code d'activité INSEE, ou décrivez votre activité et
-                  laissez l'assistant en proposer une rédaction que vous pourrez modifier librement.
-                  Chaque activité ajoutée reste indépendante : elle n'écrase jamais les précédentes.
-                  Le premier de la liste est considéré comme l'activité principale.
-                </p>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {OBJETS_TYPES.map((o) => (
-                    <button
-                      key={o.titre}
-                      type="button"
-                      onClick={() =>
-                        ajouterActivite(
-                          nouvelleActivite({
-                            source: "type",
-                            texte: o.texte,
-                            naf_code: o.naf?.code ?? null,
-                            naf_libelle: o.naf?.libelle ?? null,
-                            reglementee: estCodeReglemente(o.naf?.code ?? null),
-                          }),
-                        )
-                      }
-                      className="rounded-md border border-border bg-surface px-3 py-2.5 text-left text-sm hover:border-accent"
-                    >
-                      {o.titre}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="space-y-2 pt-2">
-                  <Label>Code INSEE (pour information)</Label>
-                  <NafSelect
-                    value={dossier.code_naf}
-                    onChange={(n) => ajouterDepuisNaf(n.code, n.label)}
-                  />
-                  <Err nom="naf" />
-                  <p className="text-xs text-muted-foreground">
-                    Ce code est déclaratif et purement informatif : l'INSEE attribue le code APE
-                    définitif au vu de l'activité réellement exercée.
-                  </p>
-                </div>
-              </div>
-
               <div className="rounded-md border border-border bg-surface p-4">
                 <Label htmlFor="descr" className="text-sm font-medium">
-                  Décrivez votre activité en quelques mots
+                  Ajouter une activité — décrivez-la en quelques mots
                 </Label>
+                <p className="mt-1 text-sm text-muted-foreground text-justify">
+                  Votre société peut exercer une seule activité ou plusieurs. La première de la
+                  liste est l'activité principale ; les suivantes sont des activités accessoires.
+                  Décrivez ici une activité à la fois : l'assistant en déduit le code d'activité
+                  INSEE indicatif, rédige le paragraphe à insérer dans les statuts et indique si
+                  l'activité est, en règle générale, réglementée. Vous pouvez tout modifier ensuite.
+                </p>
                 <Textarea
                   id="descr"
                   rows={3}
                   maxLength={600}
-                  className="mt-2"
+                  className="mt-3"
                   placeholder="Ex. : je crée des sites internet pour des artisans et j'assure leur maintenance."
                   value={descriptionActivite}
                   onChange={(e) => setDescriptionActivite(e.target.value)}
@@ -844,19 +806,27 @@ function Creation() {
                 <div className="mt-3 flex flex-wrap items-center gap-3">
                   <Button
                     type="button"
-                    variant="outline"
                     disabled={redaction || descriptionActivite.trim().length < 10}
-                    onClick={proposerObjet}
+                    onClick={ajouterDepuisDescription}
                   >
                     <Sparkle strokeWidth={1.5} />
-                    {redaction ? "Rédaction en cours…" : "Proposer une rédaction"}
+                    {redaction ? "Analyse en cours…" : "Ajouter cette activité"}
                   </Button>
-                  <span className="text-xs text-muted-foreground">
-                    Proposition automatique, à relire et à adapter : elle ne constitue pas un
-                    conseil juridique.
-                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => ajouterActivite(nouvelleActivite({ source: "libre", texte: "" }))}
+                  >
+                    <Plus strokeWidth={1.5} /> Saisir moi-même une activité
+                  </Button>
                 </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Rédaction et code d'activité proposés à titre informatif, à relire et à adapter :
+                  ils ne constituent pas un conseil juridique.
+                </p>
               </div>
+
 
               <div className="space-y-3">
                 <Label>Objet(s) social(aux)</Label>
