@@ -54,7 +54,7 @@ import {
   tarifMap,
   useTarifs,
 } from "@/lib/tarifs";
-import { NafSelect } from "@/components/NafSelect";
+import { NAF } from "@/lib/naf";
 import { AssocieIdentite } from "@/components/AssocieIdentite";
 import { BlocActivite } from "@/components/BlocActivite";
 import {
