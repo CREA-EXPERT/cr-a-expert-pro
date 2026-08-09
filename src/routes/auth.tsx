@@ -152,6 +152,20 @@ function Auth() {
           Créez votre compte pour compléter votre dossier et suivre son avancement.
         </p>
 
+        {modeConception && (
+          <div className="mt-6 rounded-lg border border-dashed border-accent/60 bg-accent/5 p-4">
+            <p className="text-sm font-medium">Mode conception</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              Accès temporaire à un compte de démonstration (rôles admin et cabinet) pour parcourir
+              toutes les pages. Visible uniquement en aperçu, jamais sur le site publié.
+            </p>
+            <Button className="mt-3 w-full" variant="outline" disabled={busy} onClick={entrerEnDemo}>
+              {busy ? "Connexion…" : "Se connecter en Admin (démo)"}
+            </Button>
+          </div>
+        )}
+
+
         {confirmation ? (
           <div className="mt-8 rounded-lg border border-border bg-surface p-6">
             <h2 className="font-serif text-xl">Vérifiez votre boîte de réception</h2>
