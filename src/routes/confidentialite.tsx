@@ -99,12 +99,17 @@ function Confidentialite() {
 
         <Section titre="6. Durées de conservation">
           <p>
-            Compte : durée de la relation, puis suppression ou anonymisation. Pièces d'identité :
-            supprimées dès la vérification/création réalisée. Facturation : 10 ans (obligation
-            comptable). Documents constitutifs et preuves de signature : durée justifiée par leur
-            valeur probante. Demandes de contact non abouties : 3 ans.
+            Compte : durée de la relation, puis suppression ou anonymisation. Pièces d'identité et
+            données de vigilance (KYC) : lorsque vous engagez le cabinet ODEON, elles sont conservées
+            par celui-ci 5 ans à compter de la fin de la relation d'affaires, au titre de ses
+            obligations de lutte contre le blanchiment (art. L.561-12 CMF), puis supprimées. Si vous
+            n'engagez pas le cabinet, elles sont supprimées dès la finalité atteinte ou, en cas
+            d'abandon, après 6 mois. Facturation : 10 ans (obligation comptable). Documents
+            constitutifs et preuves de signature : durée justifiée par leur valeur probante. Demandes
+            de contact non abouties : 3 ans.
           </p>
         </Section>
+
 
         <Section titre="7. Sécurité">
           <p>
