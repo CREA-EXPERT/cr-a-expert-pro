@@ -70,34 +70,6 @@ function CabinetDossier() {
     await supabase.from("events_dossier").insert({ dossier_id: id, type_event: "cabinet", message });
   }
 
-  async function majDocument(docId: string, statut: string, motif?: string) {
-    const motifNet = (motif ?? "").trim();
-    if (statut === "rejete" && motifNet.length < 5) {
-      toast.error("Le motif de rejet est obligatoire (5 caractères minimum).");
-      return;
-    }
-    const { error } = await supabase
-      .from("documents")
-      .update({
-        statut_document: statut,
-        motif_rejet: statut === "rejete" ? motifNet : null,
-        valide_le: statut === "valide" ? new Date().toISOString() : null,
-      })
-      .eq("id", docId);
-    if (error) {
-      toast.error("Mise à jour impossible.");
-      return;
-    }
-    const doc = data?.docs.find((d) => d.id === docId);
-    await journaliser(
-      statut === "valide"
-        ? `Pièce validée par le cabinet : ${doc?.libelle}`
-        : `Pièce à corriger — ${doc?.libelle} : ${motifNet}`,
-    );
-    if (statut === "rejete") setMotifs((m) => ({ ...m, [docId]: "" }));
-    toast.success("Pièce mise à jour.");
-    qc.invalidateQueries({ queryKey: ["cabinet-dossier", id] });
-  }
 
   async function ouvrirPiece(chemin: string | null) {
     if (!chemin) {
