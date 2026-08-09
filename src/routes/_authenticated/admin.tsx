@@ -96,7 +96,11 @@ function Admin() {
           <TabsContent value="signatures" className="mt-6">
             <OngletSignatures />
           </TabsContent>
+          <TabsContent value="conservation" className="mt-6">
+            <PanneauConservation />
+          </TabsContent>
         </Tabs>
+
       </div>
     </PageShell>
   );
