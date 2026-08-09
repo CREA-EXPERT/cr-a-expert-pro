@@ -361,8 +361,9 @@ export function EncadreSignatureElectronique() {
       <p className="font-semibold">Documents signés électroniquement — envoyés par nos soins</p>
       <p className="mt-2">
         Vous n'avez pas à les rédiger : nous les préparons à partir de vos réponses et nous vous les
-        adresserons pour signature électronique (DocuSign). Vous recevrez un lien par courriel ; la
-        signature vaut engagement et la preuve est conservée dans votre dossier.
+        adressons pour signature électronique. Chaque signataire reçoit un lien personnel par
+        courriel ; la signature vaut engagement et la preuve (horodatage et empreinte du document)
+        est conservée dans votre dossier.
       </p>
       <ul className="mt-2 list-disc space-y-1 pl-5">
         <li>l'attestation de non-condamnation et de filiation de chaque dirigeant ;</li>
@@ -374,8 +375,9 @@ export function EncadreSignatureElectronique() {
         </li>
       </ul>
       <p className="mt-2 text-muted-foreground">
-        Signature électronique — bientôt disponible. En attendant, ces documents vous sont fournis à
-        imprimer et à signer.
+        Les statuts sont également signés par l'ensemble des associés. L'ordre de signature est
+        libre : chacun signe quand il le souhaite, et le document est finalisé lorsque tous les
+        signataires ont signé.
       </p>
     </div>
   );

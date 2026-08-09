@@ -836,6 +836,8 @@ export type Database = {
           created_at: string
           dossier_id: string
           envoye_le: string | null
+          fichier_signe: string | null
+          hash_document: string | null
           id: string
           libelle: string
           ordre: number
@@ -851,6 +853,8 @@ export type Database = {
           created_at?: string
           dossier_id: string
           envoye_le?: string | null
+          fichier_signe?: string | null
+          hash_document?: string | null
           id?: string
           libelle: string
           ordre?: number
@@ -866,6 +870,8 @@ export type Database = {
           created_at?: string
           dossier_id?: string
           envoye_le?: string | null
+          fichier_signe?: string | null
+          hash_document?: string | null
           id?: string
           libelle?: string
           ordre?: number
@@ -882,6 +888,75 @@ export type Database = {
             columns: ["dossier_id"]
             isOneToOne: false
             referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      signatures_signataires: {
+        Row: {
+          adresse_ip: string | null
+          associe_id: string | null
+          consentement: boolean
+          created_at: string
+          envoye_le: string | null
+          hash_document: string | null
+          horodatage: string | null
+          id: string
+          jeton_expire_le: string | null
+          jeton_hash: string | null
+          methode: string | null
+          signataire_email: string | null
+          signataire_nom: string
+          signature_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          adresse_ip?: string | null
+          associe_id?: string | null
+          consentement?: boolean
+          created_at?: string
+          envoye_le?: string | null
+          hash_document?: string | null
+          horodatage?: string | null
+          id?: string
+          jeton_expire_le?: string | null
+          jeton_hash?: string | null
+          methode?: string | null
+          signataire_email?: string | null
+          signataire_nom: string
+          signature_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          adresse_ip?: string | null
+          associe_id?: string | null
+          consentement?: boolean
+          created_at?: string
+          envoye_le?: string | null
+          hash_document?: string | null
+          horodatage?: string | null
+          id?: string
+          jeton_expire_le?: string | null
+          jeton_hash?: string | null
+          methode?: string | null
+          signataire_email?: string | null
+          signataire_nom?: string
+          signature_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signatures_signataires_associe_id_fkey"
+            columns: ["associe_id"]
+            isOneToOne: false
+            referencedRelation: "associes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "signatures_signataires_signature_id_fkey"
+            columns: ["signature_id"]
+            isOneToOne: false
+            referencedRelation: "signatures_electroniques"
             referencedColumns: ["id"]
           },
         ]

@@ -24,6 +24,7 @@ import { Route as AuthenticatedCreationRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
 import { Route as AuthenticatedMonCompteRouteImport } from './routes/_authenticated/mon-compte'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
+import { Route as SignerJetonRouteImport } from './routes/signer.$jeton'
 import { Route as AuthenticatedCabinetIndexRouteImport } from './routes/_authenticated/cabinet.index'
 import { Route as AuthenticatedCabinetIdRouteImport } from './routes/_authenticated/cabinet.$id'
 import { Route as AuthenticatedCabinetRappelsRouteImport } from './routes/_authenticated/cabinet.rappels'
@@ -104,6 +105,11 @@ const AuthenticatedTableauDeBordRoute =
     path: '/tableau-de-bord',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const SignerJetonRoute = SignerJetonRouteImport.update({
+  id: '/signer/$jeton',
+  path: '/signer/$jeton',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedCabinetIndexRoute =
   AuthenticatedCabinetIndexRouteImport.update({
     id: '/cabinet/',
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/documents': typeof AuthenticatedDocumentsRoute
   '/mon-compte': typeof AuthenticatedMonCompteRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/signer/$jeton': typeof SignerJetonRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/cabinet/': typeof AuthenticatedCabinetIndexRoute
@@ -163,6 +170,7 @@ export interface FileRoutesByTo {
   '/documents': typeof AuthenticatedDocumentsRoute
   '/mon-compte': typeof AuthenticatedMonCompteRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/signer/$jeton': typeof SignerJetonRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/cabinet': typeof AuthenticatedCabinetIndexRoute
@@ -185,6 +193,7 @@ export interface FileRoutesById {
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
   '/_authenticated/mon-compte': typeof AuthenticatedMonCompteRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/signer/$jeton': typeof SignerJetonRoute
   '/_authenticated/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/_authenticated/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/_authenticated/cabinet/': typeof AuthenticatedCabinetIndexRoute
@@ -207,6 +216,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/mon-compte'
     | '/tableau-de-bord'
+    | '/signer/$jeton'
     | '/cabinet/$id'
     | '/cabinet/rappels'
     | '/cabinet/'
@@ -227,6 +237,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/mon-compte'
     | '/tableau-de-bord'
+    | '/signer/$jeton'
     | '/cabinet/$id'
     | '/cabinet/rappels'
     | '/cabinet'
@@ -248,6 +259,7 @@ export interface FileRouteTypes {
     | '/_authenticated/documents'
     | '/_authenticated/mon-compte'
     | '/_authenticated/tableau-de-bord'
+    | '/signer/$jeton'
     | '/_authenticated/cabinet/$id'
     | '/_authenticated/cabinet/rappels'
     | '/_authenticated/cabinet/'
@@ -265,6 +277,7 @@ export interface RootRouteChildren {
   MentionsLegalesRoute: typeof MentionsLegalesRoute
   SimulateurRoute: typeof SimulateurRoute
   TarifsRoute: typeof TarifsRoute
+  SignerJetonRoute: typeof SignerJetonRoute
   ApiPublicHooksPurgeDonneesRoute: typeof ApiPublicHooksPurgeDonneesRoute
 }
 
@@ -375,6 +388,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTableauDeBordRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/signer/$jeton': {
+      id: '/signer/$jeton'
+      path: '/signer/$jeton'
+      fullPath: '/signer/$jeton'
+      preLoaderRoute: typeof SignerJetonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/cabinet/': {
       id: '/_authenticated/cabinet/'
       path: '/cabinet'
@@ -442,6 +462,7 @@ const rootRouteChildren: RootRouteChildren = {
   MentionsLegalesRoute: MentionsLegalesRoute,
   SimulateurRoute: SimulateurRoute,
   TarifsRoute: TarifsRoute,
+  SignerJetonRoute: SignerJetonRoute,
   ApiPublicHooksPurgeDonneesRoute: ApiPublicHooksPurgeDonneesRoute,
 }
 export const routeTree = rootRouteImport

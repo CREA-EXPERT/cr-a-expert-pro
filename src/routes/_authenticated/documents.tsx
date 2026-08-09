@@ -32,7 +32,13 @@ import {
   normaliserStatut,
   validerFichier,
 } from "@/lib/pieces";
-import { LABEL_SIGNATURE, ORDRE_SIGNATURE, type SignatureRow } from "@/lib/signatures";
+import {
+  LABEL_SIGNATURE,
+  ORDRE_SIGNATURE,
+  etapeCourante,
+  type SignataireRow,
+  type SignatureRow,
+} from "@/lib/signatures";
 import type { Tables } from "@/integrations/supabase/types";
 import { Download, HelpCircle, Upload } from "lucide-react";
 
@@ -67,6 +73,7 @@ function Documents() {
   const [associes, setAssocies] = useState<Associe[]>([]);
   const [docs, setDocs] = useState<DocumentRow[]>([]);
   const [signatures, setSignatures] = useState<SignatureRow[]>([]);
+  const [signataires, setSignataires] = useState<SignataireRow[]>([]);
   const [events, setEvents] = useState<EventRow[]>([]);
   const [busy, setBusy] = useState(false);
   const [transferts, setTransferts] = useState<Transfert[]>([]);
@@ -95,6 +102,16 @@ function Documents() {
     setAssocies(as ?? []);
     setDocs(dc ?? []);
     setSignatures(sg ?? []);
+    const idsSig = (sg ?? []).map((s) => s.id);
+    if (idsSig.length > 0) {
+      const { data: sgn } = await supabase
+        .from("signatures_signataires")
+        .select("*")
+        .in("signature_id", idsSig);
+      setSignataires(sgn ?? []);
+    } else {
+      setSignataires([]);
+    }
     setEvents(ev ?? []);
   }
 
@@ -596,7 +613,8 @@ function Documents() {
                 </li>
               )}
               {signatures.map((s) => {
-                const courant = Math.max(ORDRE_SIGNATURE.indexOf(s.statut), 0);
+                const courant = etapeCourante(s.statut);
+                const lignes = signataires.filter((x) => x.signature_id === s.id);
                 return (
                   <li key={s.id} className="rounded-lg border border-border bg-surface p-4">
                     <p className="font-medium">{s.libelle}</p>
@@ -617,6 +635,18 @@ function Documents() {
                         </li>
                       ))}
                     </ol>
+                    {lignes.length > 0 && (
+                      <ul className="mt-3 space-y-1">
+                        {lignes.map((l) => (
+                          <li key={l.id} className="text-xs text-muted-foreground">
+                            {l.signataire_nom} —{" "}
+                            {l.horodatage
+                              ? `signé le ${new Date(l.horodatage).toLocaleString("fr-FR")}`
+                              : "en attente de signature"}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                     <p className="mt-2 text-xs text-muted-foreground">
                       Envoyé le {horodatage(s.envoye_le)} · signé le {horodatage(s.signe_le)}
                     </p>

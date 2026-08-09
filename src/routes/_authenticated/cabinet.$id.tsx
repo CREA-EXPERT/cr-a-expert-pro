@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Disclaimer } from "@/components/Disclaimer";
 import { RevuePieces } from "@/components/RevuePieces";
+import { PanneauSignatures } from "@/components/PanneauSignatures";
 import { LIBELLE_STATUT, normaliserStatut } from "@/lib/pieces";
 import { STATUTS, STATUT_LABEL, euro } from "@/lib/domain";
 import type { Associe, DocumentRow, Dossier } from "@/lib/documents";
@@ -242,6 +243,9 @@ function CabinetDossier() {
             docs={data?.docs ?? []}
             onChangement={() => qc.invalidateQueries({ queryKey: ["cabinet-dossier", id] })}
           />
+
+          <PanneauSignatures dossierId={id} />
+
 
           <section className="rounded-lg border border-border bg-surface p-6">
             <h2 className="font-serif text-xl">Toutes les pièces attendues</h2>
