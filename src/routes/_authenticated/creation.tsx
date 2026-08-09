@@ -60,6 +60,8 @@ import { BlocActivite } from "@/components/BlocActivite";
 import {
   activitesDuDossier,
   derivesActivites,
+  libelleActivite,
+
   nouvelleActivite,
   type Activite,
 } from "@/lib/activites";
@@ -297,9 +299,19 @@ function Creation() {
       const liste = (d.objets_social ?? []).map((t) => t.trim()).filter(Boolean);
       if (liste.length === 0 && !(d.objet_social ?? "").trim())
         e["objets"] = "Indiquez au moins une activité.";
+      const manquants = activitesDuDossier(d).filter(
+        (a) =>
+          a.reglementee &&
+          (!a.justificatif_type || (a.justificatif_detail ?? "").trim().length < 3),
+      );
+      if (manquants.length > 0)
+        e["justificatifs"] = `Pour chaque activité réglementée, indiquez la nature du justificatif (diplôme ou expérience) et précisez-la : ${manquants
+          .map((a, i) => libelleActivite(a, i))
+          .join(" ; ")}.`;
       if (!d.objets_confirmes_le)
         e["objets_confirmes"] = "Confirmez que la liste des activités est exacte pour continuer.";
     }
+
     if (c === "capital") {
       const montant = Number(d.capital_montant);
       const lib = Number(d.capital_liberation);
@@ -472,6 +484,24 @@ function Creation() {
 
   async function validerDossier() {
     if (!dossier || !rules) return;
+    /**
+     * Contrôle final de cohérence : le raccourci de conception permet seulement de
+     * naviguer, il ne dispense d'aucune règle de saisie et n'écrase aucune donnée.
+     * À la première incohérence, l'utilisateur est ramené à l'étape concernée.
+     */
+    for (let i = 0; i < cles.length; i++) {
+      const c = cles[i]!;
+      const e = controlerEtape(c);
+      if (Object.keys(e).length > 0) {
+        setErreurs(e);
+        setEtape(i + 1);
+        await patch({ etape_courante: i + 1 });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        toast.error(`Étape « ${TITRES[c]} » : ${Object.values(e)[0]}`);
+        return;
+      }
+    }
+
     if (!certifie) {
       toast.error("Vous devez certifier l'exactitude des informations.");
       return;
@@ -867,6 +897,8 @@ function Creation() {
                   />
                 ))}
                 <Err nom="objets" />
+                <Err nom="justificatifs" />
+
 
                 {activites.length > 0 && (
                   <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed text-justify">
@@ -1763,8 +1795,10 @@ function Creation() {
                 </Button>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                Ces raccourcis ne sont visibles qu'en aperçu, pour un compte administrateur : les
-                contrôles obligatoires restent appliqués pour les clients.
+                Ces raccourcis ne sont visibles qu'en aperçu, pour un compte administrateur.
+                Passer une étape ne modifie ni n'efface aucune donnée déjà saisie : seule la
+                position dans le parcours change, et l'ensemble des contrôles obligatoires est
+                revérifié à la validation finale du dossier.
               </p>
             </div>
           )}
