@@ -5,6 +5,7 @@ import { CallbackDialog } from "@/components/CallbackDialog";
 import { isEI, isSas } from "@/lib/domain";
 import type { Associe, Dossier } from "@/lib/documents";
 import { analyserChecklist, estMineur } from "@/lib/checklist";
+import { activitesDuDossier, activitesReglementees, libelleActivite } from "@/lib/activites";
 import { ApercuChecklist } from "@/components/ApercuChecklist";
 
 const champ = "h-10 w-full rounded-md border border-input bg-surface px-3 text-sm";
@@ -61,6 +62,7 @@ export function SituationChecklist({
   const sas = isSas(dossier.forme_juridique);
   const physiques = associes.filter((a) => a.type === "personne_physique");
   const analyse = analyserChecklist(dossier, associes);
+  const reglementees = activitesReglementees(activitesDuDossier(dossier));
 
   return (
     <div className="space-y-5">
