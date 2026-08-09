@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Disclaimer } from "@/components/Disclaimer";
 import { RevuePieces } from "@/components/RevuePieces";
+import { PanneauSignatures } from "@/components/PanneauSignatures";
 import { LIBELLE_STATUT, normaliserStatut } from "@/lib/pieces";
 import { STATUTS, STATUT_LABEL, euro } from "@/lib/domain";
 import type { Associe, DocumentRow, Dossier } from "@/lib/documents";
