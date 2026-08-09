@@ -49,6 +49,7 @@ export function SiteFooter() {
         <div>
           <h2 className="text-sm font-medium">Nos engagements</h2>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+            <li>{LIBELLE_DIPLOMES}</li>
             <li>Honoraires de création : 0 €</li>
             <li>Mission comptable : 199 € HT/mois, engagement 3 mois</li>
             <li>Frais légaux refacturés à l'euro près</li>
