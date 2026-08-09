@@ -1,13 +1,12 @@
 // Détection d'un hôte d'aperçu (conception) — partagée client/serveur.
 export function estHoteApercu(host: string): boolean {
   const h = (host ?? "").toLowerCase();
+  const sansPort = h.split(":")[0] ?? h;
   return (
-    h === "localhost" ||
-    h.startsWith("localhost:") ||
-    h === "127.0.0.1" ||
-    h.startsWith("127.0.0.1:") ||
-    h.includes("id-preview--") ||
-    h.endsWith("-dev.lovable.app") ||
-    h.includes("-dev.lovable.app:")
+    sansPort === "localhost" ||
+    sansPort === "127.0.0.1" ||
+    sansPort.includes("preview--") || // couvre aussi « id-preview-- »
+    sansPort.endsWith("-dev.lovable.app")
   );
 }
+
