@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,17 @@ export function AssocieIdentite({
   onChange: (v: Partial<Associe>) => void;
 }) {
   const prenoms = associe.prenoms && associe.prenoms.length > 0 ? associe.prenoms : [associe.prenom ?? ""];
-  const d = decompose(associe.date_naissance);
+  /**
+   * Les trois listes de la date de naissance sont conservées localement : une date
+   * incomplète n'est pas enregistrable, mais les choix déjà faits doivent rester
+   * affichés jusqu'à ce que le jour, le mois et l'année soient renseignés.
+   */
+  const [d, setD] = useState(() => decompose(associe.date_naissance));
+
+  useEffect(() => {
+    const depuisBase = decompose(associe.date_naissance);
+    if (depuisBase.j && depuisBase.mo && depuisBase.a) setD(depuisBase);
+  }, [associe.date_naissance]);
 
   function majPrenoms(liste: string[]) {
     const nettoyes = liste.map((p) => p.trim()).filter(Boolean);
@@ -32,14 +43,16 @@ export function AssocieIdentite({
 
   function majDate(part: "j" | "mo" | "a", val: string) {
     const suivant = { ...d, [part]: val };
+    setD(suivant);
     if (!suivant.j || !suivant.mo || !suivant.a) {
-      onChange({ date_naissance: null });
+      if (associe.date_naissance) onChange({ date_naissance: null });
       return;
     }
     onChange({
       date_naissance: `${suivant.a}-${String(Number(suivant.mo)).padStart(2, "0")}-${String(Number(suivant.j)).padStart(2, "0")}`,
     });
   }
+
 
   return (
     <div className="space-y-4">
