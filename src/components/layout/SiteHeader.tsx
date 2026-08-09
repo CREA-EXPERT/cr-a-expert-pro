@@ -112,6 +112,10 @@ export function SiteHeader() {
                 <Link to="/tableau-de-bord" className="rounded-md px-2 py-2.5 text-sm">
                   Mon espace
                 </Link>
+                <Link to="/mon-compte" className="rounded-md px-2 py-2.5 text-sm">
+                  Mon compte
+                </Link>
+
                 {isCabinet && (
                   <Link to="/cabinet" className="rounded-md px-2 py-2.5 text-sm">
                     Espace cabinet
