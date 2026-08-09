@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PageShell } from "@/components/layout/PageShell";
@@ -7,17 +7,31 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
-  EncadreJustificatifs,
-  EncadreSignatureElectronique,
-} from "@/components/EncadresPedago";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { EncadreJustificatifs, EncadreSignatureElectronique } from "@/components/EncadresPedago";
 import { GuideIdentite } from "@/components/GuideIdentite";
 import { ApercuChecklist } from "@/components/ApercuChecklist";
 import { MentionConfidentialite } from "@/components/MentionConfidentialite";
+import { ListeTransferts, ZoneDepot, type Transfert } from "@/components/ZoneDepot";
 
 import { genererPdf, telechargerPdf } from "@/lib/pdf";
 import { verifierDates, type Associe, type Dossier, type DocumentRow } from "@/lib/documents";
+import {
+  ACCEPT_ATTR,
+  LIBELLE_STATUT,
+  aRedeposer,
+  estPieceIdentite,
+  normaliserStatut,
+  validerFichier,
+} from "@/lib/pieces";
 import { LABEL_SIGNATURE, ORDRE_SIGNATURE, type SignatureRow } from "@/lib/signatures";
 import type { Tables } from "@/integrations/supabase/types";
 import { Download, HelpCircle, Upload } from "lucide-react";
@@ -26,9 +40,16 @@ export const Route = createFileRoute("/_authenticated/documents")({
   head: () => ({
     meta: [
       { title: "Mes documents — CREA EXPERT" },
-      { name: "description", content: "Déposez vos pièces, suivez les signatures et consultez le journal de validation de votre dossier." },
+      {
+        name: "description",
+        content:
+          "Déposez vos pièces, suivez les signatures et consultez le journal de validation de votre dossier.",
+      },
       { property: "og:title", content: "Mes documents — CREA EXPERT" },
-      { property: "og:description", content: "Checklist personnalisée des pièces de votre dossier." },
+      {
+        property: "og:description",
+        content: "Checklist personnalisée des pièces de votre dossier.",
+      },
     ],
   }),
   component: Documents,
@@ -36,12 +57,7 @@ export const Route = createFileRoute("/_authenticated/documents")({
 
 type EventRow = Tables<"events_dossier">;
 
-const STATUT_BADGE: Record<string, { label: string; cls: string }> = {
-  a_fournir: { label: "À fournir", cls: "bg-muted text-foreground" },
-  recu: { label: "Déposé", cls: "bg-info text-info-foreground" },
-  valide: { label: "Accepté par le cabinet", cls: "bg-success text-success-foreground" },
-  rejete: { label: "À corriger", cls: "bg-destructive text-destructive-foreground" },
-};
+const CIBLE_LIBRE = "autre";
 
 const horodatage = (v: string | null | undefined) =>
   v ? new Date(v).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "—";
@@ -53,9 +69,16 @@ function Documents() {
   const [signatures, setSignatures] = useState<SignatureRow[]>([]);
   const [events, setEvents] = useState<EventRow[]>([]);
   const [busy, setBusy] = useState(false);
+  const [transferts, setTransferts] = useState<Transfert[]>([]);
+  const [mentions, setMentions] = useState<Record<string, boolean>>({});
+  const [cible, setCible] = useState<string>(CIBLE_LIBRE);
 
   async function charger() {
-    const { data: ds } = await supabase.from("dossiers").select("*").order("created_at", { ascending: false }).limit(1);
+    const { data: ds } = await supabase
+      .from("dossiers")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(1);
     const d = ds?.[0] ?? null;
     setDossier(d);
     if (!d) return;
@@ -63,7 +86,11 @@ function Documents() {
       supabase.from("associes").select("*").eq("dossier_id", d.id),
       supabase.from("documents").select("*").eq("dossier_id", d.id).order("created_at"),
       supabase.from("signatures_electroniques").select("*").eq("dossier_id", d.id).order("ordre"),
-      supabase.from("events_dossier").select("*").eq("dossier_id", d.id).order("created_at", { ascending: false }),
+      supabase
+        .from("events_dossier")
+        .select("*")
+        .eq("dossier_id", d.id)
+        .order("created_at", { ascending: false }),
     ]);
     setAssocies(as ?? []);
     setDocs(dc ?? []);
@@ -77,38 +104,75 @@ function Documents() {
 
   /** Écrit une ligne au journal d'audit du dossier (table en insertion seule). */
   async function journaliser(dossierId: string, type: string, message: string) {
-    await supabase.from("events_dossier").insert({ dossier_id: dossierId, type_event: type, message });
+    await supabase
+      .from("events_dossier")
+      .insert({ dossier_id: dossierId, type_event: type, message });
   }
 
-  async function majDate(champ: "date_signature" | "date_depot_fonds" | "date_parution", v: string) {
+  async function majDate(
+    champ: "date_signature" | "date_depot_fonds" | "date_parution",
+    v: string,
+  ) {
     if (!dossier) return;
     setDossier({ ...dossier, [champ]: v || null });
     const maj: Record<string, string | null> = { [champ]: v || null };
-    await supabase.from("dossiers").update(maj as never).eq("id", dossier.id);
+    await supabase
+      .from("dossiers")
+      .update(maj as never)
+      .eq("id", dossier.id);
+  }
+
+  /** Crée une pièce hors checklist lorsque le client dépose un fichier non rattaché. */
+  async function creerPieceLibre(nom: string): Promise<DocumentRow | null> {
+    if (!dossier) return null;
+    const { data, error } = await supabase
+      .from("documents")
+      .insert({
+        dossier_id: dossier.id,
+        type_document: "piece_complementaire",
+        libelle: `Pièce complémentaire — ${nom}`,
+        obligatoire: false,
+        origine: "a_fournir",
+        statut_document: "a_fournir",
+      })
+      .select("*")
+      .maybeSingle();
+    if (error || !data) {
+      toast.error("La pièce complémentaire n'a pas pu être créée.");
+      return null;
+    }
+    return data as DocumentRow;
   }
 
   async function televerser(doc: DocumentRow, file: File) {
-    if (!dossier) return;
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("Le fichier dépasse 10 Mo.");
-      return;
+    if (!dossier) return false;
+    const refus = validerFichier(file);
+    if (refus) {
+      toast.error(refus);
+      return false;
     }
-    if (!["application/pdf", "image/jpeg", "image/png"].includes(file.type)) {
-      toast.error("Formats acceptés : PDF, JPG, PNG.");
-      return;
+    if (estPieceIdentite(doc.type_document) && !mentions[doc.id]) {
+      toast.error(
+        "Avant de déposer votre pièce d'identité, confirmez que la mention manuscrite est recopiée, datée et signée.",
+      );
+      return false;
     }
-    const chemin = `${dossier.id}/${doc.id}-${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "")}`;
-    const { error } = await supabase.storage.from("documents").upload(chemin, file, { upsert: true });
+    const extension = (file.name.split(".").pop() ?? "pdf").toLowerCase().replace(/[^a-z0-9]/g, "");
+    /** Chemin déterministe : un redépôt remplace le fichier au lieu d'en créer un doublon. */
+    const chemin = `${dossier.id}/${doc.id}.${extension || "pdf"}`;
+    const { error } = await supabase.storage
+      .from("documents")
+      .upload(chemin, file, { upsert: true });
     if (error) {
-      toast.error("Le dépôt du fichier a échoué.");
-      return;
+      toast.error("Le dépôt du fichier a échoué. Vérifiez votre connexion puis recommencez.");
+      return false;
     }
     const maintenant = new Date().toISOString();
     await supabase
       .from("documents")
       .update({
         fichier_url: chemin,
-        statut_document: "recu",
+        statut_document: "depose",
         motif_rejet: null,
         depose_le: maintenant,
         atteste_conforme: false,
@@ -124,7 +188,44 @@ function Documents() {
     if (dossier.statut === "dossier_valide_client") {
       await supabase.from("dossiers").update({ statut: "pieces_en_cours" }).eq("id", dossier.id);
     }
-    toast.success("Pièce déposée.");
+    return true;
+  }
+
+  /** Dépose une série de fichiers avec suivi de progression, puis rafraîchit la liste. */
+  async function deposer(fichiers: File[], cibleId: string) {
+    for (const f of fichiers) {
+      const idTransfert = `${Date.now()}-${f.name}-${Math.random().toString(16).slice(2)}`;
+      setTransferts((t) => [
+        ...t,
+        { id: idTransfert, nom: f.name, taille: f.size, progression: 8 },
+      ]);
+      const minuteur = setInterval(() => {
+        setTransferts((t) =>
+          t.map((x) =>
+            x.id === idTransfert ? { ...x, progression: Math.min(92, x.progression + 12) } : x,
+          ),
+        );
+      }, 200);
+      const doc =
+        cibleId === CIBLE_LIBRE
+          ? await creerPieceLibre(f.name)
+          : (docs.find((d) => d.id === cibleId) ?? null);
+      const ok = doc ? await televerser(doc, f) : false;
+      clearInterval(minuteur);
+      setTransferts((t) =>
+        t.map((x) =>
+          x.id === idTransfert
+            ? {
+                ...x,
+                progression: 100,
+                ...(ok ? {} : { erreur: "Ce fichier n'a pas été déposé." }),
+              }
+            : x,
+        ),
+      );
+      if (ok) setTimeout(() => setTransferts((t) => t.filter((x) => x.id !== idTransfert)), 2500);
+    }
+    toast.success("Dépôt terminé.");
     charger();
   }
 
@@ -157,7 +258,11 @@ function Documents() {
     }
     const octets = await genererPdf(doc.type_document, dossier, associes, doc.associe_id);
     telechargerPdf(octets, doc.libelle);
-    await journaliser(dossier.id, "document_telecharge", `Document généré et téléchargé : ${doc.libelle}.`);
+    await journaliser(
+      dossier.id,
+      "document_telecharge",
+      `Document généré et téléchargé : ${doc.libelle}.`,
+    );
     charger();
   }
 
@@ -175,11 +280,21 @@ function Documents() {
   const aFournir = docs.filter((d) => d.origine === "a_fournir");
   const generes = docs.filter((d) => d.origine === "genere");
   const manquants = aFournir.filter(
-    (d) => d.obligatoire && (!d.fichier_url || !d.atteste_conforme || d.statut_document === "rejete"),
+    (d) =>
+      d.obligatoire &&
+      (!d.fichier_url || !d.atteste_conforme || aRedeposer(normaliserStatut(d.statut_document))),
   );
-  const transmis = ["en_revue_cabinet", "valide_cabinet", "pret_au_depot", "depose", "immatricule"].includes(
-    dossier.statut,
-  );
+  const obligatoires = aFournir.filter((d) => d.obligatoire);
+  const traitees = obligatoires.filter((d) => !manquants.includes(d));
+  const progression =
+    obligatoires.length === 0 ? 100 : Math.round((traitees.length / obligatoires.length) * 100);
+  const transmis = [
+    "en_revue_cabinet",
+    "valide_cabinet",
+    "pret_au_depot",
+    "depose",
+    "immatricule",
+  ].includes(dossier.statut);
 
   async function transmettre() {
     if (!dossier || manquants.length > 0) return;
@@ -196,7 +311,10 @@ function Documents() {
   }
 
   const Ligne = ({ d, genere }: { d: DocumentRow; genere: boolean }) => {
-    const badge = STATUT_BADGE[d.statut_document] ?? STATUT_BADGE["a_fournir"]!;
+    const statut = normaliserStatut(d.statut_document);
+    const badge = LIBELLE_STATUT[statut];
+    const kyc = !genere && estPieceIdentite(d.type_document);
+    const mentionOk = !kyc || mentions[d.id] === true;
     return (
       <li className="rounded-lg border border-border bg-surface p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -207,28 +325,60 @@ function Documents() {
                 <span className="text-sm font-normal text-muted-foreground"> — facultatif</span>
               )}
             </p>
-            <span className={`mt-1.5 inline-block rounded-full px-2.5 py-0.5 text-xs ${badge.cls}`}>{badge.label}</span>
+            <span className={`mt-1.5 inline-block rounded-full px-2.5 py-0.5 text-xs ${badge.cls}`}>
+              {badge.label}
+            </span>
           </div>
-          {genere ? (
+          {genere && (
             <Button size="sm" variant="outline" onClick={() => telecharger(d)}>
               <Download strokeWidth={1.5} /> Télécharger
             </Button>
-          ) : (
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-input px-3 py-2 text-sm hover:border-accent">
-              <Upload className="size-4" strokeWidth={1.5} aria-hidden />
-              {d.fichier_url ? "Remplacer" : "Déposer"}
-              <input
-                type="file"
-                className="sr-only"
-                accept="application/pdf,image/jpeg,image/png"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) televerser(d, f);
-                }}
-              />
-            </label>
           )}
         </div>
+
+        {!genere && (
+          <>
+            {kyc && (
+              <div className="mt-3 rounded-md border border-border bg-muted/40 p-3">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id={`kyc-${d.id}`}
+                    className="mt-0.5"
+                    checked={mentions[d.id] === true}
+                    disabled={transmis}
+                    onCheckedChange={(v) => setMentions((m) => ({ ...m, [d.id]: v === true }))}
+                  />
+                  <Label htmlFor={`kyc-${d.id}`} className="text-sm font-normal text-justify">
+                    J'ai recopié à la main sur la copie la mention « Je soussigné(e) [prénom NOM],
+                    certifie la présente copie conforme à l'original de ma pièce d'identité »,
+                    suivie du lieu, de la date du jour et de ma signature.
+                  </Label>
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Le dépôt reste bloqué tant que cette case n'est pas cochée. Le{" "}
+                  <Link to="/documents" className="underline underline-offset-2">
+                    gabarit à imprimer
+                  </Link>{" "}
+                  est disponible plus haut sur cette page.
+                </p>
+              </div>
+            )}
+            <div className="mt-3">
+              <ZoneDepot
+                multiple={false}
+                disabled={transmis || !mentionOk}
+                libelle={d.fichier_url ? "Déposer une nouvelle version" : "Glissez le fichier ici"}
+                aide={
+                  mentionOk
+                    ? "PDF, JPG ou PNG — 10 Mo maximum."
+                    : "Cochez d'abord la case ci-dessus pour débloquer le dépôt."
+                }
+                className="p-4"
+                onFichiers={(fs) => fs[0] && deposer([fs[0]], d.id)}
+              />
+            </div>
+          </>
+        )}
 
         {!genere && (
           <div className="mt-3 space-y-2">
@@ -241,8 +391,8 @@ function Documents() {
                 onCheckedChange={(v) => attester(d, v === true)}
               />
               <Label htmlFor={`att-${d.id}`} className="text-sm font-normal text-justify">
-                Je certifie que cette pièce est complète, lisible, en cours de validité et conforme à
-                l'original.
+                Je certifie que cette pièce est complète, lisible, en cours de validité et conforme
+                à l'original.
               </Label>
             </div>
             <p className="text-xs text-muted-foreground">
@@ -252,9 +402,10 @@ function Documents() {
           </div>
         )}
 
-        {d.statut_document === "rejete" && d.motif_rejet && (
+        {aRedeposer(statut) && d.motif_rejet && (
           <p className="mt-3 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
-            <strong>Pièce à corriger :</strong> {d.motif_rejet}
+            <strong>{statut === "refuse" ? "Pièce refusée" : "Pièce à corriger"} :</strong>{" "}
+            {d.motif_rejet}
           </p>
         )}
 
@@ -281,7 +432,6 @@ function Documents() {
         </p>
         <MentionConfidentialite className="mt-2" />
 
-
         <div className="mt-6 space-y-5">
           {dossier && <ApercuChecklist dossier={dossier} associes={associes} />}
           <EncadreJustificatifs />
@@ -293,15 +443,30 @@ function Documents() {
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
             <div className="space-y-2">
               <Label htmlFor="ds">Signature des statuts</Label>
-              <Input id="ds" type="date" value={dossier.date_signature ?? ""} onChange={(e) => majDate("date_signature", e.target.value)} />
+              <Input
+                id="ds"
+                type="date"
+                value={dossier.date_signature ?? ""}
+                onChange={(e) => majDate("date_signature", e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="dd">Dépôt des fonds</Label>
-              <Input id="dd" type="date" value={dossier.date_depot_fonds ?? ""} onChange={(e) => majDate("date_depot_fonds", e.target.value)} />
+              <Input
+                id="dd"
+                type="date"
+                value={dossier.date_depot_fonds ?? ""}
+                onChange={(e) => majDate("date_depot_fonds", e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="dp">Parution de l'annonce</Label>
-              <Input id="dp" type="date" value={dossier.date_parution ?? ""} onChange={(e) => majDate("date_parution", e.target.value)} />
+              <Input
+                id="dp"
+                type="date"
+                value={dossier.date_parution ?? ""}
+                onChange={(e) => majDate("date_parution", e.target.value)}
+              />
             </div>
           </div>
           {erreursDates.length > 0 && (
@@ -326,8 +491,54 @@ function Documents() {
             type de siège. Chaque pièce obligatoire doit être déposée puis cochée conforme avant que
             le dossier puisse partir au cabinet.
           </p>
+
+          <div className="mt-4 rounded-lg border border-border bg-surface p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm font-medium">Dépôt groupé</p>
+              <p className="text-xs text-muted-foreground">
+                {traitees.length} / {obligatoires.length} pièce(s) obligatoire(s) en règle
+              </p>
+            </div>
+            <Progress
+              value={progression}
+              className="mt-2 h-2"
+              aria-label="Progression des pièces obligatoires"
+            />
+            <div className="mt-4 space-y-2">
+              <Label htmlFor="cible">Rattacher les fichiers à</Label>
+              <Select value={cible} onValueChange={setCible}>
+                <SelectTrigger id="cible">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={CIBLE_LIBRE}>Pièce complémentaire (hors liste)</SelectItem>
+                  {aFournir.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.libelle}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <ZoneDepot
+              className="mt-3"
+              disabled={transmis}
+              libelle="Glissez plusieurs fichiers ici"
+              aide={`PDF, JPG ou PNG — 10 Mo maximum par fichier. Formats acceptés : ${ACCEPT_ATTR.replaceAll("application/pdf", "PDF").replaceAll("image/jpeg", "JPG").replaceAll("image/png", "PNG")}.`}
+              onFichiers={(fs) => deposer(fs, cible)}
+            />
+            <ListeTransferts
+              transferts={transferts}
+              onSupprimer={(id) => setTransferts((t) => t.filter((x) => x.id !== id))}
+            />
+          </div>
+
           <ul className="mt-4 space-y-3">
-            {aFournir.length === 0 && <li className="text-sm text-muted-foreground">Aucune pièce demandée pour le moment.</li>}
+            {aFournir.length === 0 && (
+              <li className="text-sm text-muted-foreground">
+                Aucune pièce demandée pour le moment.
+              </li>
+            )}
             {aFournir.map((d) => (
               <Ligne key={d.id} d={d} genere={false} />
             ))}
@@ -352,7 +563,7 @@ function Documents() {
                       {manquants.map((d) => (
                         <li key={d.id}>
                           {d.libelle} —{" "}
-                          {d.statut_document === "rejete"
+                          {aRedeposer(normaliserStatut(d.statut_document))
                             ? "à corriger puis à redéposer"
                             : !d.fichier_url
                               ? "fichier non déposé"
@@ -389,7 +600,9 @@ function Documents() {
                 return (
                   <li key={s.id} className="rounded-lg border border-border bg-surface p-4">
                     <p className="font-medium">{s.libelle}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">{LABEL_SIGNATURE(s.statut)}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {LABEL_SIGNATURE(s.statut)}
+                    </p>
                     <ol className="mt-3 grid gap-2 sm:grid-cols-4">
                       {ORDRE_SIGNATURE.map((etape, i) => (
                         <li
@@ -425,7 +638,11 @@ function Documents() {
             Ces documents portent le filigrane « PROJET — soumis à la validation du cabinet ».
           </p>
           <ul className="mt-4 space-y-3">
-            {generes.length === 0 && <li className="text-sm text-muted-foreground">Aucun document généré pour le moment.</li>}
+            {generes.length === 0 && (
+              <li className="text-sm text-muted-foreground">
+                Aucun document généré pour le moment.
+              </li>
+            )}
             {generes.map((d) => (
               <Ligne key={d.id} d={d} genere />
             ))}
@@ -440,7 +657,9 @@ function Documents() {
             vérifier à tout moment l'historique de votre dossier.
           </p>
           <ol className="mt-4 space-y-3">
-            {events.length === 0 && <li className="text-sm text-muted-foreground">Aucun événement enregistré.</li>}
+            {events.length === 0 && (
+              <li className="text-sm text-muted-foreground">Aucun événement enregistré.</li>
+            )}
             {events.map((e) => (
               <li key={e.id} className="rounded-lg border border-border bg-surface p-3">
                 <p className="text-xs text-muted-foreground">{horodatage(e.created_at)}</p>

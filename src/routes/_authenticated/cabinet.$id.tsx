@@ -9,8 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Disclaimer } from "@/components/Disclaimer";
+import { RevuePieces } from "@/components/RevuePieces";
+import { LIBELLE_STATUT, normaliserStatut } from "@/lib/pieces";
 import { STATUTS, STATUT_LABEL, euro } from "@/lib/domain";
 import type { Associe, DocumentRow, Dossier } from "@/lib/documents";
 import {
@@ -24,20 +32,20 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const STATUT_PIECE: Record<string, string> = {
-  a_fournir: "À fournir",
-  recu: "Reçue, à contrôler",
-  valide: "Validée",
-  rejete: "À corriger",
-};
-
 export const Route = createFileRoute("/_authenticated/cabinet/$id")({
   head: () => ({
     meta: [
       { title: "Revue de dossier — CREA EXPERT" },
-      { name: "description", content: "Revue cabinet d'un dossier de création de société : pièces, informations et validation." },
+      {
+        name: "description",
+        content:
+          "Revue cabinet d'un dossier de création de société : pièces, informations et validation.",
+      },
       { property: "og:title", content: "Revue de dossier — CREA EXPERT" },
-      { property: "og:description", content: "Validation des pièces et du dossier par le cabinet." },
+      {
+        property: "og:description",
+        content: "Validation des pièces et du dossier par le cabinet.",
+      },
     ],
   }),
   component: CabinetDossier,
@@ -48,7 +56,7 @@ function CabinetDossier() {
   const { user } = useAuth();
   const { isCabinet, loading: rolesLoading } = useRoles(user);
   const qc = useQueryClient();
-  const [motifs, setMotifs] = useState<Record<string, string>>({});
+
   const [confirmation, setConfirmation] = useState(false);
 
   const { data, isLoading } = useQuery({
@@ -59,7 +67,11 @@ function CabinetDossier() {
         supabase.from("dossiers").select("*").eq("id", id).maybeSingle(),
         supabase.from("associes").select("*").eq("dossier_id", id),
         supabase.from("documents").select("*").eq("dossier_id", id).order("created_at"),
-        supabase.from("events_dossier").select("*").eq("dossier_id", id).order("created_at", { ascending: false }),
+        supabase
+          .from("events_dossier")
+          .select("*")
+          .eq("dossier_id", id)
+          .order("created_at", { ascending: false }),
       ]);
       return {
         dossier: (d ?? null) as Dossier | null,
@@ -71,36 +83,9 @@ function CabinetDossier() {
   });
 
   async function journaliser(message: string) {
-    await supabase.from("events_dossier").insert({ dossier_id: id, type_event: "cabinet", message });
-  }
-
-  async function majDocument(docId: string, statut: string, motif?: string) {
-    const motifNet = (motif ?? "").trim();
-    if (statut === "rejete" && motifNet.length < 5) {
-      toast.error("Le motif de rejet est obligatoire (5 caractères minimum).");
-      return;
-    }
-    const { error } = await supabase
-      .from("documents")
-      .update({
-        statut_document: statut,
-        motif_rejet: statut === "rejete" ? motifNet : null,
-        valide_le: statut === "valide" ? new Date().toISOString() : null,
-      })
-      .eq("id", docId);
-    if (error) {
-      toast.error("Mise à jour impossible.");
-      return;
-    }
-    const doc = data?.docs.find((d) => d.id === docId);
-    await journaliser(
-      statut === "valide"
-        ? `Pièce validée par le cabinet : ${doc?.libelle}`
-        : `Pièce à corriger — ${doc?.libelle} : ${motifNet}`,
-    );
-    if (statut === "rejete") setMotifs((m) => ({ ...m, [docId]: "" }));
-    toast.success("Pièce mise à jour.");
-    qc.invalidateQueries({ queryKey: ["cabinet-dossier", id] });
+    await supabase
+      .from("events_dossier")
+      .insert({ dossier_id: id, type_event: "cabinet", message });
   }
 
   async function ouvrirPiece(chemin: string | null) {
@@ -108,7 +93,9 @@ function CabinetDossier() {
       toast.error("Aucun fichier déposé pour cette pièce.");
       return;
     }
-    const { data: signed, error } = await supabase.storage.from("documents").createSignedUrl(chemin, 300);
+    const { data: signed, error } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(chemin, 300);
     if (error || !signed) {
       toast.error("Impossible d'ouvrir le fichier.");
       return;
@@ -159,7 +146,9 @@ function CabinetDossier() {
       <PageShell>
         <div className="container-page max-w-xl py-14">
           <h1 className="font-serif text-3xl">Accès réservé</h1>
-          <p className="mt-3 text-muted-foreground">Cet espace est réservé au cabinet partenaire.</p>
+          <p className="mt-3 text-muted-foreground">
+            Cet espace est réservé au cabinet partenaire.
+          </p>
         </div>
       </PageShell>
     );
@@ -179,7 +168,9 @@ function CabinetDossier() {
     );
   }
 
-  const manquantes = (data?.docs ?? []).filter((d) => d.obligatoire && d.statut_document !== "valide");
+  const manquantes = (data?.docs ?? []).filter(
+    (d) => d.obligatoire && d.statut_document !== "valide",
+  );
 
   return (
     <PageShell>
@@ -196,7 +187,8 @@ function CabinetDossier() {
             </div>
             {dossier.valide_le && (
               <p className="mt-2 text-sm text-success">
-                Validé par {dossier.valide_par} le {new Date(dossier.valide_le).toLocaleDateString("fr-FR")}
+                Validé par {dossier.valide_par} le{" "}
+                {new Date(dossier.valide_le).toLocaleDateString("fr-FR")}
               </p>
             )}
           </div>
@@ -212,7 +204,10 @@ function CabinetDossier() {
               <Info label="Clôture de l'exercice" value={dossier.date_cloture_exercice} />
               <Info label="Option fiscale" value={dossier.option_fiscale} />
               <Info label="Régime de TVA" value={dossier.regime_tva} />
-              <Info label="Activité réglementée" value={dossier.activite_reglementee ? "Oui" : "Non"} />
+              <Info
+                label="Activité réglementée"
+                value={dossier.activite_reglementee ? "Oui" : "Non"}
+              />
               <Info label="Apport en nature" value={dossier.apport_nature ? "Oui" : "Non"} />
               <Info label="Demande ACRE" value={dossier.demande_acre ? "Oui" : "Non"} />
               <Info label="Signature des statuts" value={dossier.date_signature} />
@@ -241,8 +236,15 @@ function CabinetDossier() {
             </ul>
           </section>
 
+          <RevuePieces
+            dossier={dossier}
+            associes={data?.associes ?? []}
+            docs={data?.docs ?? []}
+            onChangement={() => qc.invalidateQueries({ queryKey: ["cabinet-dossier", id] })}
+          />
+
           <section className="rounded-lg border border-border bg-surface p-6">
-            <h2 className="font-serif text-xl">Pièces du dossier</h2>
+            <h2 className="font-serif text-xl">Toutes les pièces attendues</h2>
             <ul className="mt-4 space-y-3">
               {(data?.docs ?? []).map((d) => (
                 <li key={d.id} className="rounded-md border border-border p-4">
@@ -250,38 +252,31 @@ function CabinetDossier() {
                     <div>
                       <p className="text-sm font-medium">{d.libelle}</p>
                       <p className="text-xs text-muted-foreground">
-                        {d.origine === "genere" ? "Généré par la plateforme" : "À fournir par le client"} ·{" "}
-                        {d.obligatoire ? "Obligatoire" : "Facultative"} · {STATUT_PIECE[d.statut_document] ?? d.statut_document}
+                        {d.origine === "genere"
+                          ? "Généré par la plateforme"
+                          : "À fournir par le client"}{" "}
+                        · {d.obligatoire ? "Obligatoire" : "Facultative"} ·{" "}
+                        {LIBELLE_STATUT[normaliserStatut(d.statut_document)].label}
                       </p>
-                      {d.motif_rejet && <p className="mt-1 text-xs text-destructive">Motif : {d.motif_rejet}</p>}
+                      {d.motif_rejet && (
+                        <p className="mt-1 text-xs text-destructive">Motif : {d.motif_rejet}</p>
+                      )}
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        disabled={!d.fichier_url}
-                        onClick={() => ouvrirPiece(d.fichier_url)}
-                      >
-                        {d.fichier_url ? "Voir la pièce" : "Non déposée"}
-                      </Button>
-                      <Input
-                        className="h-9 w-48"
-                        placeholder="Motif de rejet (obligatoire)"
-                        value={motifs[d.id] ?? ""}
-                        onChange={(e) => setMotifs((m) => ({ ...m, [d.id]: e.target.value }))}
-                      />
-                      <Button size="sm" variant="outline" onClick={() => majDocument(d.id, "rejete", motifs[d.id])}>
-                        Rejeter
-                      </Button>
-                      <Button size="sm" onClick={() => majDocument(d.id, "valide")}>
-                        Valider
-                      </Button>
-                    </div>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      disabled={!d.fichier_url}
+                      onClick={() => ouvrirPiece(d.fichier_url)}
+                    >
+                      {d.fichier_url ? "Ouvrir dans un onglet" : "Non déposée"}
+                    </Button>
                   </div>
                 </li>
               ))}
               {(data?.docs ?? []).length === 0 && (
-                <li className="text-sm text-muted-foreground">Aucune pièce générée pour ce dossier.</li>
+                <li className="text-sm text-muted-foreground">
+                  Aucune pièce générée pour ce dossier.
+                </li>
               )}
             </ul>
           </section>
@@ -307,8 +302,8 @@ function CabinetDossier() {
             </div>
             {manquantes.length > 0 && (
               <p className="mt-4 rounded-md border border-border bg-muted p-3 text-sm">
-                {manquantes.length} pièce(s) obligatoire(s) non validée(s). La validation du dossier retire le
-                filigrane « PROJET » des documents générés.
+                {manquantes.length} pièce(s) obligatoire(s) non validée(s). La validation du dossier
+                retire le filigrane « PROJET » des documents générés.
               </p>
             )}
             {dossier.valide_le ? (
@@ -326,8 +321,9 @@ function CabinetDossier() {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Valider définitivement ce dossier ?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    La validation est horodatée et enregistrée à votre nom ({user?.email}). Elle retire la mention
-                    « PROJET » des documents générés et en informe le client dans son suivi.
+                    La validation est horodatée et enregistrée à votre nom ({user?.email}). Elle
+                    retire la mention « PROJET » des documents générés et en informe le client dans
+                    son suivi.
                     {manquantes.length > 0
                       ? ` ${manquantes.length} pièce(s) obligatoire(s) ne sont pas encore validées.`
                       : ""}
@@ -349,7 +345,10 @@ function CabinetDossier() {
             <ol className="mt-4 space-y-3 border-l border-border pl-4">
               {(data?.events ?? []).map((e) => (
                 <li key={e.id} className="relative">
-                  <span className="absolute -left-[21px] top-1.5 size-2 rounded-full bg-accent" aria-hidden />
+                  <span
+                    className="absolute -left-[21px] top-1.5 size-2 rounded-full bg-accent"
+                    aria-hidden
+                  />
                   <p className="text-sm">{e.message}</p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(e.created_at).toLocaleString("fr-FR")}
