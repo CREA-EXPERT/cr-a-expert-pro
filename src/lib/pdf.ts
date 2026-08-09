@@ -443,6 +443,120 @@ export async function genererLettreMission(
   return fin(ctx);
 }
 
+/* ------------- DOCUMENTS SIGNÉS ÉLECTRONIQUEMENT ------------- */
+
+async function confidentialiteAdresse(d: Dossier, associes: Associe[]) {
+  const ctx = await creerCtx(
+    "Demande de confidentialité de l'adresse personnelle",
+    `${d.denomination || "[dénomination]"} — ${d.forme_juridique}`,
+  );
+  ecrire(ctx, "Les personnes physiques désignées ci-après demandent que leur adresse personnelle ne soit pas rendue publique dans les registres consultables par tous.");
+  espace(ctx, 8);
+  for (const a of associes.filter((x) => x.type === "personne_physique")) {
+    ecrire(ctx, `— ${nomComplet(a)}, demeurant ${a.adresse ?? "[adresse]"}`);
+  }
+  espace(ctx, 8);
+  ecrire(ctx, "Cette demande ne dispense pas de communiquer l'adresse aux autorités et aux organismes habilités.");
+  return fin(ctx);
+}
+
+async function mandatGuichetUnique(d: Dossier, associes: Associe[]) {
+  const dir = associes.find((a) => a.est_dirigeant);
+  const ctx = await creerCtx(
+    "Mandat de dépôt sur le guichet unique des formalités",
+    `${d.denomination || "[dénomination]"} — ${d.forme_juridique}`,
+  );
+  ecrire(ctx, `Je soussigné(e) ${dir ? nomComplet(dir) : "[dirigeant]"}, agissant pour la société ${d.denomination || "[dénomination]"},`);
+  espace(ctx, 8);
+  ecrire(ctx, "donne mandat à CREA EXPERT à l'effet de déposer en mon nom le dossier de création sur le guichet unique des formalités des entreprises, et de répondre aux demandes de pièces complémentaires liées à cette seule formalité.");
+  espace(ctx, 8);
+  ecrire(ctx, "Ce mandat est limité à cette formalité. Il ne confère aucun pouvoir de gestion, de représentation générale ni de disposition sur la société.");
+  return fin(ctx);
+}
+
+/* --------------- PAGE DE SIGNATURE ÉLECTRONIQUE --------------- */
+
+export type PreuveSignataire = {
+  nom: string;
+  methode: "trace" | "saisie";
+  horodatage: string;
+  /** Image PNG du tracé, le cas échéant. */
+  trace?: Uint8Array | null;
+};
+
+/**
+ * Appose sur le document une page de signature listant chaque signataire,
+ * la date, l'heure, la méthode et l'empreinte du document signé.
+ */
+export async function apposerPageDeSignature(
+  source: Uint8Array,
+  opts: { libelle: string; denomination: string; signataires: PreuveSignataire[]; empreinte: string },
+): Promise<Uint8Array> {
+  const pdf = await PDFDocument.load(source);
+  const regular = await pdf.embedFont(StandardFonts.Helvetica);
+  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  let page = pdf.addPage([LARGEUR, HAUTEUR]);
+  let y = HAUTEUR - MARGE;
+
+  const ligne = (texte: string, o: { size?: number; bold?: boolean; color?: typeof NAVY } = {}) => {
+    const size = o.size ?? 10.5;
+    const font = o.bold ? bold : regular;
+    for (const l of lignes(texte, font, size, LARGEUR - MARGE * 2)) {
+      if (y < MARGE + 30) {
+        page = pdf.addPage([LARGEUR, HAUTEUR]);
+        y = HAUTEUR - MARGE;
+      }
+      page.drawText(l, { x: MARGE, y, size, font, color: o.color ?? NAVY });
+      y -= size + 4;
+    }
+  };
+
+  ligne("PAGE DE SIGNATURE ÉLECTRONIQUE", { size: 15, bold: true });
+  y -= 6;
+  ligne(`${opts.libelle} — ${opts.denomination}`, { size: 10, color: GRIS });
+  y -= 14;
+  ligne("Signé électroniquement — preuve conservée, empreinte SHA-256.", { bold: true });
+  y -= 10;
+
+  for (const s of opts.signataires) {
+    ligne(s.nom, { bold: true });
+    ligne(
+      `Signé le ${new Date(s.horodatage).toLocaleString("fr-FR")} — méthode : ${
+        s.methode === "trace" ? "tracé manuscrit" : "saisie du nom"
+      }`,
+      { color: GRIS },
+    );
+    if (s.trace && s.trace.length > 0) {
+      try {
+        const img = await pdf.embedPng(s.trace);
+        const largeur = 160;
+        const hauteur = (img.height / img.width) * largeur;
+        if (y - hauteur < MARGE + 30) {
+          page = pdf.addPage([LARGEUR, HAUTEUR]);
+          y = HAUTEUR - MARGE;
+        }
+        page.drawImage(img, { x: MARGE, y: y - hauteur, width: largeur, height: hauteur });
+        y -= hauteur + 6;
+      } catch {
+        /* tracé illisible : la preuve textuelle suffit */
+      }
+    }
+    y -= 8;
+  }
+
+  y -= 6;
+  ligne("Empreinte SHA-256 du document signé :", { bold: true });
+  ligne(opts.empreinte, { size: 8.5, color: GRIS });
+  y -= 6;
+  ligne(
+    "Signature électronique simple au sens du règlement eIDAS. Les preuves associées (horodatage serveur, adresse IP, navigateur, empreinte du document, consentement) sont conservées par CREA EXPERT.",
+    { size: 9, color: GRIS },
+  );
+
+  return await pdf.save();
+}
+
+
 export async function genererPdf(
   type: string,
   dossier: Dossier,
