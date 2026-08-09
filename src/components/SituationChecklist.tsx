@@ -5,6 +5,7 @@ import { CallbackDialog } from "@/components/CallbackDialog";
 import { isEI, isSas } from "@/lib/domain";
 import type { Associe, Dossier } from "@/lib/documents";
 import { analyserChecklist, estMineur } from "@/lib/checklist";
+import { activitesDuDossier, activitesReglementees, libelleActivite } from "@/lib/activites";
 import { ApercuChecklist } from "@/components/ApercuChecklist";
 
 const champ = "h-10 w-full rounded-md border border-input bg-surface px-3 text-sm";
@@ -61,6 +62,7 @@ export function SituationChecklist({
   const sas = isSas(dossier.forme_juridique);
   const physiques = associes.filter((a) => a.type === "personne_physique");
   const analyse = analyserChecklist(dossier, associes);
+  const reglementees = activitesReglementees(activitesDuDossier(dossier));
 
   return (
     <div className="space-y-5">
@@ -144,7 +146,30 @@ export function SituationChecklist({
           checked={dossier.activite_artisanale}
           onChange={(v) => patch({ activite_artisanale: v })}
         />
+        {reglementees.length > 0 && (
+          <div className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm leading-relaxed">
+            <p className="font-medium">
+              Activités réglementées déclarées à l'étape « Objet social »
+            </p>
+            <ul className="mt-2 space-y-1 pl-5 [&>li]:list-disc">
+              {reglementees.map((a, i) => (
+                <li key={a.id}>
+                  {libelleActivite(a, i)} — justificatif attendu :{" "}
+                  {a.justificatif_type === "diplome"
+                    ? "diplôme ou titre"
+                    : a.justificatif_type === "experience"
+                      ? "expérience professionnelle"
+                      : "à préciser à l'étape « Objet social »"}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Récapitulatif en lecture seule : modifiez ces informations à l'étape « Objet social ».
+            </p>
+          </div>
+        )}
       </Bloc>
+
 
       <Bloc
         titre="Autres entreprises et interdiction de gérer"

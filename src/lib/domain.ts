@@ -80,64 +80,81 @@ export const REGIME_DEFAUT: Record<string, string> = {
   EI: "Impôt sur le revenu (IR) par défaut ; une option pour l'impôt sur les sociétés est possible.",
 };
 
-export const OBJETS_TYPES: { titre: string; texte: string }[] = [
+export const OBJETS_TYPES: {
+  titre: string;
+  texte: string;
+  /** Code d'activité INSEE indicatif, à titre d'information. */
+  naf?: { code: string; libelle: string };
+}[] = [
   {
     titre: "Conseil aux entreprises",
+    naf: { code: "70.22Z", libelle: "Conseil pour les affaires et autres conseils de gestion" },
     texte:
       "Le conseil pour les affaires et autres conseils de gestion auprès des entreprises et des organisations, l'assistance opérationnelle et l'accompagnement de projets.",
   },
   {
     titre: "Développement informatique",
+    naf: { code: "62.01Z", libelle: "Programmation informatique" },
     texte:
       "La conception, le développement, l'édition, la maintenance et l'hébergement de logiciels, d'applications et de sites internet, ainsi que toute prestation de services informatiques.",
   },
   {
     titre: "E-commerce",
+    naf: { code: "47.91B", libelle: "Vente à distance sur catalogue spécialisé" },
     texte:
       "L'achat, la vente et la distribution, au détail comme en gros, de tous produits non réglementés, par tous moyens et notamment par internet.",
   },
   {
     titre: "Bâtiment second œuvre (non réglementé)",
+    naf: { code: "43.34Z", libelle: "Travaux de peinture et vitrerie" },
     texte:
       "Tous travaux de second œuvre du bâtiment ne relevant pas d'une activité réglementée, notamment peinture, revêtements de sols et murs, agencement et finitions.",
   },
   {
     titre: "Restauration",
+    naf: { code: "56.10A", libelle: "Restauration traditionnelle" },
     texte:
       "L'exploitation de tous établissements de restauration sur place, à emporter ou en livraison, ainsi que toute activité de traiteur.",
   },
   {
     titre: "Transport léger de marchandises",
+    naf: { code: "49.41B", libelle: "Transports routiers de fret de proximité" },
     texte:
       "Le transport public routier de marchandises au moyen de véhicules n'excédant pas 3,5 tonnes, ainsi que la livraison et la logistique associées.",
   },
   {
     titre: "Formation (non réglementée)",
+    naf: { code: "85.59A", libelle: "Formation continue d'adultes" },
     texte:
       "La conception et l'animation de formations, séminaires et ateliers ne relevant pas d'une activité réglementée, en présentiel comme à distance.",
   },
   {
     titre: "Marketing digital",
+    naf: { code: "73.11Z", libelle: "Activités des agences de publicité" },
     texte:
       "Le conseil en communication et en marketing, la création de contenus, la gestion de campagnes publicitaires et l'animation de réseaux sociaux.",
   },
   {
     titre: "Gestion immobilière patrimoniale (SCI)",
+    naf: { code: "68.20A", libelle: "Location de logements" },
     texte:
       "L'acquisition, la propriété, l'administration, la gestion et la location de tous biens et droits immobiliers, à titre civil et patrimonial.",
   },
   {
     titre: "Artisanat d'art",
+    naf: { code: "32.99Z", libelle: "Autres activités manufacturières n.c.a." },
     texte:
       "La création, la fabrication, la restauration et la commercialisation d'objets et de pièces relevant des métiers d'art.",
   },
   {
     titre: "Services à la personne (non réglementés)",
+    naf: { code: "96.09Z", libelle: "Autres services personnels n.c.a." },
     texte:
       "La fourniture de services à la personne ne relevant pas d'une activité réglementée, notamment l'entretien du domicile, le petit bricolage et l'assistance administrative.",
   },
   {
     titre: "Holding",
+    naf: { code: "64.20Z", libelle: "Activités des sociétés holding" },
     texte:
       "La prise de participation dans toutes sociétés, la gestion de ces participations, ainsi que la fourniture de prestations administratives et de gestion à ses filiales.",
   },

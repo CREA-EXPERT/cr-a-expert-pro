@@ -388,6 +388,7 @@ export type Database = {
         Row: {
           activite_artisanale: boolean
           activite_reglementee: boolean
+          activites: Json
           apport_immeuble: boolean
           apport_industrie: boolean
           apport_nature: boolean
@@ -465,6 +466,7 @@ export type Database = {
         Insert: {
           activite_artisanale?: boolean
           activite_reglementee?: boolean
+          activites?: Json
           apport_immeuble?: boolean
           apport_industrie?: boolean
           apport_nature?: boolean
@@ -542,6 +544,7 @@ export type Database = {
         Update: {
           activite_artisanale?: boolean
           activite_reglementee?: boolean
+          activites?: Json
           apport_immeuble?: boolean
           apport_industrie?: boolean
           apport_nature?: boolean
