@@ -70,7 +70,13 @@ function Confidentialite() {
             légale (art. 6.1.c). Sécurité, prévention des abus, amélioration du service, réponses aux
             demandes : intérêt légitime (art. 6.1.f).
           </p>
+          <p>
+            Conservation des pièces d'identité et des données de vigilance au titre de la lutte contre
+            le blanchiment (LBC-FT) : obligation légale (art. 6.1.c RGPD ; art. L.561-2 et L.561-12 du
+            Code monétaire et financier).
+          </p>
         </Section>
+
 
         <Section titre="4. Destinataires et sous-traitants">
           <p>
