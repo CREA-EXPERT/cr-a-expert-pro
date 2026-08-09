@@ -133,7 +133,12 @@ export function AssocieIdentite({
       <div className="space-y-1">
         <Label className="text-xs">Date de naissance (jour / mois / année)</Label>
         <div className="grid grid-cols-3 gap-2">
-          <select className={champ} value={d.j} onChange={(e) => majDate("j", e.target.value)}>
+          <select
+            className={champ}
+            aria-label="Jour de naissance"
+            value={d.j}
+            onChange={(e) => majDate("j", e.target.value)}
+          >
             <option value="">Jour</option>
             {JOURS.map((j) => (
               <option key={j} value={j}>
@@ -141,7 +146,12 @@ export function AssocieIdentite({
               </option>
             ))}
           </select>
-          <select className={champ} value={d.mo} onChange={(e) => majDate("mo", e.target.value)}>
+          <select
+            className={champ}
+            aria-label="Mois de naissance"
+            value={d.mo}
+            onChange={(e) => majDate("mo", e.target.value)}
+          >
             <option value="">Mois</option>
             {MOIS.map((m, i) => (
               <option key={m} value={String(i + 1)}>
@@ -149,7 +159,12 @@ export function AssocieIdentite({
               </option>
             ))}
           </select>
-          <select className={champ} value={d.a} onChange={(e) => majDate("a", e.target.value)}>
+          <select
+            className={champ}
+            aria-label="Année de naissance"
+            value={d.a}
+            onChange={(e) => majDate("a", e.target.value)}
+          >
             <option value="">Année</option>
             {ANNEES.map((a) => (
               <option key={a} value={a}>
@@ -158,7 +173,13 @@ export function AssocieIdentite({
             ))}
           </select>
         </div>
+        {dateIncomplete && (
+          <p role="alert" className="text-sm font-medium text-destructive">
+            Sélectionnez le jour, le mois et l'année : la date de naissance doit être complète.
+          </p>
+        )}
       </div>
+
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1">
