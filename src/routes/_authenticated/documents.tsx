@@ -490,7 +490,7 @@ function Documents() {
                       {manquants.map((d) => (
                         <li key={d.id}>
                           {d.libelle} —{" "}
-                          {d.statut_document === "rejete"
+                          {aRedeposer(normaliserStatut(d.statut_document))
                             ? "à corriger puis à redéposer"
                             : !d.fichier_url
                               ? "fichier non déposé"
