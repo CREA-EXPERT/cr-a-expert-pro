@@ -484,6 +484,24 @@ function Creation() {
 
   async function validerDossier() {
     if (!dossier || !rules) return;
+    /**
+     * Contrôle final de cohérence : le raccourci de conception permet seulement de
+     * naviguer, il ne dispense d'aucune règle de saisie et n'écrase aucune donnée.
+     * À la première incohérence, l'utilisateur est ramené à l'étape concernée.
+     */
+    for (let i = 0; i < cles.length; i++) {
+      const c = cles[i]!;
+      const e = controlerEtape(c);
+      if (Object.keys(e).length > 0) {
+        setErreurs(e);
+        setEtape(i + 1);
+        await patch({ etape_courante: i + 1 });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        toast.error(`Étape « ${TITRES[c]} » : ${Object.values(e)[0]}`);
+        return;
+      }
+    }
+
     if (!certifie) {
       toast.error("Vous devez certifier l'exactitude des informations.");
       return;
