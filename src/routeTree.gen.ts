@@ -24,6 +24,7 @@ import { Route as AuthenticatedCreationRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
 import { Route as AuthenticatedMonCompteRouteImport } from './routes/_authenticated/mon-compte'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
+import { Route as DevAssocieDateRouteImport } from './routes/dev.associe-date'
 import { Route as SignerJetonRouteImport } from './routes/signer.$jeton'
 import { Route as AuthenticatedCabinetIndexRouteImport } from './routes/_authenticated/cabinet.index'
 import { Route as AuthenticatedCabinetIdRouteImport } from './routes/_authenticated/cabinet.$id'
@@ -106,6 +107,11 @@ const AuthenticatedTableauDeBordRoute =
     path: '/tableau-de-bord',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const DevAssocieDateRoute = DevAssocieDateRouteImport.update({
+  id: '/dev/associe-date',
+  path: '/dev/associe-date',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignerJetonRoute = SignerJetonRouteImport.update({
   id: '/signer/$jeton',
   path: '/signer/$jeton',
@@ -156,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/documents': typeof AuthenticatedDocumentsRoute
   '/mon-compte': typeof AuthenticatedMonCompteRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/dev/associe-date': typeof DevAssocieDateRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
@@ -178,6 +185,7 @@ export interface FileRoutesByTo {
   '/documents': typeof AuthenticatedDocumentsRoute
   '/mon-compte': typeof AuthenticatedMonCompteRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/dev/associe-date': typeof DevAssocieDateRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
@@ -202,6 +210,7 @@ export interface FileRoutesById {
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
   '/_authenticated/mon-compte': typeof AuthenticatedMonCompteRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/dev/associe-date': typeof DevAssocieDateRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/_authenticated/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/_authenticated/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
@@ -226,6 +235,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/mon-compte'
     | '/tableau-de-bord'
+    | '/dev/associe-date'
     | '/signer/$jeton'
     | '/cabinet/$id'
     | '/cabinet/rappels'
@@ -248,6 +258,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/mon-compte'
     | '/tableau-de-bord'
+    | '/dev/associe-date'
     | '/signer/$jeton'
     | '/cabinet/$id'
     | '/cabinet/rappels'
@@ -271,6 +282,7 @@ export interface FileRouteTypes {
     | '/_authenticated/documents'
     | '/_authenticated/mon-compte'
     | '/_authenticated/tableau-de-bord'
+    | '/dev/associe-date'
     | '/signer/$jeton'
     | '/_authenticated/cabinet/$id'
     | '/_authenticated/cabinet/rappels'
@@ -290,6 +302,7 @@ export interface RootRouteChildren {
   MentionsLegalesRoute: typeof MentionsLegalesRoute
   SimulateurRoute: typeof SimulateurRoute
   TarifsRoute: typeof TarifsRoute
+  DevAssocieDateRoute: typeof DevAssocieDateRoute
   SignerJetonRoute: typeof SignerJetonRoute
   ApiPublicHooksPurgeDonneesRoute: typeof ApiPublicHooksPurgeDonneesRoute
   ApiPublicHooksRelanceSignaturesRoute: typeof ApiPublicHooksRelanceSignaturesRoute
@@ -402,6 +415,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTableauDeBordRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/dev/associe-date': {
+      id: '/dev/associe-date'
+      path: '/dev/associe-date'
+      fullPath: '/dev/associe-date'
+      preLoaderRoute: typeof DevAssocieDateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signer/$jeton': {
       id: '/signer/$jeton'
       path: '/signer/$jeton'
@@ -483,6 +503,7 @@ const rootRouteChildren: RootRouteChildren = {
   MentionsLegalesRoute: MentionsLegalesRoute,
   SimulateurRoute: SimulateurRoute,
   TarifsRoute: TarifsRoute,
+  DevAssocieDateRoute: DevAssocieDateRoute,
   SignerJetonRoute: SignerJetonRoute,
   ApiPublicHooksPurgeDonneesRoute: ApiPublicHooksPurgeDonneesRoute,
   ApiPublicHooksRelanceSignaturesRoute: ApiPublicHooksRelanceSignaturesRoute,
