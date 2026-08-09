@@ -628,9 +628,11 @@ function OngletSignatures() {
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        La signature électronique sera disponible ultérieurement.
-      </p>
+      <ReglagesRelanceSignature />
+
+      <p className="text-sm text-muted-foreground">Suivi des documents à signer.</p>
+
+
 
       <div className="overflow-x-auto rounded-lg border border-border bg-surface">
         <table className="w-full text-sm">
