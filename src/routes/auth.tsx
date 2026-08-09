@@ -184,13 +184,65 @@ function Auth() {
             <p className="text-sm font-medium">Mode conception</p>
             <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
               Accès temporaire à un compte de démonstration (rôles admin et cabinet) pour parcourir
-              toutes les pages. Visible uniquement en aperçu, jamais sur le site publié.
+              toutes les pages. Visible uniquement en aperçu, jamais sur le site publié. Le mot de
+              passe est régénéré à chaque clic et la session expire au bout de 60 minutes.
             </p>
-            <Button className="mt-3 w-full" variant="outline" disabled={busy} onClick={entrerEnDemo}>
-              {busy ? "Connexion…" : "Se connecter en Admin (démo)"}
+            <Button
+              className="mt-3 w-full"
+              variant="outline"
+              disabled={busy}
+              onClick={() => void actionDemo("connexion")}
+            >
+              {busy ? "Patientez…" : "Se connecter en Admin (démo)"}
             </Button>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={busy}
+                onClick={() => void actionDemo("reinitialiser")}
+              >
+                Recréer un compte vierge
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={busy}
+                onClick={() => void actionDemo("supprimer")}
+              >
+                Supprimer le compte démo
+              </Button>
+            </div>
+            {identifiantsDemo && (
+              <div className="mt-3 rounded-md border border-border bg-surface p-3 text-xs">
+                <p className="font-medium">Identifiants de démonstration</p>
+                <p className="mt-1 break-all">
+                  Email : <code>{identifiantsDemo.email}</code>
+                </p>
+                <p className="break-all">
+                  Mot de passe : <code>{identifiantsDemo.motdepasse}</code>
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  Valable jusqu'à {new Date(identifiantsDemo.expireLe).toLocaleTimeString("fr-FR")}.
+                </p>
+                <Button
+                  className="mt-2"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(
+                      `${identifiantsDemo.email} / ${identifiantsDemo.motdepasse}`,
+                    );
+                    toast.success("Identifiants copiés.");
+                  }}
+                >
+                  Copier
+                </Button>
+              </div>
+            )}
           </div>
         )}
+
 
 
         {confirmation ? (
