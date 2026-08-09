@@ -146,11 +146,46 @@ export type LienAEnvoyer = {
   url: string;
   libelle: string;
   denomination: string;
+  dossierId: string;
+  signatureId: string;
+  signataireId: string;
+};
+
+/** Nombre maximal de tentatives d'envoi par signataire, relances comprises. */
+export const MAX_TENTATIVES_ENVOI = 3;
+
+/** Ne conserve qu'une forme masquée de l'adresse dans le journal (minimisation RGPD). */
+export function masquerEmail(email: string) {
+  const [locale = "", domaine = ""] = email.split("@");
+  const debut = locale.slice(0, 1) || "•";
+  return `${debut}${"•".repeat(Math.max(locale.length - 1, 1))}@${domaine}`;
+}
+
+/** Cause générique, sans détail technique ni donnée personnelle. */
+function causeGenerique(r: { envoye: false; raison: string; detail?: string }): string {
+  if (r.raison === "non_configure") return "service_indisponible";
+  const d = (r.detail ?? "").toLowerCase();
+  if (d.includes("invalid") && d.includes("email")) return "adresse_invalide";
+  if (d.includes("rate") || d.includes("429")) return "trop_de_demandes";
+  return "envoi_refuse";
+}
+
+export const LIBELLE_CAUSE: Record<string, string> = {
+  service_indisponible: "Service d'envoi momentanément indisponible.",
+  adresse_invalide: "L'adresse email du signataire semble incorrecte.",
+  trop_de_demandes: "Trop de demandes d'envoi ; réessayez dans quelques minutes.",
+  envoi_refuse: "L'email n'a pas pu être remis au signataire.",
 };
 
 /** Envoi des convocations : commun au mode interne et à un futur mode Yousign. */
-export async function envoyerLiensSignature(liens: LienAEnvoyer[]) {
+export async function envoyerLiensSignature(
+  liens: LienAEnvoyer[],
+  declencheur: "manuel" | "relance_manuelle" | "relance_auto" = "manuel",
+) {
+  const sb = await admin();
   let envoyes = 0;
+  const echecs: { signataireId: string; cause: string }[] = [];
+
   for (const lien of liens) {
     const html = `
       <p>Bonjour ${lien.nom},</p>
@@ -165,10 +200,90 @@ export async function envoyerLiensSignature(liens: LienAEnvoyer[]) {
       html,
       expediteur: EXPEDITEUR_SIGNATURE,
     });
+
+    const { data: ligne } = await sb
+      .from("signatures_signataires")
+      .select("tentatives_envoi")
+      .eq("id", lien.signataireId)
+      .maybeSingle();
+    const tentative = (ligne?.tentatives_envoi ?? 0) + 1;
+    const cause = r.envoye ? null : causeGenerique(r as { envoye: false; raison: string; detail?: string });
+
+    await sb
+      .from("signatures_signataires")
+      .update({
+        tentatives_envoi: tentative,
+        dernier_essai_le: new Date().toISOString(),
+        dernier_resultat: r.envoye ? "succes" : "echec",
+        derniere_cause: cause,
+      })
+      .eq("id", lien.signataireId);
+
+    await sb.from("journal_emails_signature").insert({
+      dossier_id: lien.dossierId,
+      signature_id: lien.signatureId,
+      signataire_id: lien.signataireId,
+      destinataire_masque: masquerEmail(lien.destinataire),
+      tentative,
+      declencheur,
+      resultat: r.envoye ? "succes" : "echec",
+      cause,
+    });
+
     if (r.envoye) envoyes += 1;
+    else echecs.push({ signataireId: lien.signataireId, cause: cause! });
   }
-  return envoyes;
+  return { envoyes, echecs };
 }
+
+/**
+ * Relance les convocations non délivrées : uniquement les signataires en échec,
+ * non signés, et sous le plafond de tentatives.
+ */
+export async function relancerEnvoisEnEchec(
+  origine: string,
+  declencheur: "relance_manuelle" | "relance_auto",
+  filtre?: { signatureId?: string; signataireId?: string },
+) {
+  const sb = await admin();
+  let q = sb
+    .from("signatures_signataires")
+    .select("*")
+    .is("horodatage", null)
+    .eq("dernier_resultat", "echec")
+    .lt("tentatives_envoi", MAX_TENTATIVES_ENVOI);
+  if (filtre?.signatureId) q = q.eq("signature_id", filtre.signatureId);
+  if (filtre?.signataireId) q = q.eq("id", filtre.signataireId);
+  const { data } = await q;
+  const lignes = ((data ?? []) as SignataireRow[]).filter((l) => l.signataire_email);
+
+  let envoyes = 0;
+  let echoues = 0;
+  for (const sg of lignes) {
+    const ctx = await chargerContexte(sg.signature_id);
+    if (!ctx) continue;
+    const url = await attribuerLien(sg, origine);
+    const r = await envoyerLiensSignature(
+      [
+        {
+          destinataire: sg.signataire_email!,
+          nom: sg.signataire_nom,
+          url,
+          libelle: ctx.sig.libelle,
+          denomination: ctx.dossier.denomination || "",
+          dossierId: ctx.dossier.id,
+          signatureId: ctx.sig.id,
+          signataireId: sg.id,
+        },
+      ],
+      declencheur,
+    );
+    envoyes += r.envoyes;
+    echoues += r.echecs.length;
+  }
+  return { traites: lignes.length, envoyes, echoues, plafond: MAX_TENTATIVES_ENVOI };
+}
+
 
 /** Attribue un lien nominatif à un signataire et renvoie l'URL en clair. */
 export async function attribuerLien(signataire: SignataireRow, origine: string) {
