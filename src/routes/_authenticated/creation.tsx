@@ -366,44 +366,53 @@ function Creation() {
     await supabase.from("associes").delete().eq("id", id);
   }
 
-  const objets: string[] = dossier
-    ? dossier.objets_social && dossier.objets_social.length > 0
-      ? dossier.objets_social
-      : dossier.objet_social
-        ? [dossier.objet_social]
-        : []
-    : [];
+  const activites: Activite[] = useMemo(() => (dossier ? activitesDuDossier(dossier) : []), [dossier]);
 
   /**
-   * Enregistre la liste d'objets et reconstitue l'objet social consolidé des statuts.
-   * Toute modification annule la confirmation de cohérence : l'utilisateur doit relire.
+   * Enregistre la liste d'activités et recalcule les champs dérivés (objet social
+   * consolidé, caractère réglementé, routage cabinet, code d'activité principal).
    */
-  async function majObjets(liste: string[]) {
-    setConserves(liste.map((_, i) => conserves[i] ?? true));
+  async function majActivites(liste: Activite[]) {
+    if (!dossier) return;
     await patch({
-      objets_social: liste,
-      objet_social: liste.map((t) => t.trim()).filter(Boolean).join(" "),
+      ...derivesActivites(liste, dossier.apport_nature || dossier.apport_industrie),
       objets_confirmes_le: null,
-    });
+    } as Partial<Dossier>);
   }
 
-  /** Ajoute une activité, après arbitrage si la liste en contient déjà. */
-  async function ajouterActivite(texte: string) {
-    if (objets.length > 0) {
-      setArbitrage({ texte });
-      return;
+  async function ajouterActivite(a: Activite) {
+    await majActivites([...activites, a]);
+  }
+
+  async function modifierActivite(id: string, valeurs: Partial<Activite>) {
+    await majActivites(activites.map((a) => (a.id === id ? { ...a, ...valeurs } : a)));
+  }
+
+  /** Ajoute une activité à partir d'un code d'activité INSEE, à titre informatif. */
+  async function ajouterDepuisNaf(code: string, libelle: string) {
+    if (!dossier) return;
+    setRedaction(true);
+    const gabarit = `L'exercice de l'activité de ${libelle}, ainsi que toutes opérations connexes ne relevant pas d'une activité réglementée.`;
+    let texte = gabarit;
+    try {
+      const res = await redigerObjetSocial({
+        data: { activite: libelle, forme: dossier.forme_juridique, naf: `${code} — ${libelle}` },
+      });
+      if (res?.texte) texte = res.texte;
+    } catch {
+      /* le gabarit déterministe prend le relais */
+    } finally {
+      setRedaction(false);
     }
-    await majObjets([texte]);
-  }
-
-  /** « Repartir de zéro » : seules les activités cochées « Conserver » sont gardées. */
-  async function resoudreArbitrage(mode: "zero" | "ajouter") {
-    const texte = arbitrage?.texte ?? "";
-    setArbitrage(null);
-    const base = mode === "ajouter" ? objets : objets.filter((_, i) => conserves[i] !== false);
-    setConserves(base.map(() => true));
-    await majObjets([...base, texte]);
-    setAvertissementNaf(false);
+    await ajouterActivite(
+      nouvelleActivite({
+        source: "naf",
+        naf_code: code,
+        naf_libelle: libelle,
+        texte,
+        reglementee: estCodeReglemente(code),
+      }),
+    );
   }
 
   async function proposerObjet() {
@@ -411,19 +420,13 @@ function Creation() {
     setRedaction(true);
     try {
       const res = await redigerObjetSocial({
-        data: {
-          activite: descriptionActivite.trim(),
-          forme: dossier.forme_juridique,
-          ...(dossier.code_naf
-            ? { naf: `${dossier.code_naf} — ${dossier.code_naf_libelle ?? ""}`.trim() }
-            : {}),
-        },
+        data: { activite: descriptionActivite.trim(), forme: dossier.forme_juridique },
       });
 
       if (res?.texte) {
-        await ajouterActivite(res.texte);
-        if (objets.length === 0)
-          toast.success("Proposition rédigée. Relisez-la et adaptez-la si nécessaire.");
+        await ajouterActivite(nouvelleActivite({ source: "libre", texte: res.texte }));
+        setDescriptionActivite("");
+        toast.success("Proposition rédigée. Relisez-la et adaptez-la si nécessaire.");
       } else {
         toast.error(res?.erreur ?? "Aucune proposition n'a pu être générée.");
       }
@@ -433,6 +436,7 @@ function Creation() {
       setRedaction(false);
     }
   }
+
 
 
 
