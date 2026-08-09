@@ -14,6 +14,8 @@ import {
 } from "@/components/EncadresPedago";
 import { GuideIdentite } from "@/components/GuideIdentite";
 import { ApercuChecklist } from "@/components/ApercuChecklist";
+import { MentionConfidentialite } from "@/components/MentionConfidentialite";
+
 import { genererPdf, telechargerPdf } from "@/lib/pdf";
 import { verifierDates, type Associe, type Dossier, type DocumentRow } from "@/lib/documents";
 import { LABEL_SIGNATURE, ORDRE_SIGNATURE, type SignatureRow } from "@/lib/signatures";
@@ -277,6 +279,8 @@ function Documents() {
         <p className="mt-2 text-sm text-muted-foreground">
           Formats acceptés : PDF, JPG, PNG. 10 Mo maximum par fichier.
         </p>
+        <MentionConfidentialite className="mt-2" />
+
 
         <div className="mt-6 space-y-5">
           {dossier && <ApercuChecklist dossier={dossier} associes={associes} />}

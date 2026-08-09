@@ -58,6 +58,10 @@ export function SiteHeader() {
               <Button asChild variant="ghost" size="sm">
                 <Link to="/tableau-de-bord">Mon espace</Link>
               </Button>
+              <Button asChild variant="ghost" size="sm">
+                <Link to="/mon-compte">Mon compte</Link>
+              </Button>
+
               {isCabinet && (
                 <Button asChild variant="ghost" size="sm">
                   <Link to="/cabinet">Cabinet</Link>
@@ -108,6 +112,10 @@ export function SiteHeader() {
                 <Link to="/tableau-de-bord" className="rounded-md px-2 py-2.5 text-sm">
                   Mon espace
                 </Link>
+                <Link to="/mon-compte" className="rounded-md px-2 py-2.5 text-sm">
+                  Mon compte
+                </Link>
+
                 {isCabinet && (
                   <Link to="/cabinet" className="rounded-md px-2 py-2.5 text-sm">
                     Espace cabinet

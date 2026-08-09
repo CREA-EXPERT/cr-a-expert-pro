@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      archives_facturation: {
+        Row: {
+          anonymise_le: string
+          conserver_jusqu_au: string
+          created_at: string
+          denomination: string
+          dossier_cree_le: string | null
+          dossier_ref: string
+          forme_juridique: string
+          id: string
+          lettre_mission_acceptee_le: string | null
+          moyen_de_paiement_enregistre: boolean
+          relecture_statut: string | null
+        }
+        Insert: {
+          anonymise_le?: string
+          conserver_jusqu_au?: string
+          created_at?: string
+          denomination?: string
+          dossier_cree_le?: string | null
+          dossier_ref: string
+          forme_juridique?: string
+          id?: string
+          lettre_mission_acceptee_le?: string | null
+          moyen_de_paiement_enregistre?: boolean
+          relecture_statut?: string | null
+        }
+        Update: {
+          anonymise_le?: string
+          conserver_jusqu_au?: string
+          created_at?: string
+          denomination?: string
+          dossier_cree_le?: string | null
+          dossier_ref?: string
+          forme_juridique?: string
+          id?: string
+          lettre_mission_acceptee_le?: string | null
+          moyen_de_paiement_enregistre?: boolean
+          relecture_statut?: string | null
+        }
+        Relationships: []
+      }
       associes: {
         Row: {
           adresse: string | null

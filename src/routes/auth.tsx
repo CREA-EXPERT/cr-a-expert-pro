@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MentionConfidentialite } from "@/components/MentionConfidentialite";
+
 
 const searchSchema = z.object({ redirect: z.string().optional(), forme: z.string().optional() });
 
@@ -185,7 +187,9 @@ function Auth() {
                 <Button type="submit" className="w-full" disabled={busy}>
                   {busy ? "Création…" : "Créer mon compte"}
                 </Button>
+                <MentionConfidentialite />
               </form>
+
             </TabsContent>
 
             <TabsContent value="connexion">
