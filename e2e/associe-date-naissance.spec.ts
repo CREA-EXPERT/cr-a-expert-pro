@@ -9,6 +9,7 @@ test("jour, mois et année restent sélectionnés après navigation et soumissio
   page,
 }) => {
   await page.goto("/dev/associe-date", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("main[data-hydrated='1']")).toBeVisible();
 
   const jour = page.getByLabel("Jour de naissance");
   const mois = page.getByLabel("Mois de naissance");
@@ -39,6 +40,7 @@ test("jour, mois et année restent sélectionnés après navigation et soumissio
 
 test("une date incomplète bloque la soumission", async ({ page }) => {
   await page.goto("/dev/associe-date", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("main[data-hydrated='1']")).toBeVisible();
   await page.getByLabel("Mois de naissance").selectOption("3");
   await expect(page.getByRole("button", { name: "Soumettre" })).toBeDisabled();
   await expect(page.getByRole("alert")).toBeVisible();

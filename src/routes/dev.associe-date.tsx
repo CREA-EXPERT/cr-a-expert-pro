@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { AssocieIdentite } from "@/components/AssocieIdentite";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,9 @@ function BancEssai() {
   const [visible, setVisible] = useState(true);
   const [associe, setAssocie] = useState<Associe>(associeInitial);
   const [soumis, setSoumis] = useState<string | null>(null);
+  /** Marqueur d'hydratation : les tests attendent React avant d'agir sur le formulaire. */
+  const [pret, setPret] = useState(false);
+  useEffect(() => setPret(true), []);
 
   if (typeof window !== "undefined" && !estHoteApercu(window.location.host)) {
     return <p className="p-6">Page indisponible.</p>;
@@ -69,7 +72,7 @@ function BancEssai() {
   }
 
   return (
-    <main className="container-page space-y-4 py-8">
+    <main className="container-page space-y-4 py-8" data-hydrated={pret ? "1" : "0"}>
       <h1 className="font-serif text-2xl">Banc d'essai — identité de l'associé</h1>
       {visible && <AssocieIdentite associe={associe} onChange={majAssocie} />}
       <div className="flex flex-wrap gap-2">
