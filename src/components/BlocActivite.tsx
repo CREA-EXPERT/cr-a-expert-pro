@@ -116,6 +116,7 @@ export function BlocActivite({
         </div>
 
         <VerifReglementation
+          auto
           activite={activite.texte}
           naf={activite.naf_code ? `${activite.naf_code} — ${activite.naf_libelle ?? ""}` : null}
           onResultat={(reglementee, resume) => {

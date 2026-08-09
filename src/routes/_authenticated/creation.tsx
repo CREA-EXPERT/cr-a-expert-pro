@@ -522,7 +522,9 @@ function Creation() {
       return;
     }
     if (mineurs.length > 0) {
-      toast.error(`Un associé mineur est renseigné : cette création doit être confiée à ${CABINET.nom}.`);
+      toast.error(
+        "Un associé mineur est renseigné : rapprochez-vous d'un expert-comptable ou d'un professionnel du droit, ou retirez le ou les mineurs pour poursuivre en ligne.",
+      );
       return;
     }
     if (!ei && !capitalOk) {
@@ -839,8 +841,8 @@ function Creation() {
                 <p className="mt-1 text-sm text-muted-foreground text-justify">
                   Votre société peut exercer une seule activité ou plusieurs. La première de la
                   liste est l'activité principale ; les suivantes sont des activités accessoires.
-                  Décrivez ici une activité à la fois : l'assistant en déduit le code d'activité
-                  INSEE indicatif, rédige le paragraphe à insérer dans les statuts et indique si
+                  Décrivez ici une activité à la fois : l'assistant en déduit un code d'activité
+                  INSEE estimé (non officiel), rédige le paragraphe à insérer dans les statuts et indique si
                   l'activité est, en règle générale, réglementée. Vous pouvez tout modifier ensuite.
                 </p>
                 <Textarea

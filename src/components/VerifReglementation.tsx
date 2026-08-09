@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,10 +14,13 @@ import type { AnalyseReglementation } from "@/lib/ai-reglemente.server";
 export function VerifReglementation({
   activite,
   naf,
+  auto = false,
   onResultat,
 }: {
   activite: string;
   naf?: string | null;
+  /** Lance la vérification automatiquement dès que le texte de l'activité change. */
+  auto?: boolean;
   onResultat?: (reglementee: boolean, resume: string) => void;
 }) {
   const [texte, setTexte] = useState("");
@@ -26,6 +29,24 @@ export function VerifReglementation({
   const [erreur, setErreur] = useState<string | null>(null);
 
   const description = (texte.trim() || activite.trim()).slice(0, 600);
+  const dejaAnalyse = useRef<string | null>(null);
+
+  /**
+   * Vérification automatique : dès qu'un texte d'activité est généré ou modifié,
+   * l'assistant contrôle son caractère potentiellement réglementé, sans action
+   * de l'utilisateur. Chaque texte n'est analysé qu'une fois.
+   */
+  useEffect(() => {
+    if (!auto) return;
+    const cible = activite.trim().slice(0, 600);
+    if (cible.length < 15 || dejaAnalyse.current === cible || texte.trim()) return;
+    dejaAnalyse.current = cible;
+    const t = setTimeout(() => {
+      void verifier();
+    }, 700);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auto, activite, texte]);
 
   async function verifier() {
     if (description.length < 5) return;
@@ -62,7 +83,12 @@ export function VerifReglementation({
     <div className="rounded-md border border-border bg-surface p-4">
       <p className="flex items-center gap-2 text-sm font-medium">
         <ShieldQuestion className="size-4 text-accent" strokeWidth={1.5} aria-hidden />
-        Vous ne savez pas si votre activité est réglementée ?
+        {auto ? "Vérification du caractère réglementé" : "Vous ne savez pas si votre activité est réglementée ?"}
+      </p>
+      <p className="mt-2 text-sm text-muted-foreground">
+        {auto
+          ? "Le texte de l'activité ci-dessus est contrôlé automatiquement : l'assistant indique s'il s'agit, en règle générale, d'une activité réglementée. Vous pouvez relancer la vérification ou préciser votre métier ci-dessous."
+          : ""}
       </p>
       <p className="mt-2 text-sm text-muted-foreground">
         Décrivez votre métier en quelques mots (par exemple « expert-comptable », « coiffeur à
@@ -88,7 +114,7 @@ export function VerifReglementation({
           disabled={encours || description.length < 5}
           onClick={verifier}
         >
-          {encours ? "Vérification en cours…" : "Vérifier ma réglementation"}
+          {encours ? "Vérification en cours…" : auto ? "Relancer la vérification" : "Vérifier ma réglementation"}
         </Button>
         <span className="text-xs text-muted-foreground">
           Information générale et non exhaustive — ne constitue pas un conseil.
