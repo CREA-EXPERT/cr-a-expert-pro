@@ -383,7 +383,7 @@ async function anonymiserComptesInactifs(ctx: Contexte): Promise<LignePurge> {
           // Neutralisation du compte d'authentification : sinon l'e-mail personnel subsiste.
           await supabaseAdmin.auth.admin.updateUserById(u.id, {
             email: emailAnonyme,
-            phone: undefined,
+            phone: "",
             user_metadata: { anonymise: true },
           });
         }
