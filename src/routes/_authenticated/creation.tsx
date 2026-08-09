@@ -1730,8 +1730,28 @@ function Creation() {
             {cle !== "recap" && <Button onClick={() => continuer(cle)}>Continuer</Button>}
             <CallbackDialog variant="ghost" />
             <RecommandationDialog variant="ghost" />
-
           </div>
+
+          {modeConception && (
+            <div className="mt-4 rounded-md border border-dashed border-warning/60 bg-warning/10 p-3">
+              <p className="text-xs font-medium">Mode conception (administrateur, aperçu)</p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {cle !== "recap" && (
+                  <Button type="button" variant="outline" size="sm" onClick={() => allerA(etape + 1)}>
+                    Passer cette étape pour voir la page suivante
+                  </Button>
+                )}
+                <Button type="button" variant="ghost" size="sm" onClick={reinitialiserDossierTest}>
+                  Réinitialiser le formulaire
+                </Button>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                Ces raccourcis ne sont visibles qu'en aperçu, pour un compte administrateur : les
+                contrôles obligatoires restent appliqués pour les clients.
+              </p>
+            </div>
+          )}
+
         </div>
 
         {/* PANNEAU RECAP */}
