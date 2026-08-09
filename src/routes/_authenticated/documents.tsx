@@ -14,6 +14,8 @@ import {
 } from "@/components/EncadresPedago";
 import { GuideIdentite } from "@/components/GuideIdentite";
 import { ApercuChecklist } from "@/components/ApercuChecklist";
+import { MentionConfidentialite } from "@/components/MentionConfidentialite";
+
 import { genererPdf, telechargerPdf } from "@/lib/pdf";
 import { verifierDates, type Associe, type Dossier, type DocumentRow } from "@/lib/documents";
 import { LABEL_SIGNATURE, ORDRE_SIGNATURE, type SignatureRow } from "@/lib/signatures";
