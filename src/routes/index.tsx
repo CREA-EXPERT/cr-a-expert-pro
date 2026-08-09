@@ -37,9 +37,9 @@ export const Route = createFileRoute("/")({
 });
 
 const BADGES = [
-  "🇫🇷 100 % réalisé en France",
+  "🇫🇷 100 % réalisé par des diplômés d'expertise comptable français",
   "Par vous-même, ou accompagné par un cabinet inscrit à l'Ordre des experts-comptables",
-  "Données hébergées en Europe",
+  "Données hébergées en Europe (respect RGPD) et non commercialisées",
 ];
 
 const ETAPES = [
