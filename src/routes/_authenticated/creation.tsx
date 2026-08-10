@@ -1579,44 +1579,36 @@ function Creation() {
           )}
 
 
-          {/* VOIE DE VALIDATION */}
+          {/* CHOIX DE L'OFFRE */}
           {cle === "validation" && (
             <div className="mt-6 space-y-4">
               <p className="text-base leading-relaxed">
-                La relecture par l'expert-comptable est facultative. Choisissez la voie qui vous
-                convient : vous pourrez toujours demander une relecture plus tard.
+                Choisissez votre offre. L'interrupteur ci-dessous indique si vous confiez également
+                votre comptabilité au cabinet : les prix des deux offres s'ajustent en conséquence.
               </p>
-              {[
-                {
-                  v: "cabinet",
-                  t: `Relecture complète du dossier par un expert-comptable — ${euro(relectureHt)} HT (${euro(relectureHt * 1.2)} TTC)`,
-                  d: "Un expert-comptable inscrit à l'Ordre contrôle les statuts, les choix fiscaux et sociaux et la cohérence des pièces avant le dépôt. Périmètre : jusqu'à 3 emails et 3 appels avec l'expert-comptable. La mention « PROJET » est retirée après sa validation.",
-                },
-
-                {
-                  v: "auto",
-                  t: "Je valide moi-même mon dossier — sans frais",
-                  d: "Vos documents sont générés immédiatement et portent la mention : « Document généré à partir des réponses du déclarant — non revu par un professionnel. » Vous restez responsable de leur exactitude.",
-                },
-              ].map((o) => (
-                <button
-                  key={o.v}
-                  type="button"
-                  onClick={() => patch({ voie_validation: o.v })}
-                  className={`w-full rounded-lg border px-5 py-4 text-left ${dossier.voie_validation === o.v ? "border-accent bg-accent/5" : "border-border bg-surface"}`}
-                >
-                  <span className="font-semibold">{o.t}</span>
-                  <span className="mt-1 block text-sm text-muted-foreground">{o.d}</span>
-                </button>
-              ))}
+              <SelecteurOffre
+                offre={dossier.offre}
+                avecCompta={dossier.avec_compta}
+                onChange={(v) => {
+                  const code = v.offre ?? (dossier.offre as CodeOffre | null);
+                  const avec = v.avec_compta ?? dossier.avec_compta;
+                  const o = offreParCode(offres, code);
+                  patch({
+                    ...(v.offre ? { offre: v.offre } : {}),
+                    ...(v.avec_compta !== undefined ? { avec_compta: v.avec_compta } : {}),
+                    prix_creation_ht: prixOffreHt(o, avec),
+                    relecture_incluse: code === "creation_ec",
+                    voie_validation: code === "creation_ec" ? "cabinet" : "auto",
+                  });
+                }}
+              />
               <Err nom="voie" />
-              {dossier.voie_validation === "cabinet" && <EncadreRelectureLimites />}
-
-              {dossier.voie_validation === "auto" && <EncadreResponsabilite />}
+              {dossier.offre === "creation_ec" && <EncadreRelectureLimites />}
+              {dossier.offre === "creation_seule" && <EncadreResponsabilite />}
               <Disclaimer />
             </div>
-
           )}
+
 
           {/* FRAIS LÉGAUX ET MOYEN DE PAIEMENT */}
           {cle === "paiement" && (
