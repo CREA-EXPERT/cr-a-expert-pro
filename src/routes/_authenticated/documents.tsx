@@ -78,7 +78,6 @@ function Documents() {
   const [busy, setBusy] = useState(false);
   const [transferts, setTransferts] = useState<Transfert[]>([]);
   const [mentions, setMentions] = useState<Record<string, boolean>>({});
-  const [cible, setCible] = useState<string>(CIBLE_LIBRE);
 
   async function charger() {
     const { data: ds } = await supabase
