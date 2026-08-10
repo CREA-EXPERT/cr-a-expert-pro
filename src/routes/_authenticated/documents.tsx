@@ -78,7 +78,6 @@ function Documents() {
   const [busy, setBusy] = useState(false);
   const [transferts, setTransferts] = useState<Transfert[]>([]);
   const [mentions, setMentions] = useState<Record<string, boolean>>({});
-  const [cible, setCible] = useState<string>(CIBLE_LIBRE);
 
   async function charger() {
     const { data: ds } = await supabase
@@ -511,7 +510,7 @@ function Documents() {
 
           <div className="mt-4 rounded-lg border border-border bg-surface p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm font-medium">Dépôt groupé</p>
+              <p className="text-sm font-medium">Avancement de vos pièces</p>
               <p className="text-xs text-muted-foreground">
                 {traitees.length} / {obligatoires.length} pièce(s) obligatoire(s) en règle
               </p>
@@ -521,29 +520,10 @@ function Documents() {
               className="mt-2 h-2"
               aria-label="Progression des pièces obligatoires"
             />
-            <div className="mt-4 space-y-2">
-              <Label htmlFor="cible">Rattacher les fichiers à</Label>
-              <Select value={cible} onValueChange={setCible}>
-                <SelectTrigger id="cible">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={CIBLE_LIBRE}>Pièce complémentaire (hors liste)</SelectItem>
-                  {aFournir.map((d) => (
-                    <SelectItem key={d.id} value={d.id}>
-                      {d.libelle}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <ZoneDepot
-              className="mt-3"
-              disabled={transmis}
-              libelle="Glissez plusieurs fichiers ici"
-              aide={`PDF, JPG ou PNG — 10 Mo maximum par fichier. Formats acceptés : ${ACCEPT_ATTR.replaceAll("application/pdf", "PDF").replaceAll("image/jpeg", "JPG").replaceAll("image/png", "PNG")}.`}
-              onFichiers={(fs) => deposer(fs, cible)}
-            />
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground text-justify">
+              Chaque pièce se dépose sur sa propre ligne, comme au guichet unique : repérez le
+              document demandé dans la liste ci-dessous, puis déposez le fichier correspondant.
+            </p>
             <ListeTransferts
               transferts={transferts}
               onSupprimer={(id) => setTransferts((t) => t.filter((x) => x.id !== id))}

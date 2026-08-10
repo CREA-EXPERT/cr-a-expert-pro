@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.refacturer_creation_intragroupe() FROM PUBLIC, anon, authenticated;
