@@ -57,6 +57,8 @@ import {
 import { NAF } from "@/lib/naf";
 import { AssocieIdentite } from "@/components/AssocieIdentite";
 import { BlocActivite } from "@/components/BlocActivite";
+import { SelecteurOffre } from "@/components/SelecteurOffre";
+import { offreParCode, prixOffreHt, useOffres, type CodeOffre } from "@/lib/offres";
 import {
   activitesDuDossier,
   derivesActivites,
@@ -178,6 +180,7 @@ function Creation() {
   const navigate = useNavigate();
   const { forme: formeInitiale } = Route.useSearch();
   const { data: tarifs } = useTarifs();
+  const { data: offres } = useOffres();
   const { user } = useAuth();
   const { isAdmin } = useRoles(user);
   const { data: services } = useQuery({ queryKey: ["etat-services"], queryFn: () => etatServices() });
@@ -1589,7 +1592,7 @@ function Creation() {
               <SelecteurOffre
                 offre={dossier.offre}
                 avecCompta={dossier.avec_compta}
-                onChange={(v) => {
+                onChange={(v: { offre?: CodeOffre; avec_compta?: boolean }) => {
                   const code = v.offre ?? (dossier.offre as CodeOffre | null);
                   const avec = v.avec_compta ?? dossier.avec_compta;
                   const o = offreParCode(offres, code);
