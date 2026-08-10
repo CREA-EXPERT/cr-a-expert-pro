@@ -157,13 +157,9 @@ function CarteOffre({
         )}
         <p className="font-serif text-3xl">{offerte ? "Offerte" : `${euro(prix)} HT`}</p>
         <p className="text-xs text-muted-foreground">
-          {offerte
-            ? "0 € — TVA sans objet"
-            : `+ TVA ${tva} % — soit ${euro(ttc(prix))} TTC`}
+          {offerte ? "0 € — TVA sans objet" : `+ TVA ${tva} % — soit ${euro(ttc(prix))} TTC`}
         </p>
-        {avecCompta && (
-          <p className="mt-2 text-sm">+ {euro(prixCompta)} HT/mois de comptabilité</p>
-        )}
+        {avecCompta && <p className="mt-2 text-sm">+ {euro(prixCompta)} HT/mois de comptabilité</p>}
         {offerte && (
           <p className="mt-2 text-sm leading-relaxed">
             Vous réglez seulement le 1<sup>er</sup> mois de comptabilité ({euro(prixCompta)} HT) à

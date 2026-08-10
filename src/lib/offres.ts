@@ -23,7 +23,11 @@ export const offresQuery = {
 export const parametresQuery = {
   queryKey: ["parametres_tarifs"],
   queryFn: async (): Promise<ParametresTarifs | null> => {
-    const { data, error } = await supabase.from("parametres_tarifs").select("*").limit(1).maybeSingle();
+    const { data, error } = await supabase
+      .from("parametres_tarifs")
+      .select("*")
+      .limit(1)
+      .maybeSingle();
     if (error) throw error;
     return data;
   },
