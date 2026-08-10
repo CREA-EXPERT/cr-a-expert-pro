@@ -30,7 +30,10 @@ export function PanneauOffres() {
       </section>
 
       {params && (
-        <BlocParametres params={params} onEnregistre={() => qc.invalidateQueries(parametresQuery)} />
+        <BlocParametres
+          params={params}
+          onEnregistre={() => qc.invalidateQueries(parametresQuery)}
+        />
       )}
     </div>
   );

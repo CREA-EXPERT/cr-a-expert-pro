@@ -24,6 +24,7 @@ import type { DocumentRule } from "@/lib/documents";
 import { champsIncomplets, mentionsLegalesCompletes } from "@/lib/editeur";
 import { etatServices } from "@/lib/services.functions";
 import { PanneauConservation } from "@/components/PanneauConservation";
+import { PanneauOffres, PanneauRefacturations } from "@/components/PanneauOffres";
 import { ReglagesRelanceSignature } from "@/components/ReglagesRelanceSignature";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -91,15 +92,23 @@ function Admin() {
         <BandeauMentionsLegales />
         <BandeauServices />
 
-        <Tabs defaultValue="tarifs" className="mt-8">
+        <Tabs defaultValue="offres" className="mt-8">
           <TabsList>
+            <TabsTrigger value="offres">Offres</TabsTrigger>
             <TabsTrigger value="tarifs">Frais légaux</TabsTrigger>
+            <TabsTrigger value="refac">Refacturations</TabsTrigger>
             <TabsTrigger value="regles">Règles documentaires</TabsTrigger>
             <TabsTrigger value="roles">Rôles</TabsTrigger>
             <TabsTrigger value="signatures">Signatures</TabsTrigger>
             <TabsTrigger value="conservation">Conservation</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="offres" className="mt-6">
+            <PanneauOffres />
+          </TabsContent>
+          <TabsContent value="refac" className="mt-6">
+            <PanneauRefacturations />
+          </TabsContent>
           <TabsContent value="tarifs" className="mt-6">
             <OngletTarifs />
           </TabsContent>
