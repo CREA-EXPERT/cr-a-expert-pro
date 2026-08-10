@@ -352,8 +352,8 @@ function Creation() {
       if (!d.renonciation_retractation_le)
         e["retractation"] = "Cette demande expresse est nécessaire pour démarrer la prestation.";
     }
-    if (c === "validation" && !d.voie_validation)
-      e["voie"] = "Choisissez la voie de validation de votre dossier.";
+    if (c === "validation" && !d.offre) e["voie"] = "Choisissez votre offre pour continuer.";
+
     return e;
   }
 
