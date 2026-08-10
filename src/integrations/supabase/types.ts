@@ -393,6 +393,7 @@ export type Database = {
           apport_industrie: boolean
           apport_nature: boolean
           autovalidation_le: string | null
+          avec_compta: boolean
           cabinet_engage: boolean
           capital_liberation: number
           capital_montant: number
@@ -417,6 +418,7 @@ export type Database = {
           domiciliataire_agrement: string | null
           domiciliataire_nom: string | null
           duree_annees: number
+          entite_contractante: string
           etape_courante: number
           exercice_etendu: boolean
           fonds_commerce: string
@@ -431,11 +433,14 @@ export type Database = {
           objet_social: string | null
           objets_confirmes_le: string | null
           objets_social: string[]
+          offre: string | null
           option_fiscale: string | null
           periodicite_tva: string | null
           pour_qui: string
+          prix_creation_ht: number
           regime_tva: string | null
           reglementee_source: string | null
+          relecture_incluse: boolean
           relecture_statut: string
           renonciation_retractation_le: string | null
           role_demandeur: string | null
@@ -451,6 +456,8 @@ export type Database = {
           siege_ville: string | null
           siege_voie: string | null
           sigle: string | null
+          siren: string | null
+          siren_attribue_le: string | null
           siren_existant: string | null
           statut: string
           stripe_customer_id: string | null
@@ -471,6 +478,7 @@ export type Database = {
           apport_industrie?: boolean
           apport_nature?: boolean
           autovalidation_le?: string | null
+          avec_compta?: boolean
           cabinet_engage?: boolean
           capital_liberation?: number
           capital_montant?: number
@@ -495,6 +503,7 @@ export type Database = {
           domiciliataire_agrement?: string | null
           domiciliataire_nom?: string | null
           duree_annees?: number
+          entite_contractante?: string
           etape_courante?: number
           exercice_etendu?: boolean
           fonds_commerce?: string
@@ -509,11 +518,14 @@ export type Database = {
           objet_social?: string | null
           objets_confirmes_le?: string | null
           objets_social?: string[]
+          offre?: string | null
           option_fiscale?: string | null
           periodicite_tva?: string | null
           pour_qui?: string
+          prix_creation_ht?: number
           regime_tva?: string | null
           reglementee_source?: string | null
+          relecture_incluse?: boolean
           relecture_statut?: string
           renonciation_retractation_le?: string | null
           role_demandeur?: string | null
@@ -529,6 +541,8 @@ export type Database = {
           siege_ville?: string | null
           siege_voie?: string | null
           sigle?: string | null
+          siren?: string | null
+          siren_attribue_le?: string | null
           siren_existant?: string | null
           statut?: string
           stripe_customer_id?: string | null
@@ -549,6 +563,7 @@ export type Database = {
           apport_industrie?: boolean
           apport_nature?: boolean
           autovalidation_le?: string | null
+          avec_compta?: boolean
           cabinet_engage?: boolean
           capital_liberation?: number
           capital_montant?: number
@@ -573,6 +588,7 @@ export type Database = {
           domiciliataire_agrement?: string | null
           domiciliataire_nom?: string | null
           duree_annees?: number
+          entite_contractante?: string
           etape_courante?: number
           exercice_etendu?: boolean
           fonds_commerce?: string
@@ -587,11 +603,14 @@ export type Database = {
           objet_social?: string | null
           objets_confirmes_le?: string | null
           objets_social?: string[]
+          offre?: string | null
           option_fiscale?: string | null
           periodicite_tva?: string | null
           pour_qui?: string
+          prix_creation_ht?: number
           regime_tva?: string | null
           reglementee_source?: string | null
+          relecture_incluse?: boolean
           relecture_statut?: string
           renonciation_retractation_le?: string | null
           role_demandeur?: string | null
@@ -607,6 +626,8 @@ export type Database = {
           siege_ville?: string | null
           siege_voie?: string | null
           sigle?: string | null
+          siren?: string | null
+          siren_attribue_le?: string | null
           siren_existant?: string | null
           statut?: string
           stripe_customer_id?: string | null
@@ -777,6 +798,78 @@ export type Database = {
         }
         Relationships: []
       }
+      offres_creation: {
+        Row: {
+          actif: boolean
+          badge: string | null
+          code: string
+          created_at: string
+          id: string
+          libelle: string
+          ordre: number
+          prix_ht_avec_compta: number
+          prix_ht_sans_compta: number
+          updated_at: string
+        }
+        Insert: {
+          actif?: boolean
+          badge?: string | null
+          code: string
+          created_at?: string
+          id?: string
+          libelle: string
+          ordre?: number
+          prix_ht_avec_compta?: number
+          prix_ht_sans_compta?: number
+          updated_at?: string
+        }
+        Update: {
+          actif?: boolean
+          badge?: string | null
+          code?: string
+          created_at?: string
+          id?: string
+          libelle?: string
+          ordre?: number
+          prix_ht_avec_compta?: number
+          prix_ht_sans_compta?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      parametres_tarifs: {
+        Row: {
+          created_at: string
+          duree_engagement_mois: number
+          id: string
+          prix_compta_ht: number
+          refac_creation_ht: number
+          singleton: boolean
+          tva_taux: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duree_engagement_mois?: number
+          id?: string
+          prix_compta_ht?: number
+          refac_creation_ht?: number
+          singleton?: boolean
+          tva_taux?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duree_engagement_mois?: number
+          id?: string
+          prix_compta_ht?: number
+          refac_creation_ht?: number
+          singleton?: boolean
+          tva_taux?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       params_signature: {
         Row: {
           created_at: string
@@ -923,6 +1016,53 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      refacturations_intragroupe: {
+        Row: {
+          cree_le: string
+          date_siren: string | null
+          destinataire: string
+          dossier_id: string
+          emetteur: string
+          id: string
+          montant_ht: number
+          motif: string
+          statut: string
+          updated_at: string
+        }
+        Insert: {
+          cree_le?: string
+          date_siren?: string | null
+          destinataire?: string
+          dossier_id: string
+          emetteur?: string
+          id?: string
+          montant_ht: number
+          motif?: string
+          statut?: string
+          updated_at?: string
+        }
+        Update: {
+          cree_le?: string
+          date_siren?: string | null
+          destinataire?: string
+          dossier_id?: string
+          emetteur?: string
+          id?: string
+          montant_ht?: number
+          motif?: string
+          statut?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refacturations_intragroupe_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: true
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       signatures_electroniques: {
         Row: {
