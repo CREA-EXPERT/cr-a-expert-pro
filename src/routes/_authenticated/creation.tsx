@@ -160,7 +160,7 @@ const TITRES: Record<Cle, string> = {
   
   options: "Options fiscales et sociales",
   mission: "Lettre de mission",
-  validation: "Validation de votre dossier",
+  validation: "Votre offre",
   paiement: "Frais légaux et moyen de paiement",
   recap: "Récapitulatif",
 };
@@ -559,8 +559,8 @@ function Creation() {
       toast.error("La lettre de mission doit être acceptée avant de valider le dossier.");
       return;
     }
-    if (!dossier.voie_validation) {
-      toast.error("Choisissez la voie de validation de votre dossier.");
+    if (!dossier.offre) {
+      toast.error("Choisissez votre offre pour continuer.");
       return;
     }
 
