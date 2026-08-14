@@ -359,8 +359,19 @@ function Documents() {
   if (!dossier) {
     return (
       <PageShell>
-        <div className="container-page py-14 text-muted-foreground">
-          Aucun dossier en cours. Complétez d'abord votre parcours de création.
+        <div className="container-page flex justify-center px-4 py-14">
+          <div className="max-w-xl space-y-4 rounded-lg border border-border bg-surface p-6 text-center">
+            <h1 className="font-serif text-2xl">Votre espace de dépôt n'est pas encore ouvert</h1>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              La liste des pièces à fournir dépend de vos réponses (situation matrimoniale, siège,
+              activité...). Elle est générée automatiquement à la validation de votre dossier.
+              Terminez d'abord votre parcours de création : votre checklist personnalisée et les
+              zones de dépôt apparaîtront ici.
+            </p>
+            <Button asChild>
+              <Link to="/creation">Reprendre mon parcours de création</Link>
+            </Button>
+          </div>
         </div>
       </PageShell>
     );
