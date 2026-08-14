@@ -82,7 +82,37 @@ export const verifierPiece = createServerFn({ method: "POST" })
           `, prénom(s) « ${prenoms} », date de naissance ${associe.date_naissance ?? "non renseignée"}.`;
       }
     }
+    if (categorie === "parution" || categorie === "depot_fonds") {
+      const { data: dossier } = await supabaseAdmin
+        .from("dossiers")
+        .select(
+          "denomination, forme_juridique, capital_montant, capital_liberation, siege_adresse, date_signature",
+        )
+        .eq("id", doc.dossier_id)
+        .maybeSingle();
+      if (dossier) {
+        const libere =
+          (Number(dossier.capital_montant) * Number(dossier.capital_liberation || 100)) / 100;
+        contexte +=
+          ` Données du dossier : dénomination « ${dossier.denomination} », forme juridique ${dossier.forme_juridique},` +
+          ` capital social ${Number(dossier.capital_montant).toFixed(2)} €, montant libéré à la constitution ${libere.toFixed(2)} €,` +
+          ` siège social « ${dossier.siege_adresse ?? "non renseigné"} », date de signature des statuts ${dossier.date_signature ?? "non renseignée"}.`;
+        if (categorie === "parution") {
+          const { data: dirs } = await supabaseAdmin
+            .from("associes")
+            .select("prenom, nom, denomination, fonction, est_dirigeant")
+            .eq("dossier_id", doc.dossier_id)
+            .eq("est_dirigeant", true);
+          const noms = (dirs ?? [])
+            .map((d) => `${d.denomination ?? `${d.prenom ?? ""} ${d.nom ?? ""}`.trim()}${d.fonction ? ` (${d.fonction})` : ""}`)
+            .filter(Boolean)
+            .join(", ");
+          if (noms) contexte += ` Dirigeant(s) déclaré(s) : ${noms}.`;
+        }
+      }
+    }
     if (doc.date_expiration) contexte += ` Date d'expiration déclarée : ${doc.date_expiration}.`;
+
 
     const { sortie, erreur } = await analyserPiece({ categorie, fichiers, contexte });
     if (!sortie) {
