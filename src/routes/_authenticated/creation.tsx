@@ -757,6 +757,8 @@ function Creation() {
                 <Label htmlFor="sigle">{ei ? "Enseigne (facultatif)" : "Sigle (facultatif)"}</Label>
                 <Input id="sigle" maxLength={40} value={dossier.sigle ?? ""} onChange={(e) => patch({ sigle: e.target.value })} />
               </div>
+              <VerifDenomination denomination={dossier.denomination ?? ""} />
+
               <div className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed">
                 <p className="font-medium">Vérifiez que ce nom est disponible</p>
                 <p className="mt-2">
