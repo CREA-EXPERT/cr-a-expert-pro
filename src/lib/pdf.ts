@@ -10,6 +10,7 @@ import type { Associe, Dossier } from "./documents";
 import { activitesDuDossier } from "./activites";
 import { dateEnLettresFr, jourMoisEnLettresFr, montantEnLettresFr } from "./nombres";
 import {
+  accord,
   associesDe,
   champsManquantsStatutsSas,
   comparution,
@@ -19,6 +20,16 @@ import {
   nomCompletPhysique,
   presidentDe,
 } from "./statuts-sas";
+import {
+  associesEffectifs,
+  champsManquantsStatutsSarl,
+  comparutionSarl,
+  conjointRenonce,
+  conjointRevendique,
+  gerantsDe,
+  isSarl,
+  repartitionParts,
+} from "./statuts-sarl";
 
 const MARGE = 56;
 const LARGEUR = 595.28;
