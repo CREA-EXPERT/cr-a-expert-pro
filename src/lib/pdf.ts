@@ -2941,14 +2941,16 @@ async function statutsSci(d: Dossier, associes: Associe[]) {
         ctx,
         `${nomCompletPhysique(g)}, né${eg} le ${dateEnLettresFr(g.date_naissance)} à ${
           g.lieu_naissance ?? ""
-        }, de nationalité ${g.nationalite ?? ""}, demeurant ${g.adresse ?? ""} (le « Gérant »).`
+        }, de nationalité ${g.nationalite ?? ""}, demeurant ${g.adresse ?? ""} (${
+          feminin(g) ? "la « Gérante »" : "le « Gérant »"
+        }).`
           .replace(/\s+/g, " ")
           .trim(),
       );
       espace(ctx, 4);
       ecrire(
         ctx,
-        `Le Gérant déclare accepter ces fonctions et n'être frappé${eg} d'aucune incompatibilité, interdiction, déchéance ou mesure susceptible de faire obstacle à cette nomination.`,
+        `${feminin(g) ? "La Gérante" : "Le Gérant"} déclare accepter ces fonctions et n'être frappé${eg} d'aucune incompatibilité, interdiction, déchéance ou mesure susceptible de faire obstacle à cette nomination.`,
       );
     }
     espace(ctx, 6);
