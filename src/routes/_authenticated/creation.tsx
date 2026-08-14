@@ -1126,7 +1126,21 @@ function Creation() {
                   </ul>
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="banque">Établissement bancaire de dépôt des fonds</Label>
+                <Input
+                  id="banque"
+                  value={dossier.banque_depot ?? ""}
+                  onChange={(e) => patch({ banque_depot: e.target.value })}
+                  maxLength={120}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Nom de la banque où le capital sera déposé (ex. Qonto, Crédit Agricole de
+                  Lorraine). Cette mention figure dans les statuts.
+                </p>
+              </div>
               <div className="rounded-md border border-border bg-surface p-4 text-sm leading-relaxed">
+
                 <p className="font-medium">Apports en nature et apports en industrie</p>
                 <p className="mt-2">
                   Le parcours en ligne traite les apports en numéraire (sommes d'argent). Un apport
