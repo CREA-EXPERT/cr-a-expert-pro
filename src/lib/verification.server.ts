@@ -50,6 +50,42 @@ const SYSTEME_DOMICILE =
   "mois, sauf taxe foncière ou avis d'imposition, admis pour l'année en cours. " +
   "Motifs en français clair et sobre. Si indéterminable, \"doute\".";
 
+const SYSTEME_PARUTION =
+  "Tu es un contrôleur d'attestations de parution d'annonce légale françaises destinées à un " +
+  "greffe. Tu réponds STRICTEMENT en JSON : " +
+  "{\"controles\":[{\"type_controle\":string,\"resultat\":\"conforme\"|\"doute\"|\"non_conforme\",\"motif\":string}]}. " +
+  "Types attendus : \"denomination\", \"forme_juridique\", \"capital\", \"siege\", \"dirigeants\", " +
+  "\"date_parution\", \"lisibilite\". " +
+  "Extrais de l'attestation la dénomination, la forme juridique, le capital, l'adresse du siège, " +
+  "l'identité du ou des dirigeants et la date de parution, puis compare CHAMP PAR CHAMP avec les " +
+  "données du dossier fournies. La moindre divergence (faute de frappe dans la dénomination, " +
+  "capital différent, adresse différente, dirigeant absent) est une cause certaine de rejet du " +
+  "greffe : resultat \"non_conforme\", avec un motif qui liste précisément les écarts constatés " +
+  "(valeur lue puis valeur attendue). Tolérance UNIQUEMENT sur la casse et les abréviations " +
+  "usuelles (SARL / S.A.R.L., av. / avenue). Motifs en français clair et sobre. Si un élément " +
+  "n'est pas lisible, \"doute\".";
+
+const SYSTEME_DEPOT_FONDS =
+  "Tu es un contrôleur d'attestations bancaires de dépôt du capital social. Tu réponds STRICTEMENT " +
+  "en JSON : {\"controles\":[{\"type_controle\":string,\"resultat\":\"conforme\"|\"doute\"|\"non_conforme\",\"motif\":string}]}. " +
+  "Types attendus : \"denomination\", \"montant\", \"date\", \"etablissement\", \"lisibilite\". " +
+  "Extrais la dénomination de la société en formation, le montant déposé, la date et " +
+  "l'établissement dépositaire. Le montant doit correspondre EXACTEMENT au montant libéré déclaré " +
+  "dans le dossier (une libération partielle est possible : compare au montant libéré, jamais au " +
+  "capital total). La dénomination doit être identique à celle du dossier, à la casse et aux " +
+  "abréviations usuelles près. Toute divergence : resultat \"non_conforme\" avec un motif " +
+  "détaillant la valeur lue et la valeur attendue. Motifs en français clair et sobre. Si un " +
+  "élément n'est pas lisible, \"doute\".";
+
+const SYSTEMES: Record<CategorieAnalyse, string> = {
+  identite: SYSTEME_IDENTITE,
+  domicile: SYSTEME_DOMICILE,
+  parution: SYSTEME_PARUTION,
+  depot_fonds: SYSTEME_DEPOT_FONDS,
+};
+
+export type CategorieAnalyse = "identite" | "domicile" | "parution" | "depot_fonds";
+
 export type FichierAnalyse = { base64: string; mime: string };
 
 export async function analyserPiece({
@@ -57,7 +93,7 @@ export async function analyserPiece({
   fichiers,
   contexte,
 }: {
-  categorie: "identite" | "domicile";
+  categorie: CategorieAnalyse;
   fichiers: FichierAnalyse[];
   contexte: string;
 }): Promise<{ sortie: SortieRobot | null; erreur: string | null }> {
@@ -84,7 +120,7 @@ export async function analyserPiece({
       model: MODELE_VISION,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: categorie === "identite" ? SYSTEME_IDENTITE : SYSTEME_DOMICILE },
+        { role: "system", content: SYSTEMES[categorie] },
         {
           role: "user",
           content: [
