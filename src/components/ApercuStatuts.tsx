@@ -257,7 +257,10 @@ export function ApercuStatuts({ dossier, associes }: { dossier: Dossier; associe
       )}
 
       {erreur && (
-        <p role="alert" className="rounded-md border border-border bg-background p-4 text-sm text-justify">
+        <p
+          role="alert"
+          className="rounded-md border border-border bg-background p-4 text-sm text-justify"
+        >
           {erreur}
         </p>
       )}

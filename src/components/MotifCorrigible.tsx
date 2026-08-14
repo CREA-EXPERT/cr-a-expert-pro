@@ -29,11 +29,7 @@ export function MotifCorrigible({
       {numero && titre && (
         <>
           {" — "}
-          <Link
-            to="/creation"
-            search={{ etape: numero }}
-            className="underline underline-offset-2"
-          >
+          <Link to="/creation" search={{ etape: numero }} className="underline underline-offset-2">
             corriger à l'étape « {titre} »
           </Link>
         </>

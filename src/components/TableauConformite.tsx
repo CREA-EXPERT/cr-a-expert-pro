@@ -164,7 +164,12 @@ export function TableauConformite({
         </div>
         <div className="space-y-2">
           <Label htmlFor="fin">Jusqu'au</Label>
-          <Input id="fin" type="date" value={fin} onChange={(e) => onPeriode(debut, e.target.value)} />
+          <Input
+            id="fin"
+            type="date"
+            value={fin}
+            onChange={(e) => onPeriode(debut, e.target.value)}
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="tri">Trier par</Label>

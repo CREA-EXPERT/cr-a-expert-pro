@@ -110,7 +110,11 @@ function BancConformite() {
         </p>
       </div>
 
-      <div data-testid="refus-telechargement" role="alert" className="rounded-lg border border-border p-4">
+      <div
+        data-testid="refus-telechargement"
+        role="alert"
+        className="rounded-lg border border-border p-4"
+      >
         <p className="text-sm font-medium">Statuts — téléchargement refusé (2 points à traiter)</p>
         <ul className="mt-2 space-y-1 text-sm">
           {MOTIFS.map((m) => (

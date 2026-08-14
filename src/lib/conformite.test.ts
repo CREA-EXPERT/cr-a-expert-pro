@@ -11,7 +11,11 @@ import {
 } from "./conformite";
 import { VERSIONS_GABARIT } from "./gabarits";
 
-const bloque = (motifs: string[], date: string, meta = " [gabarit=SAS; version=SAS-2026.1; auteur=jean@example.fr]") => ({
+const bloque = (
+  motifs: string[],
+  date: string,
+  meta = " [gabarit=SAS; version=SAS-2026.1; auteur=jean@example.fr]",
+) => ({
   type_event: TYPE_BLOQUEE,
   message: `Génération des statuts bloquée — ${motifs.length} point à traiter : ${motifs.join(" ; ")}.${meta}`,
   created_at: date,
@@ -19,7 +23,11 @@ const bloque = (motifs: string[], date: string, meta = " [gabarit=SAS; version=S
 
 describe("métadonnées des événements de conformité", () => {
   it("inscrit le gabarit, la version et l'auteur puis les relit", () => {
-    const suffixe = suffixeMeta({ gabarit: "SARL", version: VERSIONS_GABARIT.SARL, auteur: "a@b.fr" });
+    const suffixe = suffixeMeta({
+      gabarit: "SARL",
+      version: VERSIONS_GABARIT.SARL,
+      auteur: "a@b.fr",
+    });
     expect(suffixe).toContain("gabarit=SARL");
     expect(suffixe).toContain(`version=${VERSIONS_GABARIT.SARL}`);
     const { message, meta } = extraireMeta(`Projet de statuts généré.${suffixe}`);
@@ -33,7 +41,9 @@ describe("métadonnées des événements de conformité", () => {
   });
 
   it("expose le gabarit et la version sur les lignes de journal", () => {
-    const [ligne] = lignesConformite([bloque(["Dénomination sociale"], "2026-08-10T10:00:00.000Z")]);
+    const [ligne] = lignesConformite([
+      bloque(["Dénomination sociale"], "2026-08-10T10:00:00.000Z"),
+    ]);
     expect(ligne!.gabarit).toBe("SAS");
     expect(ligne!.version).toBe("SAS-2026.1");
     expect(ligne!.auteur).toBe("jean@example.fr");
@@ -45,7 +55,11 @@ describe("motif récurrent", () => {
   const lignes = lignesConformite([
     bloque(["Dénomination sociale", "Banque de dépôt"], "2026-08-10T10:00:00.000Z"),
     bloque(["Dénomination sociale"], "2026-08-09T10:00:00.000Z"),
-    { type_event: TYPE_REUSSIE, message: "Projet de statuts généré.", created_at: "2026-08-11T10:00:00.000Z" },
+    {
+      type_event: TYPE_REUSSIE,
+      message: "Projet de statuts généré.",
+      created_at: "2026-08-11T10:00:00.000Z",
+    },
   ]);
 
   it("retient un motif présent dans au moins deux refus", () => {
@@ -59,9 +73,9 @@ describe("motif récurrent", () => {
 });
 
 describe("export CSV enrichi", () => {
-  const lignes = lignesConformite([bloque(["Dénomination sociale"], "2026-08-10T10:00:00.000Z")]).map(
-    (l) => ({ ...l, dossierId: "d-1", denomination: "ESSAI CONSEIL" }),
-  );
+  const lignes = lignesConformite([
+    bloque(["Dénomination sociale"], "2026-08-10T10:00:00.000Z"),
+  ]).map((l) => ({ ...l, dossierId: "d-1", denomination: "ESSAI CONSEIL" }));
   const csv = journalCsv("Suivi de conformité", lignes);
 
   it("comporte les colonnes gabarit et version", () => {

@@ -20,11 +20,7 @@ import { HistoriqueConformite } from "@/components/HistoriqueConformite";
 import { GuideCorrection } from "@/components/GuideCorrection";
 import { MotifCorrigible } from "@/components/MotifCorrigible";
 import { champsManquantsStatuts, motifsRefusStatuts } from "@/lib/statuts-controles";
-import {
-  historiqueConformite,
-  motifRecurrent,
-  type LigneConformite,
-} from "@/lib/conformite";
+import { historiqueConformite, motifRecurrent, type LigneConformite } from "@/lib/conformite";
 
 import {
   controlerChronologie,
@@ -324,7 +320,9 @@ function Documents() {
     const erreurs = controlerChronologie(dossier, associes).erreurs;
     if (erreurs.length > 0) {
       setRefus({ libelle: doc.libelle, motifs: erreurs });
-      toast.error(`${doc.libelle} : ${erreurs.length} point(s) à corriger, détail affiché à l'écran.`);
+      toast.error(
+        `${doc.libelle} : ${erreurs.length} point(s) à corriger, détail affiché à l'écran.`,
+      );
       return;
     }
     let octets: Uint8Array;
@@ -335,7 +333,10 @@ function Documents() {
       // La garde centrale de génération liste tous les motifs : ils sont tous affichés.
       const message = e instanceof Error ? e.message : "Ce document n'a pas pu être généré.";
       const detail = message.replace(/^[^:]+:\s*/, "");
-      setRefus({ libelle: doc.libelle, motifs: detail.split(" ; ").map((m) => m.replace(/\.$/, "")) });
+      setRefus({
+        libelle: doc.libelle,
+        motifs: detail.split(" ; ").map((m) => m.replace(/\.$/, "")),
+      });
       toast.error(`${doc.libelle} : génération refusée, détail affiché à l'écran.`);
       await journaliser(
         dossier.id,
@@ -685,8 +686,6 @@ function Documents() {
         </section>
 
         {dossier && <HistoriqueConformite dossier={dossier} associes={associes} />}
-
-
 
         <section className="space-y-6">
           <div>
