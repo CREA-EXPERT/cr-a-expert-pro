@@ -1,5 +1,6 @@
 import type { Tables } from "@/integrations/supabase/types";
 import { isEI } from "./domain";
+import { conjointConcerne, consentement1424, partenaireIndivisConcerne } from "./documents";
 import type { Associe, Dossier } from "./documents";
 
 export type SignatureRow = Tables<"signatures_electroniques">;
@@ -64,6 +65,19 @@ export const MODELES_SIGNATURE: {
     aide: "Permet de ne pas rendre publique l'adresse personnelle des personnes physiques dans les registres consultables par tous.",
   },
   {
+    type: "sig_consentement_partenaire_indivis",
+    libelle: "Consentement du partenaire co-indivisaire",
+    aide: "Le partenaire de PACS soumis à l'indivision consent à l'emploi de fonds indivis (art. 815-3 du Code civil). Il doit être signé avant les statuts.",
+    ordre: 1,
+    societeUniquement: true,
+  },
+  {
+    type: "sig_consentement_conjoint_1424",
+    libelle: "Consentement du conjoint à l'apport d'un bien commun",
+    aide: "L'apport d'un bien commun soumis à cogestion exige le consentement du conjoint (art. 1424 du Code civil). Il doit être signé avant les statuts.",
+    ordre: 2,
+  },
+  {
     type: "sig_mandat_guichet_unique",
     libelle: "Mandat de dépôt sur le guichet unique",
     aide: "Vous nous autorisez à déposer votre dossier sur le guichet unique des formalités des entreprises. Ce mandat est limité à cette seule formalité : il ne donne aucun autre pouvoir sur votre société.",
@@ -78,6 +92,8 @@ export const PDF_POUR_SIGNATURE: Record<string, string> = {
   sig_domiciliation: "attestation_domiciliation",
   sig_confidentialite_adresse: "confidentialite_adresse",
   sig_mandat_guichet_unique: "mandat_guichet_unique",
+  sig_consentement_partenaire_indivis: "consentement_partenaire_indivis",
+  sig_consentement_conjoint_1424: "consentement_conjoint_1424",
 };
 
 export const ETAPES_SIGNATURE = [
@@ -113,6 +129,9 @@ export function construireSignatures(dossier: Dossier, associes: Associe[]): Sig
     if (m.type === "sig_confidentialite_adresse") return aPersonnePhysique;
     if (m.type === "sig_non_condamnation") return true;
     if (m.type === "sig_domiciliation") return !ei || dossier.siege_type === "domicile";
+    if (m.type === "sig_consentement_partenaire_indivis")
+      return associes.some(partenaireIndivisConcerne);
+    if (m.type === "sig_consentement_conjoint_1424") return consentement1424(dossier, associes).requis;
     return true;
   }).map((m) => ({
     dossier_id: dossier.id,
@@ -171,6 +190,10 @@ export function signatairesRequis(
     }
     case "sig_confidentialite_adresse":
       return physiques.map(versRequis);
+    case "sig_consentement_partenaire_indivis":
+      return physiques.filter(partenaireIndivisConcerne).map(versRequis);
+    case "sig_consentement_conjoint_1424":
+      return consentement1424(dossier, associes).apporteurs.map(versRequis);
     case "sig_mandat_guichet_unique":
       return (dirigeants.length > 0 ? dirigeants : associes).map(versRequis);
     default:
