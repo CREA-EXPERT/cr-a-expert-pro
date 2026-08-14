@@ -1384,8 +1384,19 @@ function Creation() {
                               </select>
                             </div>
                             <div className="space-y-1">
+                              <Label className="text-xs" htmlFor={`cjp-${a.id}`}>
+                                Prénom {a.situation_matrimoniale === "pacse" ? "du partenaire" : "du conjoint"}
+                              </Label>
+                              <Input
+                                id={`cjp-${a.id}`}
+                                maxLength={80}
+                                value={a.conjoint_prenom ?? ""}
+                                onChange={(e) => majAssocie(a.id, { conjoint_prenom: e.target.value })}
+                              />
+                            </div>
+                            <div className="space-y-1">
                               <Label className="text-xs" htmlFor={`cjn-${a.id}`}>
-                                Prénom et nom {a.situation_matrimoniale === "pacse" ? "du partenaire" : "du conjoint"}
+                                Nom {a.situation_matrimoniale === "pacse" ? "du partenaire" : "du conjoint"}
                               </Label>
                               <Input
                                 id={`cjn-${a.id}`}
