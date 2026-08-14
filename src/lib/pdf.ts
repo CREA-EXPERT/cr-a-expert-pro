@@ -9,6 +9,7 @@ import {
 import type { Associe, Dossier } from "./documents";
 import { activitesDuDossier } from "./activites";
 import { clausesManquantes, messageClausesManquantes, type Gabarit } from "./statuts-clauses";
+import { DATE_REGLES_CONFORMITE, VERSION_MOTEUR, VERSIONS_GABARIT } from "./gabarits";
 import { dateEnLettresFr, jourMoisEnLettresFr, montantEnLettresFr } from "./nombres";
 import {
   accord,
@@ -46,7 +47,7 @@ import {
   conjointInforme as conjointInformeSci,
   isSciForme,
 } from "./statuts-sci";
-import { messageRefusStatuts, motifsRefusStatuts } from "./statuts-controles";
+import { gabaritApplique, messageRefusStatuts, motifsRefusStatuts } from "./statuts-controles";
 
 
 
@@ -3541,7 +3542,56 @@ export async function apposerPageDeSignature(
 }
 
 
+/**
+ * Inscrit dans les métadonnées du PDF la version du gabarit appliqué et la date
+ * d'entrée en vigueur des règles de conformité utilisées, afin de savoir
+ * a posteriori sous quel jeu de règles le document a été produit.
+ */
+async function estampillerMetadonnees(
+  octets: Uint8Array,
+  type: string,
+  dossier: Dossier,
+  associes: Associe[],
+): Promise<Uint8Array> {
+  try {
+    const gabarit = type === "statuts" ? gabaritApplique(dossier, associes) : null;
+    const version = gabarit ? VERSIONS_GABARIT[gabarit] : `MOTEUR-${VERSION_MOTEUR}`;
+    const pdf = await PDFDocument.load(octets as unknown as ArrayBuffer);
+    const maintenant = new Date();
+    pdf.setTitle(`${type} — ${dossier.denomination || "dossier"}`);
+    pdf.setAuthor("CREA EXPERT");
+    pdf.setCreator("CREA EXPERT — moteur documentaire");
+    pdf.setProducer(`CREA EXPERT ${VERSION_MOTEUR}`);
+    pdf.setSubject(
+      `Gabarit ${version} — règles de conformité en vigueur au ${DATE_REGLES_CONFORMITE}`,
+    );
+    pdf.setKeywords([
+      `gabarit=${gabarit ?? "generique"}`,
+      `version_gabarit=${version}`,
+      `regles_conformite=${DATE_REGLES_CONFORMITE}`,
+      `rendu=${RENDU.filigrane ? "projet" : "valide"}`,
+      `genere_le=${maintenant.toISOString()}`,
+    ]);
+    pdf.setCreationDate(maintenant);
+    pdf.setModificationDate(maintenant);
+    return await pdf.save();
+  } catch {
+    // Les métadonnées sont une traçabilité de confort : jamais un blocage.
+    return octets;
+  }
+}
+
 export async function genererPdf(
+  type: string,
+  dossier: Dossier,
+  associes: Associe[],
+  associeId: string | null,
+): Promise<Uint8Array> {
+  const octets = await construirePdf(type, dossier, associes, associeId);
+  return estampillerMetadonnees(octets, type, dossier, associes);
+}
+
+async function construirePdf(
   type: string,
   dossier: Dossier,
   associes: Associe[],

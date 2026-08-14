@@ -16,6 +16,9 @@ import { AvertissementRejet, TEXTE_AVERTISSEMENT_REJET } from "@/components/Aver
 import { FriseAvancement } from "@/components/FriseAvancement";
 import { LigneDepot, type Face } from "@/components/LigneDepot";
 import { EncadrePliable } from "@/components/EncadrePliable";
+import { HistoriqueConformite } from "@/components/HistoriqueConformite";
+import { GuideCorrection } from "@/components/GuideCorrection";
+import { champsManquantsStatuts } from "@/lib/statuts-controles";
 
 import { genererPdf, telechargerPdf } from "@/lib/pdf";
 import {
@@ -605,6 +608,14 @@ function Documents() {
                   <li key={i}>{m}</li>
                 ))}
               </ul>
+              {dossier && (
+                <div className="mt-4">
+                  <GuideCorrection
+                    dossier={dossier}
+                    manquants={champsManquantsStatuts(dossier, associes)}
+                  />
+                </div>
+              )}
             </div>
           )}
           <ul className="space-y-4">
@@ -636,6 +647,10 @@ function Documents() {
             })}
           </ul>
         </section>
+
+        {dossier && <HistoriqueConformite dossier={dossier} />}
+
+
 
         <section className="space-y-6">
           <div>

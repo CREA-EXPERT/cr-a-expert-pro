@@ -91,12 +91,17 @@ import {
 import { estCodeReglemente } from "@/lib/naf-reglemente";
 import { analyserActivite } from "@/lib/activite.functions";
 import { estHoteApercu } from "@/lib/apercu";
+import { CLES_EI, CLES_SOCIETE, TITRES, type Cle } from "@/lib/etapes";
 import { ApercuStatuts } from "@/components/ApercuStatuts";
 
 import { z } from "zod";
 import { ArrowDown, ArrowLeft, ArrowUp, ExternalLink, Plus, Sparkle, Trash2 } from "lucide-react";
 
-const searchSchema = z.object({ forme: z.string().optional() });
+const searchSchema = z.object({
+  forme: z.string().optional(),
+  /** Étape à ouvrir directement (guide de correction). */
+  etape: z.number().int().positive().optional(),
+});
 
 export const Route = createFileRoute("/_authenticated/creation")({
   validateSearch: searchSchema,
@@ -114,65 +119,6 @@ export const Route = createFileRoute("/_authenticated/creation")({
   component: Creation,
 });
 
-type Cle =
-  | "forme"
-  | "denomination"
-  | "siege"
-  | "objet"
-  | "capital"
-  | "associes"
-  | "situation"
-  | "options"
-  | "mission"
-  | "validation"
-  | "paiement"
-  | "recap";
-
-const CLES_SOCIETE: Cle[] = [
-  "forme",
-  "denomination",
-  "siege",
-  "objet",
-  "capital",
-  "associes",
-  "situation",
-  "options",
-  "mission",
-  "validation",
-  "paiement",
-  "recap",
-];
-
-const CLES_EI: Cle[] = [
-  "forme",
-  "denomination",
-  "siege",
-  "objet",
-  "associes",
-  "situation",
-  "options",
-  "mission",
-  "validation",
-  "paiement",
-  "recap",
-];
-
-const TITRES: Record<Cle, string> = {
-  forme: "Forme juridique",
-  denomination: "Dénomination (nom de la société)",
-  siege: "Siège social",
-  objet: "Objet social",
-  capital: "Capital",
-  associes: "Associés et gérance",
-  situation: "Votre situation et vos justificatifs",
-
-  options: "Options fiscales et sociales",
-  mission: "Lettre de mission",
-  validation: "Votre offre",
-  paiement: "Frais légaux et moyen de paiement",
-  recap: "Récapitulatif",
-};
-
 const champ = "h-10 w-full rounded-md border border-input bg-surface px-3 text-sm";
 
 /** Déplace un élément d'une liste, sans la modifier sur place. */
@@ -185,7 +131,7 @@ function deplacer<T>(liste: T[], de: number, vers: number) {
 
 function Creation() {
   const navigate = useNavigate();
-  const { forme: formeInitiale } = Route.useSearch();
+  const { forme: formeInitiale, etape: etapeDemandee } = Route.useSearch();
   const { data: tarifs } = useTarifs();
   const { data: offres } = useOffres();
   const { user } = useAuth();
@@ -246,7 +192,7 @@ function Creation() {
       setDossier(d);
       setNomAcceptation(d.lettre_mission_nom ?? "");
       const nb = (isEI(d.forme_juridique) ? CLES_EI : CLES_SOCIETE).length;
-      setEtape(Math.min(Math.max(d.etape_courante, 1), nb));
+      setEtape(Math.min(Math.max(etapeDemandee ?? d.etape_courante, 1), nb));
       const { data: as } = await supabase
         .from("associes")
         .select("*")
@@ -254,7 +200,7 @@ function Creation() {
         .order("created_at");
       setAssocies(as ?? []);
     })();
-  }, [formeInitiale]);
+  }, [formeInitiale, etapeDemandee]);
 
   async function patch(valeurs: Partial<Dossier>) {
     if (!dossier) return;
