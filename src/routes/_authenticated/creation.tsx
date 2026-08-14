@@ -36,6 +36,8 @@ import {
   type Forme,
 } from "@/lib/domain";
 import { AdresseSiege } from "@/components/AdresseSiege";
+import { dateEnLettresFr } from "@/lib/nombres";
+import { avertissementPremierExercice, clotureParDefaut } from "@/lib/statuts-sas";
 
 import {
   apportCogestion,
@@ -1126,7 +1128,21 @@ function Creation() {
                   </ul>
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="banque">Établissement bancaire de dépôt des fonds</Label>
+                <Input
+                  id="banque"
+                  value={dossier.banque_depot ?? ""}
+                  onChange={(e) => patch({ banque_depot: e.target.value })}
+                  maxLength={120}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Nom de la banque où le capital sera déposé (ex. Qonto, Crédit Agricole de
+                  Lorraine). Cette mention figure dans les statuts.
+                </p>
+              </div>
               <div className="rounded-md border border-border bg-surface p-4 text-sm leading-relaxed">
+
                 <p className="font-medium">Apports en nature et apports en industrie</p>
                 <p className="mt-2">
                   Le parcours en ligne traite les apports en numéraire (sommes d'argent). Un apport
@@ -1282,6 +1298,75 @@ function Creation() {
                               </option>
                             ))}
                           </select>
+                        )}
+
+                        {a.situation_matrimoniale === "marie" && (
+                          <div className="sm:col-span-2 grid gap-3 rounded-md border border-border bg-muted/40 p-3 sm:grid-cols-2">
+                            <div className="space-y-1">
+                              <Label className="text-xs" htmlFor={`dm-${a.id}`}>
+                                Date du mariage
+                              </Label>
+                              <Input
+                                id={`dm-${a.id}`}
+                                type="date"
+                                value={a.date_mariage ?? ""}
+                                onChange={(e) =>
+                                  majAssocie(a.id, { date_mariage: e.target.value || null })
+                                }
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs" htmlFor={`lm-${a.id}`}>
+                                Lieu du mariage (commune)
+                              </Label>
+                              <Input
+                                id={`lm-${a.id}`}
+                                maxLength={120}
+                                value={a.lieu_mariage ?? ""}
+                                onChange={(e) => majAssocie(a.id, { lieu_mariage: e.target.value })}
+                              />
+                            </div>
+                            <p className="sm:col-span-2 text-xs text-muted-foreground">
+                              Ces informations figurent dans la comparution des statuts.
+                            </p>
+                          </div>
+                        )}
+
+                        {(a.situation_matrimoniale === "marie" ||
+                          a.situation_matrimoniale === "pacse") && (
+                          <div className="sm:col-span-2 grid gap-3 sm:grid-cols-2">
+                            <div className="space-y-1">
+                              <Label className="text-xs" htmlFor={`cjc-${a.id}`}>
+                                Civilité {a.situation_matrimoniale === "pacse" ? "du partenaire" : "du conjoint"}
+                              </Label>
+                              <select
+                                id={`cjc-${a.id}`}
+                                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                                value={a.conjoint_civilite ?? ""}
+                                onChange={(e) =>
+                                  majAssocie(a.id, { conjoint_civilite: e.target.value || null })
+                                }
+                              >
+                                <option value="">—</option>
+                                {["Monsieur", "Madame"].map((c) => (
+                                  <option key={c} value={c}>
+                                    {c}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs" htmlFor={`cjn-${a.id}`}>
+                                Prénom et nom {a.situation_matrimoniale === "pacse" ? "du partenaire" : "du conjoint"}
+                              </Label>
+                              <Input
+                                id={`cjn-${a.id}`}
+                                maxLength={120}
+                                value={a.conjoint_nom ?? ""}
+                                onChange={(e) => majAssocie(a.id, { conjoint_nom: e.target.value })}
+                              />
+                            </div>
+                          </div>
                         )}
 
                         {(a.situation_matrimoniale === "marie" ||
@@ -2130,7 +2215,46 @@ function Creation() {
           {/* 9 — RECAP */}
           {cle === "recap" && (
             <div className="mt-6 space-y-4">
+              {!ei && (
+                <div className="grid gap-4 rounded-lg border border-border bg-surface p-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="villesig">Ville de signature des actes</Label>
+                    <Input
+                      id="villesig"
+                      value={dossier.ville_signature ?? dossier.siege_ville ?? ""}
+                      onChange={(e) => patch({ ville_signature: e.target.value })}
+                      maxLength={80}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Pré-remplie avec la ville du siège social ; modifiable.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cloture1">Clôture du premier exercice</Label>
+                    <Input
+                      id="cloture1"
+                      type="date"
+                      value={
+                        dossier.date_cloture_premier_exercice ??
+                        clotureParDefaut(dossier.date_cloture_exercice)
+                      }
+                      onChange={(e) => patch({ date_cloture_premier_exercice: e.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Par défaut, le {dateEnLettresFr(clotureParDefaut(dossier.date_cloture_exercice))}.
+                      Le premier exercice ne devrait pas se clore au-delà du 31 décembre de l'année
+                      civile suivant l'immatriculation.
+                    </p>
+                    {avertissementPremierExercice(dossier) && (
+                      <p className="text-xs text-destructive">
+                        {avertissementPremierExercice(dossier)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
               <dl className="divide-y divide-border rounded-lg border border-border bg-surface">
+
                 {[
                   ["Forme juridique", forme],
                   ["Dénomination", dossier.denomination || "—"],
