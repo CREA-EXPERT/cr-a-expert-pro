@@ -7,7 +7,14 @@ import { Button } from "@/components/ui/button";
 import { AvertissementRejet } from "@/components/AvertissementsPieces";
 import { normaliserStatut, aRedeposer, LIBELLE_STATUT } from "@/lib/pieces";
 import { activitesDuDossier, libelleActivite } from "@/lib/activites";
-import type { Associe, Dossier, DocumentRow } from "@/lib/documents";
+import {
+  controlerChronologie,
+  revuesHumaines,
+  type Associe,
+  type Dossier,
+  type DocumentRow,
+} from "@/lib/documents";
+import { analyserBeneficiaires, MOTIF_BE } from "@/lib/beneficiaires";
 import { CircleAlert, CircleCheck, CircleX } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/verification-finale")({
@@ -244,6 +251,9 @@ function VerificationFinale() {
       };
     });
 
+  const chronologie = controlerChronologie(dossier, associes);
+  const revues = revuesHumaines(dossier, associes);
+  const be = analyserBeneficiaires(dossier, associes);
   const bloquants = [...personnes, ...societe, ...pieces].filter((l) => l.etat === "manquant");
   const dejaTransmis = [
     "en_revue_cabinet",
@@ -285,6 +295,74 @@ function VerificationFinale() {
         <Section titre="Associés et dirigeants" lignes={personnes} />
         <Section titre="La société" lignes={societe} />
         <Section titre="Pièces justificatives" lignes={pieces} />
+
+        {(chronologie.erreurs.length > 0 || chronologie.avertissements.length > 0) && (
+          <section className="space-y-2 rounded-lg border border-border bg-surface p-6">
+            <h2 className="mt-0 font-serif text-xl">Chronologie des actes</h2>
+            <ul className="space-y-1 text-sm leading-relaxed">
+              {chronologie.erreurs.map((e) => (
+                <li key={e} className="text-destructive">
+                  {e}
+                </li>
+              ))}
+              {chronologie.avertissements.map((a) => (
+                <li key={a} className="text-muted-foreground">
+                  {a}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <section className="space-y-2 rounded-lg border border-border bg-surface p-6">
+          <h2 className="mt-0 font-serif text-xl">Bénéficiaires effectifs</h2>
+          {be.beneficiaires.length === 0 ? (
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Aucun bénéficiaire effectif n'a pu être déterminé : complétez les titres détenus et la
+              désignation des dirigeants.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {be.beneficiaires.map((b, i) => (
+                <li key={`${b.associeId}-${i}`} className="rounded-md border border-border p-3">
+                  <p className="text-sm font-medium">
+                    {b.nom}
+                    {b.pourcentage !== null && (
+                      <span className="text-muted-foreground">
+                        {" "}
+                        — {b.pourcentage.toFixed(2).replace(".", ",")} %
+                      </span>
+                    )}
+                  </p>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                    {MOTIF_BE[b.motif]}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+          {be.moralesAControler.length > 0 && (
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              La chaîne de détention des associés personnes morales est vérifiée par
+              l'expert-comptable avant dépôt.
+            </p>
+          )}
+        </section>
+
+        {revues.length > 0 && (
+          <section className="space-y-2 rounded-lg border border-warning/50 bg-warning/10 p-6">
+            <h2 className="mt-0 font-serif text-xl">Points soumis à la revue d'un professionnel</h2>
+            <ul className="space-y-1 text-sm leading-relaxed">
+              {revues.map((r) => (
+                <li key={r}>{r}</li>
+              ))}
+            </ul>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Information générale — ne constitue pas un conseil. Votre dossier sera revu par un
+              expert-comptable.
+            </p>
+          </section>
+        )}
 
         <section className="rounded-lg border border-accent/40 bg-accent/8 p-6">
           {dejaTransmis ? (
