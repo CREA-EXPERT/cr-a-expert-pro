@@ -21,28 +21,27 @@ test("blocage détaillé, reprise automatique et journal de conformité", async 
     apercu.getByText("L'aperçu sera disponible dès que les points ci-dessus seront traités."),
   ).toBeVisible();
 
-  // Journal de conformité : présent, replié par défaut, dépliable.
+  // Journal de conformité : le blocage est consigné et horodaté.
   const journal = page.getByRole("button", { name: "Journal de conformité" });
-  await expect(journal).toBeVisible();
   await expect(journal).toHaveAttribute("aria-expanded", "false");
+  await journal.click();
+  await expect(journal).toHaveAttribute("aria-expanded", "true");
+  await expect(apercu.getByText(/Génération des statuts bloquée/)).toBeVisible({
+    timeout: 15_000,
+  });
+  await expect(apercu.getByText(/\d{4} à \d{2}:\d{2}/).first()).toBeVisible();
 
-  // Complétion des champs : l'aperçu se régénère sans clic.
+  // Complétion des champs : l'aperçu se régénère sans clic supplémentaire.
   await page.getByRole("button", { name: "Compléter le dossier" }).click();
   await expect(apercu.getByText("Informations juridiques manquantes")).toHaveCount(0);
-  await expect(page.locator("object[aria-label=\"Aperçu du projet de statuts\"]")).toBeVisible({
+  await expect(page.locator('object[aria-label="Aperçu du projet de statuts"]')).toBeVisible({
     timeout: 30_000,
   });
+  await expect(apercu.getByText(/Projet de statuts généré/)).toBeVisible({ timeout: 15_000 });
 
   // Pas de débordement horizontal de la mise en page.
   const debordement = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(debordement).toBeLessThanOrEqual(1);
-
-  // Le journal liste le blocage puis la génération réussie, horodatés.
-  await journal.click();
-  await expect(journal).toHaveAttribute("aria-expanded", "true");
-  await expect(apercu.getByText(/Génération des statuts bloquée/)).toBeVisible();
-  await expect(apercu.getByText(/Projet de statuts généré/)).toBeVisible();
-  await expect(apercu.getByText(/\d{4} à \d{2}:\d{2}/).first()).toBeVisible();
 });
