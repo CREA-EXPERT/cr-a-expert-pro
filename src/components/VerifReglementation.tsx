@@ -16,12 +16,15 @@ export function VerifReglementation({
   naf,
   auto = false,
   onResultat,
+  onVerdict,
 }: {
   activite: string;
   naf?: string | null;
   /** Lance la vérification automatiquement dès que le texte de l'activité change. */
   auto?: boolean;
   onResultat?: (reglementee: boolean, resume: string) => void;
+  /** Verdict brut de l'analyse : oui, non ou doute. */
+  onVerdict?: (verdict: "oui" | "non" | "incertain") => void;
 }) {
   const [texte, setTexte] = useState("");
   const [encours, setEncours] = useState(false);
@@ -58,6 +61,7 @@ export function VerifReglementation({
       });
       if (res?.analyse) {
         setAnalyse(res.analyse);
+        onVerdict?.(res.analyse.reglementee);
         onResultat?.(
           res.analyse.reglementee === "oui",
           [res.analyse.explication, ...res.analyse.exigences].join(" "),

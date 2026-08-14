@@ -458,6 +458,7 @@ export type Database = {
           date_statut: string
           demande_acre: boolean
           denomination: string
+          denomination_risque: string | null
           denomination_verifiee: boolean
           dirigeant_deja_immatricule: boolean
           dirigeant_nomme_statuts: boolean
@@ -478,6 +479,7 @@ export type Database = {
           lettre_mission_acceptee_le: string | null
           lettre_mission_nom: string | null
           location_meublee: boolean
+          mention_depot_capital: string | null
           moyen_de_paiement_enregistre: boolean
           moyen_de_paiement_enregistre_le: string | null
           objet_social: string | null
@@ -554,6 +556,7 @@ export type Database = {
           date_statut?: string
           demande_acre?: boolean
           denomination?: string
+          denomination_risque?: string | null
           denomination_verifiee?: boolean
           dirigeant_deja_immatricule?: boolean
           dirigeant_nomme_statuts?: boolean
@@ -574,6 +577,7 @@ export type Database = {
           lettre_mission_acceptee_le?: string | null
           lettre_mission_nom?: string | null
           location_meublee?: boolean
+          mention_depot_capital?: string | null
           moyen_de_paiement_enregistre?: boolean
           moyen_de_paiement_enregistre_le?: string | null
           objet_social?: string | null
@@ -650,6 +654,7 @@ export type Database = {
           date_statut?: string
           demande_acre?: boolean
           denomination?: string
+          denomination_risque?: string | null
           denomination_verifiee?: boolean
           dirigeant_deja_immatricule?: boolean
           dirigeant_nomme_statuts?: boolean
@@ -670,6 +675,7 @@ export type Database = {
           lettre_mission_acceptee_le?: string | null
           lettre_mission_nom?: string | null
           location_meublee?: boolean
+          mention_depot_capital?: string | null
           moyen_de_paiement_enregistre?: boolean
           moyen_de_paiement_enregistre_le?: string | null
           objet_social?: string | null

@@ -48,6 +48,7 @@ import {
 } from "@/lib/documents";
 import { EncadrePliable } from "@/components/EncadrePliable";
 import { VerifDenomination } from "@/components/VerifDenomination";
+import { MentionObligatoire, Requis } from "@/components/Obligatoire";
 import { analyserChecklist, estMineur, piecesEnDrafts } from "@/lib/checklist";
 import { useAuth, useRoles } from "@/hooks/useAuth";
 import { etatServices } from "@/lib/services.functions";
@@ -95,7 +96,7 @@ import { CLES_EI, CLES_SOCIETE, TITRES, type Cle } from "@/lib/etapes";
 import { ApercuStatuts } from "@/components/ApercuStatuts";
 
 import { z } from "zod";
-import { ArrowDown, ArrowLeft, ArrowUp, ExternalLink, Plus, Sparkle, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, Plus, Sparkle, Trash2 } from "lucide-react";
 
 const searchSchema = z.object({
   forme: z.string().optional(),
@@ -242,7 +243,8 @@ function Creation() {
       if (!isEI(d.forme_juridique) && !d.denomination.trim())
         e["denomination"] = "La dénomination sociale est obligatoire.";
       if (!d.denomination_verifiee)
-        e["denomination_verifiee"] = "Confirmez la vérification de disponibilité auprès de l'INPI.";
+        e["denomination_verifiee"] =
+          "Confirmez avoir vérifié l'absence de marque antérieure créant un risque de confusion.";
     }
     if (c === "siege") {
       if (!d.siege_type) e["siege_type"] = "Choisissez le type de siège social.";
@@ -413,7 +415,7 @@ function Creation() {
   async function ajouterDepuisDescription() {
     if (!dossier) return;
     const description = descriptionActivite.trim();
-    if (description.length < 5) return;
+    if (description.length < 1) return;
     setRedaction(true);
     try {
       const res = await analyserActivite({ data: { description, forme: dossier.forme_juridique } });
@@ -728,6 +730,7 @@ function Creation() {
               <div className="space-y-2">
                 <Label htmlFor="denom">
                   {ei ? "Nom commercial (facultatif)" : "Dénomination sociale"}
+                  {!ei && <Requis />}
                 </Label>
                 <Input
                   id="denom"
@@ -746,35 +749,12 @@ function Creation() {
                   onChange={(e) => patch({ sigle: e.target.value })}
                 />
               </div>
-              <VerifDenomination denomination={dossier.denomination ?? ""} />
+              <VerifDenomination
+                denomination={dossier.denomination ?? ""}
+                codesNaf={activites.map((a) => a.naf_code)}
+                onRisque={(niveau) => patch({ denomination_risque: niveau })}
+              />
 
-              <div className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed">
-                <p className="font-medium">Vérifiez que ce nom est disponible</p>
-                <p className="mt-2">
-                  Un nom identique ou similaire à une marque déjà déposée pour des produits ou
-                  services proches expose à une action en contrefaçon et à l'interdiction d'utiliser
-                  le nom, même après immatriculation. La recherche est gratuite dans la base des
-                  marques de l'INPI.
-                </p>
-                <p className="mt-2">
-                  <a
-                    href="https://data.inpi.fr/search?displayStyle=LIST&type=MARQUES"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 font-medium underline underline-offset-2"
-                  >
-                    Rechercher dans la base des marques (INPI)
-                    <ExternalLink className="size-3.5" strokeWidth={1.5} aria-hidden />
-                  </a>
-                </p>
-                <p className="mt-3 text-xs text-muted-foreground">
-                  Articles L. 713-2 à L. 713-6 du code de la propriété intellectuelle : usage
-                  interdit d'un signe identique à une marque pour des produits ou services
-                  identiques, et d'un signe identique ou similaire s'il existe un risque de
-                  confusion ; protection étendue aux marques renommées, sous réserve de l'usage de
-                  bonne foi de son nom patronymique et de l'usage antérieur d'un signe local.
-                </p>
-              </div>
               <div className="flex items-start gap-3">
                 <Checkbox
                   id="verif"
@@ -783,8 +763,10 @@ function Creation() {
                   className="mt-0.5"
                 />
                 <Label htmlFor="verif" className="text-sm font-normal">
-                  J'ai vérifié dans la base de l'INPI qu'aucune marque antérieure ne s'oppose à
-                  l'usage de ce nom, et j'en assume la responsabilité. (obligatoire)
+                  J'ai pris connaissance de ces informations et vérifié, dans la base des marques de
+                  l'INPI, qu'aucune marque antérieure ne crée de risque de confusion avec ce nom.
+                  J'en assume la responsabilité.
+                  <Requis />
                 </Label>
               </div>
               <Err nom="denomination_verifiee" />
@@ -871,7 +853,7 @@ function Creation() {
 
               <div className="rounded-md border border-border bg-surface p-4">
                 <Label htmlFor="descr" className="text-sm font-medium">
-                  Ajouter une activité — décrivez-la en quelques mots
+                  Ajouter une activité — décrivez-la en quelques mots<Requis />
                 </Label>
                 <p className="mt-1 text-sm text-muted-foreground text-justify">
                   Votre société peut exercer une seule activité ou plusieurs. La première de la
@@ -893,7 +875,7 @@ function Creation() {
                 <div className="mt-3 flex flex-wrap items-center gap-3">
                   <Button
                     type="button"
-                    disabled={redaction || descriptionActivite.trim().length < 10}
+                    disabled={redaction || descriptionActivite.trim().length < 1}
                     onClick={ajouterDepuisDescription}
                   >
                     <Sparkle strokeWidth={1.5} />
@@ -995,7 +977,10 @@ function Creation() {
                 </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="cap">Montant du capital social (minimum 1 €)</Label>
+                <Label htmlFor="cap">
+                  Montant du capital social (minimum 1 €)
+                  <Requis />
+                </Label>
                 <Input
                   id="cap"
                   type="number"
@@ -1008,7 +993,6 @@ function Creation() {
                 />
                 <Err nom="capital_montant" />
 
-                <p className="text-xs text-muted-foreground">Valeur suggérée : 1 000 €.</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="valpart">Valeur nominale d'une part ou action (€)</Label>
@@ -1076,7 +1060,11 @@ function Creation() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="banque">Établissement bancaire de dépôt des fonds</Label>
+                <Label htmlFor="banque">
+                  Établissement bancaire de dépôt des fonds — étude notariale ou organisme
+                  récipiendaire
+                  <Requis />
+                </Label>
                 <Input
                   id="banque"
                   value={dossier.banque_depot ?? ""}
@@ -1084,8 +1072,27 @@ function Creation() {
                   maxLength={120}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Nom de la banque où le capital sera déposé (ex. Qonto, Crédit Agricole de
-                  Lorraine). Cette mention figure dans les statuts.
+                  Nom de la banque, de l'étude notariale ou de l'organisme récipiendaire où le
+                  capital sera déposé (ex. Qonto, Crédit Agricole de Lorraine, étude notariale
+                  Martin). Cette mention figure dans les statuts.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="mention-depot">
+                  En cas de dépôt du capital en ligne, veuillez coller ici la mention à ajouter au
+                  statut relative au dépôt du capital social
+                </Label>
+                <Textarea
+                  id="mention-depot"
+                  rows={4}
+                  maxLength={1000}
+                  placeholder="Collez ici la mention transmise par l'établissement dépositaire."
+                  value={dossier.mention_depot_capital ?? ""}
+                  onChange={(e) => patch({ mention_depot_capital: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Les plateformes de dépôt en ligne fournissent une formulation précise à reprendre
+                  dans les statuts. Recopiez-la telle quelle : elle sera insérée sans modification.
                 </p>
               </div>
               <div className="rounded-md border border-border bg-surface p-4 text-sm leading-relaxed">
@@ -2411,6 +2418,8 @@ function Creation() {
               </Button>
             </div>
           )}
+
+          {cle !== "recap" && <MentionObligatoire className="mt-6" />}
 
           <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-border pt-6">
             {cle !== "recap" && <Button onClick={() => continuer(cle)}>Continuer</Button>}
