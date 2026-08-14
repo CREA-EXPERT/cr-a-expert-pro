@@ -10,7 +10,15 @@ import { ApercuChecklist } from "@/components/ApercuChecklist";
 
 const champ = "h-10 w-full rounded-md border border-input bg-surface px-3 text-sm";
 
-function Bloc({ titre, aide, children }: { titre: string; aide?: string; children: React.ReactNode }) {
+function Bloc({
+  titre,
+  aide,
+  children,
+}: {
+  titre: string;
+  aide?: string;
+  children: React.ReactNode;
+}) {
   return (
     <section className="space-y-3 rounded-lg border border-border bg-surface p-4">
       <div>
@@ -35,7 +43,12 @@ function Case({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <Checkbox id={id} checked={checked} onCheckedChange={(v) => onChange(v === true)} className="mt-0.5" />
+      <Checkbox
+        id={id}
+        checked={checked}
+        onCheckedChange={(v) => onChange(v === true)}
+        className="mt-0.5"
+      />
       <Label htmlFor={id} className="text-sm font-normal leading-relaxed">
         {label}
       </Label>
@@ -118,7 +131,9 @@ export function SituationChecklist({
             id="immeuble"
             label="Un immeuble est apporté à la société (acte notarié et publicité foncière obligatoires)."
             checked={dossier.apport_immeuble}
-            onChange={(v) => patch({ apport_immeuble: v, routage_cabinet: v || dossier.routage_cabinet })}
+            onChange={(v) =>
+              patch({ apport_immeuble: v, routage_cabinet: v || dossier.routage_cabinet })
+            }
           />
           <div className="space-y-1">
             <Label className="text-xs">Fonds de commerce</Label>
@@ -135,9 +150,7 @@ export function SituationChecklist({
           </div>
           {apportCogestion(dossier) && associes.some(estCommunautaire) && (
             <div className="space-y-2 rounded-md border border-border bg-muted/50 p-3">
-              <Label className="text-xs">
-                Le bien apporté est-il un bien commun du couple ?
-              </Label>
+              <Label className="text-xs">Le bien apporté est-il un bien commun du couple ?</Label>
               <select
                 className={champ}
                 value={dossier.bien_commun_apport ?? "non"}
@@ -207,7 +220,6 @@ export function SituationChecklist({
         )}
       </Bloc>
 
-
       <Bloc
         titre="Autres entreprises et interdiction de gérer"
         aide="Aucune pièce supplémentaire n'est demandée, mais le numéro SIREN existant doit être renseigné au guichet unique."
@@ -247,7 +259,10 @@ export function SituationChecklist({
         >
           <div className="space-y-4">
             {physiques.map((a) => (
-              <div key={a.id} className="space-y-3 rounded-md border border-border bg-background p-3">
+              <div
+                key={a.id}
+                className="space-y-3 rounded-md border border-border bg-background p-3"
+              >
                 <p className="text-sm font-medium">
                   {`${a.prenom ?? ""} ${a.nom ?? ""}`.trim() || "Associé sans nom"}
                 </p>
@@ -296,7 +311,9 @@ export function SituationChecklist({
                   />
                 )}
 
-                {(ei || dossier.forme_juridique === "SARL" || dossier.forme_juridique === "EURL") && (
+                {(ei ||
+                  dossier.forme_juridique === "SARL" ||
+                  dossier.forme_juridique === "EURL") && (
                   <>
                     <Case
                       id={`conj-${a.id}`}
@@ -310,7 +327,9 @@ export function SituationChecklist({
                         <select
                           className={champ}
                           value={a.conjoint_statut ?? ""}
-                          onChange={(e) => majAssocie(a.id, { conjoint_statut: e.target.value || null })}
+                          onChange={(e) =>
+                            majAssocie(a.id, { conjoint_statut: e.target.value || null })
+                          }
                         >
                           <option value="">Choisir…</option>
                           <option value="collaborateur">Conjoint collaborateur</option>

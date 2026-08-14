@@ -18,11 +18,9 @@ import {
   FORMES,
   FORMES_COMMUNAUTE,
   MOIS,
-  
   REGIMES_AVEC_CONTRAT,
   REGIMES_MARIAGE,
   REGIMES_PACS,
-  REGIMES_COMMUNAUTAIRES,
   REGIME_DEFAUT,
   SITUATIONS,
   TVA_OPTIONS,
@@ -71,7 +69,6 @@ import {
   activitesDuDossier,
   derivesActivites,
   libelleActivite,
-
   nouvelleActivite,
   type Activite,
 } from "@/lib/activites";
@@ -96,8 +93,6 @@ import { estHoteApercu } from "@/lib/apercu";
 import { z } from "zod";
 import { ArrowDown, ArrowLeft, ArrowUp, ExternalLink, Plus, Sparkle, Trash2 } from "lucide-react";
 
-
-
 const searchSchema = z.object({ forme: z.string().optional() });
 
 export const Route = createFileRoute("/_authenticated/creation")({
@@ -105,7 +100,10 @@ export const Route = createFileRoute("/_authenticated/creation")({
   head: () => ({
     meta: [
       { title: "Créer ma société — CREA EXPERT" },
-      { name: "description", content: "Parcours guidé de création de société, sauvegardé à chaque étape." },
+      {
+        name: "description",
+        content: "Parcours guidé de création de société, sauvegardé à chaque étape.",
+      },
       { property: "og:title", content: "Créer ma société — CREA EXPERT" },
       { property: "og:description", content: "Complétez votre dossier de création en ligne." },
     ],
@@ -126,7 +124,6 @@ type Cle =
   | "validation"
   | "paiement"
   | "recap";
-
 
 const CLES_SOCIETE: Cle[] = [
   "forme",
@@ -165,7 +162,7 @@ const TITRES: Record<Cle, string> = {
   capital: "Capital",
   associes: "Associés et gérance",
   situation: "Votre situation et vos justificatifs",
-  
+
   options: "Options fiscales et sociales",
   mission: "Lettre de mission",
   validation: "Votre offre",
@@ -183,7 +180,6 @@ function deplacer<T>(liste: T[], de: number, vers: number) {
   return copie;
 }
 
-
 function Creation() {
   const navigate = useNavigate();
   const { forme: formeInitiale } = Route.useSearch();
@@ -191,7 +187,10 @@ function Creation() {
   const { data: offres } = useOffres();
   const { user } = useAuth();
   const { isAdmin } = useRoles(user);
-  const { data: services } = useQuery({ queryKey: ["etat-services"], queryFn: () => etatServices() });
+  const { data: services } = useQuery({
+    queryKey: ["etat-services"],
+    queryFn: () => etatServices(),
+  });
   const [dossier, setDossier] = useState<Dossier | null>(null);
   const [associes, setAssocies] = useState<Associe[]>([]);
   const [etape, setEtape] = useState(1);
@@ -205,9 +204,6 @@ function Creation() {
   const [redaction, setRedaction] = useState(false);
   /** Erreurs de l'étape courante, affichées sous les champs concernés. */
   const [erreurs, setErreurs] = useState<Record<string, string>>({});
-
-
-
 
   const { data: rules } = useQuery({
     queryKey: ["document_rules"],
@@ -236,7 +232,11 @@ function Creation() {
         }
         d = cree;
       }
-      if (formeInitiale && FORMES.some((f) => f.value === formeInitiale) && d.forme_juridique !== formeInitiale) {
+      if (
+        formeInitiale &&
+        FORMES.some((f) => f.value === formeInitiale) &&
+        d.forme_juridique !== formeInitiale
+      ) {
         await supabase.from("dossiers").update({ forme_juridique: formeInitiale }).eq("id", d.id);
         d = { ...d, forme_juridique: formeInitiale };
       }
@@ -244,7 +244,11 @@ function Creation() {
       setNomAcceptation(d.lettre_mission_nom ?? "");
       const nb = (isEI(d.forme_juridique) ? CLES_EI : CLES_SOCIETE).length;
       setEtape(Math.min(Math.max(d.etape_courante, 1), nb));
-      const { data: as } = await supabase.from("associes").select("*").eq("dossier_id", d.id).order("created_at");
+      const { data: as } = await supabase
+        .from("associes")
+        .select("*")
+        .eq("dossier_id", d.id)
+        .order("created_at");
       setAssocies(as ?? []);
     })();
   }, [formeInitiale]);
@@ -280,7 +284,6 @@ function Creation() {
     window.location.reload();
   }
 
-
   /** Contrôles de l'étape courante. Renvoie les erreurs par champ. */
   function controlerEtape(c: Cle): Record<string, string> {
     const e: Record<string, string> = {};
@@ -295,7 +298,9 @@ function Creation() {
     if (c === "siege") {
       if (!d.siege_type) e["siege_type"] = "Choisissez le type de siège social.";
       const adresseSaisie = Boolean(
-        (d.siege_voie ?? "").trim() && (d.siege_code_postal ?? "").trim() && (d.siege_ville ?? "").trim(),
+        (d.siege_voie ?? "").trim() &&
+        (d.siege_code_postal ?? "").trim() &&
+        (d.siege_ville ?? "").trim(),
       );
       if (!adresseSaisie && !(d.siege_adresse ?? "").trim())
         e["siege_adresse"] = "Renseignez l'adresse complète du siège (voie, code postal, commune).";
@@ -316,9 +321,10 @@ function Creation() {
           (!a.justificatif_type || (a.justificatif_detail ?? "").trim().length < 3),
       );
       if (manquants.length > 0)
-        e["justificatifs"] = `Pour chaque activité réglementée, indiquez la nature du justificatif (diplôme ou expérience) et précisez-la : ${manquants
-          .map((a, i) => libelleActivite(a, i))
-          .join(" ; ")}.`;
+        e["justificatifs"] =
+          `Pour chaque activité réglementée, indiquez la nature du justificatif (diplôme ou expérience) et précisez-la : ${manquants
+            .map((a, i) => libelleActivite(a, i))
+            .join(" ; ")}.`;
       if (!d.objets_confirmes_le)
         e["objets_confirmes"] = "Confirmez que la liste des activités est exacte pour continuer.";
     }
@@ -328,7 +334,8 @@ function Creation() {
       const lib = Number(d.capital_liberation);
       const min = liberationMin(d.forme_juridique as Forme);
       if (!(montant >= 1)) e["capital_montant"] = "Le capital social doit être d'au moins 1 €.";
-      if (!(lib >= min)) e["capital_liberation"] = `La libération minimale de cette forme est de ${min} %.`;
+      if (!(lib >= min))
+        e["capital_liberation"] = `La libération minimale de cette forme est de ${min} %.`;
       if (lib > 100) e["capital_liberation"] = "La libération ne peut pas dépasser 100 %.";
     }
     if (c === "associes") {
@@ -337,7 +344,10 @@ function Creation() {
         e["apports"] = "Le total des apports doit être égal au capital social.";
       if (!eiForme && !associes.some((a) => a.est_dirigeant))
         e["dirigeants"] = "Désignez au moins un dirigeant.";
-      if (isSas(d.forme_juridique) && !associes.some((a) => a.est_dirigeant && a.fonction === "president"))
+      if (
+        isSas(d.forme_juridique) &&
+        !associes.some((a) => a.est_dirigeant && a.fonction === "president")
+      )
         e["president"] = "Une SAS ou une SASU ne peut pas être créée sans président.";
       const incomplet = associes.some(
         (a) =>
@@ -354,7 +364,8 @@ function Creation() {
           "Complétez, pour chaque personne physique, les nom, prénom, date et lieu de naissance, nationalité et adresse.";
     }
     if (c === "mission") {
-      if (!d.lettre_mission_acceptee_le) e["mission"] = "Acceptez la lettre de mission pour continuer.";
+      if (!d.lettre_mission_acceptee_le)
+        e["mission"] = "Acceptez la lettre de mission pour continuer.";
       if ((d.telephone_contact ?? "").replace(/\D/g, "").length < 9)
         e["telephone"] = "Indiquez un numéro de téléphone valide.";
       if (!d.renonciation_retractation_le)
@@ -382,7 +393,6 @@ function Creation() {
     if (!erreurs[nom]) return null;
     return <p className="text-sm font-medium text-destructive">{erreurs[nom]}</p>;
   }
-
 
   async function ajouterAssocie(type: "personne_physique" | "personne_morale") {
     if (!dossier) return;
@@ -421,7 +431,10 @@ function Creation() {
     await supabase.from("associes").delete().eq("id", id);
   }
 
-  const activites: Activite[] = useMemo(() => (dossier ? activitesDuDossier(dossier) : []), [dossier]);
+  const activites: Activite[] = useMemo(
+    () => (dossier ? activitesDuDossier(dossier) : []),
+    [dossier],
+  );
 
   /**
    * Enregistre la liste d'activités et recalcule les champs dérivés (objet social
@@ -480,18 +493,17 @@ function Creation() {
     }
   }
 
-
-
-
-
   const totalApports = useMemo(
-    () => associes.filter((a) => a.est_associe).reduce((s, a) => s + Number(a.montant_apport || 0), 0),
+    () =>
+      associes.filter((a) => a.est_associe).reduce((s, a) => s + Number(a.montant_apport || 0), 0),
     [associes],
   );
   const dirigeants = useMemo(() => associes.filter((a) => a.est_dirigeant), [associes]);
   const ei = dossier ? isEI(dossier.forme_juridique) : false;
   const valeurPart = Math.max(0.01, Number(dossier?.valeur_part ?? 1));
-  const capitalOk = dossier ? Math.abs(totalApports - Number(dossier.capital_montant)) < 0.01 : false;
+  const capitalOk = dossier
+    ? Math.abs(totalApports - Number(dossier.capital_montant)) < 0.01
+    : false;
   const sas = dossier ? isSas(dossier.forme_juridique) : false;
   /** En SAS et SASU, un président est obligatoire : sans lui, aucune immatriculation possible. */
   const presidentDesigne = associes.some((a) => a.est_dirigeant && a.fonction === "president");
@@ -537,7 +549,9 @@ function Creation() {
       return;
     }
     if (!dossier.telephone_contact?.trim()) {
-      toast.error("Le numéro de téléphone est obligatoire avant la signature de la lettre de mission.");
+      toast.error(
+        "Le numéro de téléphone est obligatoire avant la signature de la lettre de mission.",
+      );
       return;
     }
     const blocages = analyserChecklist(dossier, associes).blocages;
@@ -575,7 +589,11 @@ function Creation() {
     setBusy(true);
     const auto = dossier.voie_validation === "auto";
     const drafts = piecesEnDrafts(dossier, associes);
-    await supabase.from("documents").delete().eq("dossier_id", dossier.id).eq("statut_document", "a_fournir");
+    await supabase
+      .from("documents")
+      .delete()
+      .eq("dossier_id", dossier.id)
+      .eq("statut_document", "a_fournir");
     await supabase.from("documents").insert(drafts);
     const signatures = construireSignatures(dossier, associes);
     await supabase
@@ -611,7 +629,9 @@ function Creation() {
   if (!dossier) {
     return (
       <PageShell>
-        <div className="container-page py-14 text-muted-foreground">Chargement de votre dossier…</div>
+        <div className="container-page py-14 text-muted-foreground">
+          Chargement de votre dossier…
+        </div>
       </PageShell>
     );
   }
@@ -647,7 +667,12 @@ function Creation() {
           </div>
 
           {etape > 1 && (
-            <Button variant="ghost" size="sm" className="mb-4 -ml-2" onClick={() => allerA(etape - 1)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mb-4 -ml-2"
+              onClick={() => allerA(etape - 1)}
+            >
               <ArrowLeft strokeWidth={1.5} /> Retour
             </Button>
           )}
@@ -667,7 +692,12 @@ function Creation() {
                     <button
                       key={o.v}
                       type="button"
-                      onClick={() => patch({ pour_qui: o.v, ...(o.v === "tiers" ? { routage_cabinet: true } : {}) })}
+                      onClick={() =>
+                        patch({
+                          pour_qui: o.v,
+                          ...(o.v === "tiers" ? { routage_cabinet: true } : {}),
+                        })
+                      }
                       className={`rounded-md border px-3 py-2.5 text-left text-sm ${dossier.pour_qui === o.v ? "border-accent bg-accent/5" : "border-border bg-background"}`}
                     >
                       {o.t}
@@ -700,7 +730,9 @@ function Creation() {
 
               <div className="space-y-3 rounded-lg border border-border bg-surface p-4">
                 <p className="text-sm font-medium">Quel sera votre rôle dans la direction ?</p>
-                <p className="text-sm leading-relaxed text-muted-foreground">{minimumLegal(forme)}</p>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {minimumLegal(forme)}
+                </p>
                 {ei ? (
                   <p className="text-sm leading-relaxed">
                     En entreprise individuelle, il n'y a ni dirigeant ni associé à désigner : vous
@@ -735,7 +767,6 @@ function Creation() {
             </div>
           )}
 
-
           {/* 2 — DENOMINATION */}
           {cle === "denomination" && (
             <div className="mt-6 space-y-4">
@@ -749,13 +780,22 @@ function Creation() {
                 <Label htmlFor="denom">
                   {ei ? "Nom commercial (facultatif)" : "Dénomination sociale"}
                 </Label>
-                <Input id="denom" maxLength={120} value={dossier.denomination} onChange={(e) => patch({ denomination: e.target.value })} />
+                <Input
+                  id="denom"
+                  maxLength={120}
+                  value={dossier.denomination}
+                  onChange={(e) => patch({ denomination: e.target.value })}
+                />
                 <Err nom="denomination" />
-
               </div>
               <div className="space-y-2">
                 <Label htmlFor="sigle">{ei ? "Enseigne (facultatif)" : "Sigle (facultatif)"}</Label>
-                <Input id="sigle" maxLength={40} value={dossier.sigle ?? ""} onChange={(e) => patch({ sigle: e.target.value })} />
+                <Input
+                  id="sigle"
+                  maxLength={40}
+                  value={dossier.sigle ?? ""}
+                  onChange={(e) => patch({ sigle: e.target.value })}
+                />
               </div>
               <VerifDenomination denomination={dossier.denomination ?? ""} />
 
@@ -787,15 +827,18 @@ function Creation() {
                 </p>
               </div>
               <div className="flex items-start gap-3">
-                <Checkbox id="verif" checked={dossier.denomination_verifiee} onCheckedChange={(v) => patch({ denomination_verifiee: v === true })} className="mt-0.5" />
+                <Checkbox
+                  id="verif"
+                  checked={dossier.denomination_verifiee}
+                  onCheckedChange={(v) => patch({ denomination_verifiee: v === true })}
+                  className="mt-0.5"
+                />
                 <Label htmlFor="verif" className="text-sm font-normal">
                   J'ai vérifié dans la base de l'INPI qu'aucune marque antérieure ne s'oppose à
                   l'usage de ce nom, et j'en assume la responsabilité. (obligatoire)
                 </Label>
               </div>
               <Err nom="denomination_verifiee" />
-
-
             </div>
           )}
 
@@ -808,8 +851,16 @@ function Creation() {
                   t: "Chez le dirigeant",
                   d: "Simple et sans coût, adapté aux petits projets. La domiciliation est possible au domicile du représentant légal ; si le bail ou le règlement de copropriété s'y oppose, elle est limitée à 5 ans.",
                 },
-                { v: "domiciliataire", t: "Société de domiciliation", d: "Une adresse professionnelle fournie par un prestataire agréé, avec un contrat et un numéro d'agrément." },
-                { v: "local", t: "Local commercial ou professionnel", d: "Vous disposez d'un bail ou d'un titre d'occupation à votre nom." },
+                {
+                  v: "domiciliataire",
+                  t: "Société de domiciliation",
+                  d: "Une adresse professionnelle fournie par un prestataire agréé, avec un contrat et un numéro d'agrément.",
+                },
+                {
+                  v: "local",
+                  t: "Local commercial ou professionnel",
+                  d: "Vous disposez d'un bail ou d'un titre d'occupation à votre nom.",
+                },
               ].map((o) => (
                 <button
                   key={o.v}
@@ -829,17 +880,26 @@ function Creation() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="dnom">Nom du domiciliataire</Label>
-                    <Input id="dnom" maxLength={120} value={dossier.domiciliataire_nom ?? ""} onChange={(e) => patch({ domiciliataire_nom: e.target.value })} />
+                    <Input
+                      id="dnom"
+                      maxLength={120}
+                      value={dossier.domiciliataire_nom ?? ""}
+                      onChange={(e) => patch({ domiciliataire_nom: e.target.value })}
+                    />
                     <Err nom="domiciliataire_nom" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="dag">Numéro d'agrément</Label>
-                    <Input id="dag" maxLength={60} value={dossier.domiciliataire_agrement ?? ""} onChange={(e) => patch({ domiciliataire_agrement: e.target.value })} />
+                    <Input
+                      id="dag"
+                      maxLength={60}
+                      value={dossier.domiciliataire_agrement ?? ""}
+                      onChange={(e) => patch({ domiciliataire_agrement: e.target.value })}
+                    />
                     <Err nom="domiciliataire_agrement" />
                   </div>
                 </div>
               )}
-
             </div>
           )}
 
@@ -868,8 +928,9 @@ function Creation() {
                   Votre société peut exercer une seule activité ou plusieurs. La première de la
                   liste est l'activité principale ; les suivantes sont des activités accessoires.
                   Décrivez ici une activité à la fois : l'assistant en déduit un code d'activité
-                  INSEE estimé (non officiel), rédige le paragraphe à insérer dans les statuts et indique si
-                  l'activité est, en règle générale, réglementée. Vous pouvez tout modifier ensuite.
+                  INSEE estimé (non officiel), rédige le paragraphe à insérer dans les statuts et
+                  indique si l'activité est, en règle générale, réglementée. Vous pouvez tout
+                  modifier ensuite.
                 </p>
                 <Textarea
                   id="descr"
@@ -893,7 +954,9 @@ function Creation() {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => ajouterActivite(nouvelleActivite({ source: "libre", texte: "" }))}
+                    onClick={() =>
+                      ajouterActivite(nouvelleActivite({ source: "libre", texte: "" }))
+                    }
                   >
                     <Plus strokeWidth={1.5} /> Saisir moi-même une activité
                   </Button>
@@ -903,7 +966,6 @@ function Creation() {
                   ils ne constituent pas un conseil juridique.
                 </p>
               </div>
-
 
               <div className="space-y-3">
                 <Label>Vos activités, dans l'ordre</Label>
@@ -927,11 +989,13 @@ function Creation() {
                 <Err nom="objets" />
                 <Err nom="justificatifs" />
 
-
                 {activites.length > 0 && (
                   <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed text-justify">
                     Objet social retenu dans vos statuts, dans cet ordre :{" "}
-                    {activites.map((a) => a.texte.trim()).filter(Boolean).join(" ")}
+                    {activites
+                      .map((a) => a.texte.trim())
+                      .filter(Boolean)
+                      .join(" ")}
                   </p>
                 )}
               </div>
@@ -946,9 +1010,13 @@ function Creation() {
                     }
                     className="mt-0.5"
                   />
-                  <Label htmlFor="objets-confirmes" className="text-sm font-normal leading-relaxed text-justify">
+                  <Label
+                    htmlFor="objets-confirmes"
+                    className="text-sm font-normal leading-relaxed text-justify"
+                  >
                     J'ai relu la liste ci-dessus : elle correspond exactement aux activités que la
-                    société exercera, sans activité oubliée ni activité qui n'a plus lieu d'y figurer.
+                    société exercera, sans activité oubliée ni activité qui n'a plus lieu d'y
+                    figurer.
                   </Label>
                 </div>
                 <div className="mt-2">
@@ -968,18 +1036,27 @@ function Creation() {
                 <p className="mt-2">
                   Le capital social correspond à la somme des apports des associés. Il constitue les
                   premières ressources de la société, détermine la répartition des droits de vote et
-                  des dividendes, et sert de repère aux banques, aux bailleurs et aux clients. La loi
-                  ne fixe aucun minimum (1 € suffit) pour les formes proposées ici, mais un capital
-                  très faible se remarque : il figure sur tous les documents officiels et peut
-                  compliquer l'obtention d'un financement. Un capital cohérent avec les besoins de
-                  démarrage est généralement retenu. Les sommes déposées ne sont pas bloquées :
+                  des dividendes, et sert de repère aux banques, aux bailleurs et aux clients. La
+                  loi ne fixe aucun minimum (1 € suffit) pour les formes proposées ici, mais un
+                  capital très faible se remarque : il figure sur tous les documents officiels et
+                  peut compliquer l'obtention d'un financement. Un capital cohérent avec les besoins
+                  de démarrage est généralement retenu. Les sommes déposées ne sont pas bloquées :
                   elles sont libérées sur le compte de la société dès l'immatriculation et servent à
                   financer l'activité.
                 </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cap">Montant du capital social (minimum 1 €)</Label>
-                <Input id="cap" type="number" min={1} step="1" value={dossier.capital_montant} onChange={(e) => patch({ capital_montant: Math.max(1, Number(e.target.value) || 1) })} />
+                <Input
+                  id="cap"
+                  type="number"
+                  min={1}
+                  step="1"
+                  value={dossier.capital_montant}
+                  onChange={(e) =>
+                    patch({ capital_montant: Math.max(1, Number(e.target.value) || 1) })
+                  }
+                />
                 <Err nom="capital_montant" />
 
                 <p className="text-xs text-muted-foreground">Valeur suggérée : 1 000 €.</p>
@@ -992,21 +1069,39 @@ function Creation() {
                   min={0.01}
                   step="0.01"
                   value={Number(dossier.valeur_part)}
-                  onChange={(e) => patch({ valeur_part: Math.max(0.01, Number(e.target.value) || 1) })}
+                  onChange={(e) =>
+                    patch({ valeur_part: Math.max(0.01, Number(e.target.value) || 1) })
+                  }
                 />
                 <p className="text-xs text-muted-foreground">
                   1 € par défaut : le nombre de titres est alors égal au montant apporté, ce qui
-                  simplifie les répartitions ultérieures. Aucun montant négatif n'est accepté.
-                  Le capital retenu représente {Math.floor(Number(dossier.capital_montant) / Math.max(0.01, Number(dossier.valeur_part)))} titres au total.
+                  simplifie les répartitions ultérieures. Aucun montant négatif n'est accepté. Le
+                  capital retenu représente{" "}
+                  {Math.floor(
+                    Number(dossier.capital_montant) / Math.max(0.01, Number(dossier.valeur_part)),
+                  )}{" "}
+                  titres au total.
                 </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lib">Libération à la constitution (%)</Label>
-                <Input id="lib" type="number" min={libMin} max={100} value={dossier.capital_liberation} onChange={(e) => patch({ capital_liberation: Number(e.target.value) })} />
+                <Input
+                  id="lib"
+                  type="number"
+                  min={libMin}
+                  max={100}
+                  value={dossier.capital_liberation}
+                  onChange={(e) => patch({ capital_liberation: Number(e.target.value) })}
+                />
                 <Err nom="capital_liberation" />
 
                 <p className="text-sm leading-relaxed">
-                  Règle applicable : {isSas(forme) ? "en SAS et SASU, au moins 50 % des apports en numéraire doivent être libérés à la constitution, le solde dans les 5 ans suivant l'immatriculation." : forme === "SCI" ? "en SCI, la libération des apports est fixée librement par les statuts ; le solde reste dû selon les modalités qu'ils prévoient." : "en SARL et EURL, au moins 20 % des apports en numéraire doivent être libérés à la constitution, le solde dans les 5 ans suivant l'immatriculation."}
+                  Règle applicable :{" "}
+                  {isSas(forme)
+                    ? "en SAS et SASU, au moins 50 % des apports en numéraire doivent être libérés à la constitution, le solde dans les 5 ans suivant l'immatriculation."
+                    : forme === "SCI"
+                      ? "en SCI, la libération des apports est fixée librement par les statuts ; le solde reste dû selon les modalités qu'ils prévoient."
+                      : "en SARL et EURL, au moins 20 % des apports en numéraire doivent être libérés à la constitution, le solde dans les 5 ans suivant l'immatriculation."}
                 </p>
                 <div className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
                   <p className="font-medium">Ce qu'implique une libération partielle</p>
@@ -1025,8 +1120,8 @@ function Creation() {
                       bénéficier du taux réduit d'impôt sur les sociétés de 15 %.
                     </li>
                     <li>
-                      Une libération partielle est mentionnée publiquement et pèse sur la crédibilité
-                      financière de la société.
+                      Une libération partielle est mentionnée publiquement et pèse sur la
+                      crédibilité financière de la société.
                     </li>
                   </ul>
                 </div>
@@ -1049,7 +1144,13 @@ function Creation() {
                 <Checkbox
                   id="nature"
                   checked={dossier.apport_nature}
-                  onCheckedChange={(v) => patch({ apport_nature: v === true, routage_cabinet: v === true || dossier.activite_reglementee || dossier.apport_industrie })}
+                  onCheckedChange={(v) =>
+                    patch({
+                      apport_nature: v === true,
+                      routage_cabinet:
+                        v === true || dossier.activite_reglementee || dossier.apport_industrie,
+                    })
+                  }
                   className="mt-0.5"
                 />
                 <Label htmlFor="nature" className="text-sm font-normal">
@@ -1060,7 +1161,13 @@ function Creation() {
                 <Checkbox
                   id="industrie"
                   checked={dossier.apport_industrie}
-                  onCheckedChange={(v) => patch({ apport_industrie: v === true, routage_cabinet: v === true || dossier.activite_reglementee || dossier.apport_nature })}
+                  onCheckedChange={(v) =>
+                    patch({
+                      apport_industrie: v === true,
+                      routage_cabinet:
+                        v === true || dossier.activite_reglementee || dossier.apport_nature,
+                    })
+                  }
                   className="mt-0.5"
                 />
                 <Label htmlFor="industrie" className="text-sm font-normal">
@@ -1070,7 +1177,6 @@ function Creation() {
               <Disclaimer />
             </div>
           )}
-
 
           {/* 6 — ASSOCIES ET GERANCE */}
           {cle === "associes" && (
@@ -1094,12 +1200,11 @@ function Creation() {
                 </div>
               )}
 
-
-
               <div className="flex flex-wrap gap-2">
                 {(!ei || associes.length === 0) && (
                   <Button variant="outline" onClick={() => ajouterAssocie("personne_physique")}>
-                    <Plus strokeWidth={1.5} /> {ei ? "Renseigner mon identité" : "Ajouter une personne physique"}
+                    <Plus strokeWidth={1.5} />{" "}
+                    {ei ? "Renseigner mon identité" : "Ajouter une personne physique"}
                   </Button>
                 )}
                 {!ei && (
@@ -1110,10 +1215,20 @@ function Creation() {
               </div>
 
               {associes.map((a) => (
-                <div key={a.id} className="space-y-4 rounded-lg border border-border bg-surface p-4">
+                <div
+                  key={a.id}
+                  className="space-y-4 rounded-lg border border-border bg-surface p-4"
+                >
                   <div className="flex items-center justify-between">
-                    <Badge variant="secondary">{a.type === "personne_morale" ? "Personne morale" : "Personne physique"}</Badge>
-                    <Button variant="ghost" size="sm" onClick={() => supprimerAssocie(a.id)} aria-label="Supprimer">
+                    <Badge variant="secondary">
+                      {a.type === "personne_morale" ? "Personne morale" : "Personne physique"}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => supprimerAssocie(a.id)}
+                      aria-label="Supprimer"
+                    >
                       <Trash2 strokeWidth={1.5} />
                     </Button>
                   </div>
@@ -1123,13 +1238,26 @@ function Creation() {
                       <AssocieIdentite associe={a} onChange={(v) => majAssocie(a.id, v)} />
                       {estMineur(a) && <EncadreMineur signale />}
                       <div className="grid gap-3 sm:grid-cols-2">
-                        <select className={champ} value={a.situation_matrimoniale ?? ""} onChange={(e) => majAssocie(a.id, { situation_matrimoniale: e.target.value, regime_matrimonial: "non_applicable", contrat_mariage: false })}>
+                        <select
+                          className={champ}
+                          value={a.situation_matrimoniale ?? ""}
+                          onChange={(e) =>
+                            majAssocie(a.id, {
+                              situation_matrimoniale: e.target.value,
+                              regime_matrimonial: "non_applicable",
+                              contrat_mariage: false,
+                            })
+                          }
+                        >
                           <option value="">Situation matrimoniale…</option>
                           {SITUATIONS.map((s) => (
-                            <option key={s.value} value={s.value}>{s.label}</option>
+                            <option key={s.value} value={s.value}>
+                              {s.label}
+                            </option>
                           ))}
                         </select>
-                        {(a.situation_matrimoniale === "marie" || a.situation_matrimoniale === "pacse") && (
+                        {(a.situation_matrimoniale === "marie" ||
+                          a.situation_matrimoniale === "pacse") && (
                           <select
                             className={champ}
                             value={a.regime_matrimonial ?? ""}
@@ -1141,24 +1269,37 @@ function Creation() {
                             }
                           >
                             <option value="">
-                              {a.situation_matrimoniale === "pacse" ? "Régime du PACS…" : "Régime matrimonial…"}
+                              {a.situation_matrimoniale === "pacse"
+                                ? "Régime du PACS…"
+                                : "Régime matrimonial…"}
                             </option>
-                            {(a.situation_matrimoniale === "pacse" ? REGIMES_PACS : REGIMES_MARIAGE).map((r) => (
-                              <option key={r.value} value={r.value}>{r.label}</option>
+                            {(a.situation_matrimoniale === "pacse"
+                              ? REGIMES_PACS
+                              : REGIMES_MARIAGE
+                            ).map((r) => (
+                              <option key={r.value} value={r.value}>
+                                {r.label}
+                              </option>
                             ))}
                           </select>
                         )}
 
-                        {(a.situation_matrimoniale === "marie" || a.situation_matrimoniale === "pacse") && (
+                        {(a.situation_matrimoniale === "marie" ||
+                          a.situation_matrimoniale === "pacse") && (
                           <div className="sm:col-span-2 space-y-2 rounded-md border border-border bg-muted/40 p-3">
                             <div className="flex items-start gap-3">
                               <Checkbox
                                 id={`ctr-${a.id}`}
                                 checked={a.contrat_mariage}
-                                onCheckedChange={(v) => majAssocie(a.id, { contrat_mariage: v === true })}
+                                onCheckedChange={(v) =>
+                                  majAssocie(a.id, { contrat_mariage: v === true })
+                                }
                                 className="mt-0.5"
                               />
-                              <Label htmlFor={`ctr-${a.id}`} className="text-sm font-normal leading-relaxed">
+                              <Label
+                                htmlFor={`ctr-${a.id}`}
+                                className="text-sm font-normal leading-relaxed"
+                              >
                                 {a.situation_matrimoniale === "pacse"
                                   ? "Une convention de PACS particulière a été signée (régime de l'indivision)."
                                   : "Un contrat de mariage a été signé devant notaire."}
@@ -1173,7 +1314,9 @@ function Creation() {
                                     : "Date du contrat et nom du notaire"
                                 }
                                 value={a.contrat_mariage_detail ?? ""}
-                                onChange={(e) => majAssocie(a.id, { contrat_mariage_detail: e.target.value })}
+                                onChange={(e) =>
+                                  majAssocie(a.id, { contrat_mariage_detail: e.target.value })
+                                }
                               />
                             )}
                             <p className="text-sm text-muted-foreground text-justify">
@@ -1200,7 +1343,11 @@ function Creation() {
                                     key={o.v}
                                     type="button"
                                     size="sm"
-                                    variant={a.regime_etranger_communautaire === o.v ? "default" : "outline"}
+                                    variant={
+                                      a.regime_etranger_communautaire === o.v
+                                        ? "default"
+                                        : "outline"
+                                    }
                                     onClick={() =>
                                       majAssocie(a.id, {
                                         regime_etranger_communautaire: o.v,
@@ -1238,7 +1385,10 @@ function Creation() {
                                 majAssocie(a.id, {
                                   date_pacs: v,
                                   ...(avant2007 && !a.regime_matrimonial?.endsWith("_pacs")
-                                    ? { regime_matrimonial: "indivision_pacs", contrat_mariage: true }
+                                    ? {
+                                        regime_matrimonial: "indivision_pacs",
+                                        contrat_mariage: true,
+                                      }
                                     : {}),
                                   ...(avant2007 && a.regime_matrimonial === "separation_pacs"
                                     ? { regime_matrimonial: "indivision_pacs" }
@@ -1248,33 +1398,43 @@ function Creation() {
                             />
                             {a.date_pacs && a.date_pacs < "2007-01-01" && (
                               <p className="text-sm leading-relaxed">
-                                Votre PACS a été conclu avant 2007 : sauf convention modificative, il
-                                relève de la présomption d'indivision. Vous pouvez corriger le régime
-                                si vous disposez d'une convention.
+                                Votre PACS a été conclu avant 2007 : sauf convention modificative,
+                                il relève de la présomption d'indivision. Vous pouvez corriger le
+                                régime si vous disposez d'une convention.
                               </p>
                             )}
                           </div>
                         )}
 
-                        {(a.situation_matrimoniale === "veuf" || a.situation_matrimoniale === "divorce") && (
+                        {(a.situation_matrimoniale === "veuf" ||
+                          a.situation_matrimoniale === "divorce") && (
                           <div className="sm:col-span-2">
                             <EncadrePliable titre="Communauté ou succession non liquidée : ce qu'il faut savoir">
                               <p>
-                                Si la communauté ou la succession n'est pas encore liquidée, les fonds
-                                peuvent être en indivision : l'accord des co-indivisaires est alors
-                                nécessaire pour l'apport. En cas de doute, demandez la revue par
-                                l'expert-comptable. Information générale, pas un conseil.
+                                Si la communauté ou la succession n'est pas encore liquidée, les
+                                fonds peuvent être en indivision : l'accord des co-indivisaires est
+                                alors nécessaire pour l'apport. En cas de doute, demandez la revue
+                                par l'expert-comptable. Information générale, pas un conseil.
                               </p>
                             </EncadrePliable>
                           </div>
                         )}
 
-                        {(a.situation_matrimoniale === "marie" || a.situation_matrimoniale === "pacse") &&
+                        {(a.situation_matrimoniale === "marie" ||
+                          a.situation_matrimoniale === "pacse") &&
                           (estCommunautaire(a) || a.regime_matrimonial === "indivision_pacs") &&
-                          (FORMES_COMMUNAUTE.includes(forme) || a.regime_matrimonial === "indivision_pacs") && (
+                          (FORMES_COMMUNAUTE.includes(forme) ||
+                            a.regime_matrimonial === "indivision_pacs") && (
                             <div className="sm:col-span-2 space-y-2 rounded-md border border-border bg-muted/50 p-3">
                               <div className="flex items-start gap-3">
-                                <Checkbox id={`fc-${a.id}`} checked={a.apport_fonds_communs} onCheckedChange={(v) => majAssocie(a.id, { apport_fonds_communs: v === true })} className="mt-0.5" />
+                                <Checkbox
+                                  id={`fc-${a.id}`}
+                                  checked={a.apport_fonds_communs}
+                                  onCheckedChange={(v) =>
+                                    majAssocie(a.id, { apport_fonds_communs: v === true })
+                                  }
+                                  className="mt-0.5"
+                                />
                                 <Label htmlFor={`fc-${a.id}`} className="text-sm font-normal">
                                   L'apport provient de fonds communs ou indivis du couple.
                                 </Label>
@@ -1295,7 +1455,9 @@ function Creation() {
                                     id={`cj-${a.id}`}
                                     maxLength={120}
                                     value={a.conjoint_nom ?? ""}
-                                    onChange={(e) => majAssocie(a.id, { conjoint_nom: e.target.value })}
+                                    onChange={(e) =>
+                                      majAssocie(a.id, { conjoint_nom: e.target.value })
+                                    }
                                   />
                                 </div>
                               )}
@@ -1304,13 +1466,37 @@ function Creation() {
                       </div>
                     </>
                   ) : (
-
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <Input placeholder="Dénomination" maxLength={120} value={a.denomination ?? ""} onChange={(e) => majAssocie(a.id, { denomination: e.target.value })} />
-                      <Input placeholder="Forme" maxLength={40} value={a.forme ?? ""} onChange={(e) => majAssocie(a.id, { forme: e.target.value })} />
-                      <Input placeholder="SIREN" maxLength={20} value={a.siren ?? ""} onChange={(e) => majAssocie(a.id, { siren: e.target.value })} />
-                      <Input placeholder="Siège" maxLength={200} value={a.siege ?? ""} onChange={(e) => majAssocie(a.id, { siege: e.target.value })} />
-                      <Input placeholder="Représentant" maxLength={120} value={a.representant ?? ""} onChange={(e) => majAssocie(a.id, { representant: e.target.value })} />
+                      <Input
+                        placeholder="Dénomination"
+                        maxLength={120}
+                        value={a.denomination ?? ""}
+                        onChange={(e) => majAssocie(a.id, { denomination: e.target.value })}
+                      />
+                      <Input
+                        placeholder="Forme"
+                        maxLength={40}
+                        value={a.forme ?? ""}
+                        onChange={(e) => majAssocie(a.id, { forme: e.target.value })}
+                      />
+                      <Input
+                        placeholder="SIREN"
+                        maxLength={20}
+                        value={a.siren ?? ""}
+                        onChange={(e) => majAssocie(a.id, { siren: e.target.value })}
+                      />
+                      <Input
+                        placeholder="Siège"
+                        maxLength={200}
+                        value={a.siege ?? ""}
+                        onChange={(e) => majAssocie(a.id, { siege: e.target.value })}
+                      />
+                      <Input
+                        placeholder="Représentant"
+                        maxLength={120}
+                        value={a.representant ?? ""}
+                        onChange={(e) => majAssocie(a.id, { representant: e.target.value })}
+                      />
                       <div className="sm:col-span-2 space-y-2 rounded-md border border-border bg-muted/50 p-3">
                         <Label className="text-xs" htmlFor={`be-${a.id}`}>
                           Personnes physiques qui contrôlent cette société (une par ligne)
@@ -1321,7 +1507,9 @@ function Creation() {
                           maxLength={600}
                           placeholder="Prénom NOM — nature du contrôle (détention, direction…)"
                           value={a.beneficiaires_indirects ?? ""}
-                          onChange={(e) => majAssocie(a.id, { beneficiaires_indirects: e.target.value })}
+                          onChange={(e) =>
+                            majAssocie(a.id, { beneficiaires_indirects: e.target.value })
+                          }
                         />
                         <EncadrePliable titre="Pourquoi identifier ces personnes ?">
                           <p>
@@ -1335,7 +1523,6 @@ function Creation() {
                       </div>
                     </div>
                   )}
-
 
                   {!ei && (
                     <div className="space-y-3 rounded-md border border-border bg-muted/40 p-3">
@@ -1382,8 +1569,15 @@ function Creation() {
                         <Checkbox
                           id={`dir-${a.id}`}
                           checked={a.est_dirigeant}
-                          disabled={a.type === "personne_morale" && !isSas(forme) && forme !== "SCI"}
-                          onCheckedChange={(v) => majAssocie(a.id, { est_dirigeant: v === true, ...(v === true ? {} : { fonction: null }) })}
+                          disabled={
+                            a.type === "personne_morale" && !isSas(forme) && forme !== "SCI"
+                          }
+                          onCheckedChange={(v) =>
+                            majAssocie(a.id, {
+                              est_dirigeant: v === true,
+                              ...(v === true ? {} : { fonction: null }),
+                            })
+                          }
                         />
                         <Label htmlFor={`dir-${a.id}`} className="text-sm font-normal">
                           Cette personne exerce un mandat de direction.
@@ -1396,7 +1590,9 @@ function Creation() {
                           >
                             <option value="">Fonction…</option>
                             {fonctionsPour(forme).map((f) => (
-                              <option key={f.value} value={f.value}>{f.label}</option>
+                              <option key={f.value} value={f.value}>
+                                {f.label}
+                              </option>
                             ))}
                           </select>
                         )}
@@ -1412,14 +1608,22 @@ function Creation() {
               ))}
 
               {!ei && (
-                <p className={`rounded-md border p-3 text-sm ${capitalOk ? "border-success/40 bg-success/8" : "border-destructive/40 bg-destructive/8"}`}>
-                  Total des apports : {euro(totalApports)} — capital social : {euro(Number(dossier.capital_montant))}.
-                  {capitalOk ? " Les montants correspondent." : " Les deux montants doivent être identiques pour continuer."}
+                <p
+                  className={`rounded-md border p-3 text-sm ${capitalOk ? "border-success/40 bg-success/8" : "border-destructive/40 bg-destructive/8"}`}
+                >
+                  Total des apports : {euro(totalApports)} — capital social :{" "}
+                  {euro(Number(dossier.capital_montant))}.
+                  {capitalOk
+                    ? " Les montants correspondent."
+                    : " Les deux montants doivent être identiques pour continuer."}
                 </p>
               )}
               {!ei && dirigeants.length === 0 && (
                 <p className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm text-justify">
-                  Aucun dirigeant n'est désigné : {isSas(forme) ? "une SAS ou une SASU doit avoir un président." : "votre société doit avoir au moins un gérant."}
+                  Aucun dirigeant n'est désigné :{" "}
+                  {isSas(forme)
+                    ? "une SAS ou une SASU doit avoir un président."
+                    : "votre société doit avoir au moins un gérant."}
                 </p>
               )}
               {sas && !presidentDesigne && (
@@ -1435,7 +1639,6 @@ function Creation() {
               {ei && (
                 <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed text-justify">
                   L'entreprise individuelle n'a ni capital social, ni associé : seules vos
-
                   informations personnelles sont nécessaires. Depuis le 15 mai 2022, votre
                   patrimoine personnel est de plein droit distinct de votre patrimoine
                   professionnel.
@@ -1507,7 +1710,12 @@ function Creation() {
                 <p className="text-sm">{REGIME_DEFAUT[forme]}</p>
                 <div className="flex gap-2">
                   {["IS", "IR"].map((o) => (
-                    <Button key={o} type="button" variant={dossier.option_fiscale === o ? "default" : "outline"} onClick={() => patch({ option_fiscale: o })}>
+                    <Button
+                      key={o}
+                      type="button"
+                      variant={dossier.option_fiscale === o ? "default" : "outline"}
+                      onClick={() => patch({ option_fiscale: o })}
+                    >
                       {o}
                     </Button>
                   ))}
@@ -1517,7 +1725,12 @@ function Creation() {
               <div className="space-y-2">
                 <Label>Régime de TVA</Label>
                 {TVA_OPTIONS.map((t) => (
-                  <button key={t.value} type="button" onClick={() => patch({ regime_tva: t.value })} className={`w-full rounded-lg border px-4 py-3 text-left ${dossier.regime_tva === t.value ? "border-accent bg-accent/5" : "border-border bg-surface"}`}>
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => patch({ regime_tva: t.value })}
+                    className={`w-full rounded-lg border px-4 py-3 text-left ${dossier.regime_tva === t.value ? "border-accent bg-accent/5" : "border-border bg-surface"}`}
+                  >
                     <span className="font-medium">{t.label}</span>
                     <span className="mt-0.5 block text-sm text-muted-foreground">{t.desc}</span>
                   </button>
@@ -1553,8 +1766,15 @@ function Creation() {
 
               <div className="space-y-2 rounded-md border border-border bg-muted/50 p-4">
                 <div className="flex items-start gap-3">
-                  <Checkbox id="acre" checked={dossier.demande_acre} onCheckedChange={(v) => patch({ demande_acre: v === true })} className="mt-0.5" />
-                  <Label htmlFor="acre" className="text-sm font-normal">Je souhaite demander l'ACRE.</Label>
+                  <Checkbox
+                    id="acre"
+                    checked={dossier.demande_acre}
+                    onCheckedChange={(v) => patch({ demande_acre: v === true })}
+                    className="mt-0.5"
+                  />
+                  <Label htmlFor="acre" className="text-sm font-normal">
+                    Je souhaite demander l'ACRE.
+                  </Label>
                 </div>
                 <p className="text-sm">
                   L'ACRE est une exonération partielle et temporaire de certaines cotisations
@@ -1573,7 +1793,6 @@ function Creation() {
                   Information générale — ne constitue pas un conseil.
                 </p>
               </div>
-
             </div>
           )}
 
@@ -1582,30 +1801,78 @@ function Creation() {
             <div className="mt-6 space-y-5">
               <p className="text-base leading-relaxed text-justify">
                 La mission comptable est la contrepartie des honoraires de création offerts. La
-                lettre de mission comporte des mentions obligatoires : l'identité de la société,
-                son activité, son adresse et les régimes fiscaux retenus. Elle ne peut donc être
-                établie qu'une fois ces informations renseignées.
+                lettre de mission comporte des mentions obligatoires : l'identité de la société, son
+                activité, son adresse et les régimes fiscaux retenus. Elle ne peut donc être établie
+                qu'une fois ces informations renseignées.
               </p>
 
               {!dossier.denomination.trim() ? (
                 <p className="rounded-md border border-warning/50 bg-warning/10 p-3 text-sm leading-relaxed text-justify">
-                  La dénomination de votre société n'est pas renseignée. Revenez à l'étape
-                  « Dénomination » : sans nom de société, la lettre de mission ne peut pas
-                  mentionner l'identité du client et n'est pas valable.
+                  La dénomination de votre société n'est pas renseignée. Revenez à l'étape «
+                  Dénomination » : sans nom de société, la lettre de mission ne peut pas mentionner
+                  l'identité du client et n'est pas valable.
                 </p>
               ) : (
                 <>
                   <div className="space-y-3 rounded-lg border border-border bg-surface p-5 text-sm leading-relaxed text-justify">
-                    <p><strong>Client.</strong> {dossier.denomination} ({dossier.forme_juridique} en cours de constitution){dossier.siege_adresse ? `, siège : ${dossier.siege_adresse}` : ""}.</p>
-                    <p><strong>Activité.</strong> {dossier.objet_social?.slice(0, 300) || "À compléter à l'étape « Objet social »."}{dossier.code_naf ? ` (code d'activité ${dossier.code_naf})` : ""}</p>
-                    <p><strong>Exercice social.</strong> Clôture au {dossier.date_cloture_exercice}{dossier.exercice_etendu ? " — premier exercice étendu (plus de 12 mois, un seul franchissement du 31 décembre)" : ""}.</p>
-                    <p><strong>Imposition des bénéfices.</strong> {dossier.option_fiscale?.trim() || "Impôt sur les sociétés (IS), régime réel simplifié par défaut"}{!dossier.option_fiscale?.trim() ? ` — régime de droit commun de la forme choisie : ${REGIME_DEFAUT[dossier.forme_juridique]}` : ""}</p>
-                    <p><strong>Taxe sur la valeur ajoutée.</strong> {TVA_OPTIONS.find((t) => t.value === dossier.regime_tva)?.label ?? "Régime réel simplifié (régime par défaut)"} — déclaration {dossier.periodicite_tva ?? "trimestrielle (périodicité par défaut du réel simplifié)"}.</p>
-                    <p><strong>Objet.</strong> Mission de présentation des comptes annuels réalisée par le cabinet d'expertise comptable partenaire, inscrit à l'Ordre : tenue, comptes annuels, déclarations fiscales courantes et conseil au fil de l'eau.</p>
-                    <p><strong>Honoraires.</strong> {euro(missionMensuelleHt(tarifs))} HT par mois, TVA de 20 % en sus.</p>
-                    <p><strong>Durée et résiliation.</strong> Engagement initial de trois mois, puis résiliation libre par chaque partie, sans frais ni justification.</p>
-                    <p><strong>Honoraires de création offerts sous condition.</strong> En cas de non-respect de l'engagement de 3 mois ou de défaut de paiement, les honoraires de création deviennent exigibles à hauteur de {euro(penaliteCreationHt(tarifs))} HT.</p>
-                    <p><strong>Frais légaux.</strong> Annonce légale, greffe et bénéficiaires effectifs sont refacturés à l'euro près, sans marge.</p>
+                    <p>
+                      <strong>Client.</strong> {dossier.denomination} ({dossier.forme_juridique} en
+                      cours de constitution)
+                      {dossier.siege_adresse ? `, siège : ${dossier.siege_adresse}` : ""}.
+                    </p>
+                    <p>
+                      <strong>Activité.</strong>{" "}
+                      {dossier.objet_social?.slice(0, 300) ||
+                        "À compléter à l'étape « Objet social »."}
+                      {dossier.code_naf ? ` (code d'activité ${dossier.code_naf})` : ""}
+                    </p>
+                    <p>
+                      <strong>Exercice social.</strong> Clôture au {dossier.date_cloture_exercice}
+                      {dossier.exercice_etendu
+                        ? " — premier exercice étendu (plus de 12 mois, un seul franchissement du 31 décembre)"
+                        : ""}
+                      .
+                    </p>
+                    <p>
+                      <strong>Imposition des bénéfices.</strong>{" "}
+                      {dossier.option_fiscale?.trim() ||
+                        "Impôt sur les sociétés (IS), régime réel simplifié par défaut"}
+                      {!dossier.option_fiscale?.trim()
+                        ? ` — régime de droit commun de la forme choisie : ${REGIME_DEFAUT[dossier.forme_juridique]}`
+                        : ""}
+                    </p>
+                    <p>
+                      <strong>Taxe sur la valeur ajoutée.</strong>{" "}
+                      {TVA_OPTIONS.find((t) => t.value === dossier.regime_tva)?.label ??
+                        "Régime réel simplifié (régime par défaut)"}{" "}
+                      — déclaration{" "}
+                      {dossier.periodicite_tva ??
+                        "trimestrielle (périodicité par défaut du réel simplifié)"}
+                      .
+                    </p>
+                    <p>
+                      <strong>Objet.</strong> Mission de présentation des comptes annuels réalisée
+                      par le cabinet d'expertise comptable partenaire, inscrit à l'Ordre : tenue,
+                      comptes annuels, déclarations fiscales courantes et conseil au fil de l'eau.
+                    </p>
+                    <p>
+                      <strong>Honoraires.</strong> {euro(missionMensuelleHt(tarifs))} HT par mois,
+                      TVA de 20 % en sus.
+                    </p>
+                    <p>
+                      <strong>Durée et résiliation.</strong> Engagement initial de trois mois, puis
+                      résiliation libre par chaque partie, sans frais ni justification.
+                    </p>
+                    <p>
+                      <strong>Honoraires de création offerts sous condition.</strong> En cas de
+                      non-respect de l'engagement de 3 mois ou de défaut de paiement, les honoraires
+                      de création deviennent exigibles à hauteur de{" "}
+                      {euro(penaliteCreationHt(tarifs))} HT.
+                    </p>
+                    <p>
+                      <strong>Frais légaux.</strong> Annonce légale, greffe et bénéficiaires
+                      effectifs sont refacturés à l'euro près, sans marge.
+                    </p>
                   </div>
 
                   <EncadreResponsabilite />
@@ -1619,7 +1886,8 @@ function Creation() {
                     <div className="space-y-4">
                       <div className="space-y-2 sm:max-w-sm">
                         <Label htmlFor="tel-contact">
-                          Numéro de téléphone <span className="text-destructive">(obligatoire)</span>
+                          Numéro de téléphone{" "}
+                          <span className="text-destructive">(obligatoire)</span>
                         </Label>
                         <Input
                           id="tel-contact"
@@ -1639,7 +1907,12 @@ function Creation() {
                         </p>
                       </div>
                       <div className="flex items-start gap-3">
-                        <Checkbox id="lue" checked={lueMission} onCheckedChange={(v) => setLueMission(v === true)} className="mt-0.5" />
+                        <Checkbox
+                          id="lue"
+                          checked={lueMission}
+                          onCheckedChange={(v) => setLueMission(v === true)}
+                          className="mt-0.5"
+                        />
                         <Label htmlFor="lue" className="text-sm font-normal leading-relaxed">
                           J'ai lu la lettre de mission et j'accepte la mission comptable de 3 mois à{" "}
                           {euro(missionMensuelleHt(tarifs))} HT/mois, contrepartie des honoraires de
@@ -1648,7 +1921,12 @@ function Creation() {
                       </div>
                       <div className="space-y-2 sm:max-w-sm">
                         <Label htmlFor="nom-accept">Nom complet (valant acceptation)</Label>
-                        <Input id="nom-accept" maxLength={120} value={nomAcceptation} onChange={(e) => setNomAcceptation(e.target.value)} />
+                        <Input
+                          id="nom-accept"
+                          maxLength={120}
+                          value={nomAcceptation}
+                          onChange={(e) => setNomAcceptation(e.target.value)}
+                        />
                       </div>
                       <Button
                         onClick={() => {
@@ -1677,21 +1955,27 @@ function Creation() {
                     <div className="flex items-start gap-3">
                       <Checkbox
                         id="retractation"
-                        checked={Boolean(dossier.renonciation_retractation_le) || renonceRetractation}
+                        checked={
+                          Boolean(dossier.renonciation_retractation_le) || renonceRetractation
+                        }
                         disabled={Boolean(dossier.renonciation_retractation_le)}
                         onCheckedChange={(v) => {
                           setRenonceRetractation(v === true);
-                          if (v === true) patch({ renonciation_retractation_le: new Date().toISOString() });
+                          if (v === true)
+                            patch({ renonciation_retractation_le: new Date().toISOString() });
                         }}
                         className="mt-0.5"
                       />
-                      <Label htmlFor="retractation" className="text-sm font-normal leading-relaxed text-justify">
+                      <Label
+                        htmlFor="retractation"
+                        className="text-sm font-normal leading-relaxed text-justify"
+                      >
                         Je demande expressément que l'exécution de la prestation commence
-                        immédiatement, avant l'expiration du délai de rétractation de quatorze jours,
-                        et je reconnais que je perdrai mon droit de rétractation une fois la
+                        immédiatement, avant l'expiration du délai de rétractation de quatorze
+                        jours, et je reconnais que je perdrai mon droit de rétractation une fois la
                         prestation pleinement exécutée ; si je me rétracte avant, je devrai le prix
-                        correspondant au service déjà fourni (articles L. 221-18, L. 221-25 et
-                        L. 221-28, 1° du code de la consommation).
+                        correspondant au service déjà fourni (articles L. 221-18, L. 221-25 et L.
+                        221-28, 1° du code de la consommation).
                       </Label>
                     </div>
                     <div className="mt-2">
@@ -1704,16 +1988,14 @@ function Creation() {
                       </p>
                     )}
                   </div>
-
                 </>
               )}
               <p className="text-sm text-muted-foreground text-justify">
-                La signature électronique sera disponible ultérieurement ; l'acceptation en ligne est
-                horodatée et conservée dans votre dossier.
+                La signature électronique sera disponible ultérieurement ; l'acceptation en ligne
+                est horodatée et conservée dans votre dossier.
               </p>
             </div>
           )}
-
 
           {/* CHOIX DE L'OFFRE */}
           {cle === "validation" && (
@@ -1745,17 +2027,38 @@ function Creation() {
             </div>
           )}
 
-
           {/* FRAIS LÉGAUX ET MOYEN DE PAIEMENT */}
           {cle === "paiement" && (
             <div className="mt-6 space-y-5">
               <dl className="divide-y divide-border rounded-lg border border-border bg-surface">
                 {[
-                  ["Honoraires de création", "0 € HT (0 € TTC) — offerts en contrepartie de la mission comptable de 3 mois à " + euro(missionMensuelleHt(tarifs)) + " HT/mois (soit " + euro(missionMensuelleHt(tarifs) * 1.2) + " TTC/mois)"],
-                  ["Annonce légale", ei ? "Sans objet (aucune annonce en entreprise individuelle)" : `${euro(cout.annonceTtc / 1.2)} HT — soit ${euro(cout.annonceTtc)} TTC (TVA 20 %)`],
+                  [
+                    "Honoraires de création",
+                    "0 € HT (0 € TTC) — offerts en contrepartie de la mission comptable de 3 mois à " +
+                      euro(missionMensuelleHt(tarifs)) +
+                      " HT/mois (soit " +
+                      euro(missionMensuelleHt(tarifs) * 1.2) +
+                      " TTC/mois)",
+                  ],
+                  [
+                    "Annonce légale",
+                    ei
+                      ? "Sans objet (aucune annonce en entreprise individuelle)"
+                      : `${euro(cout.annonceTtc / 1.2)} HT — soit ${euro(cout.annonceTtc)} TTC (TVA 20 %)`,
+                  ],
                   ["Greffe", `${euro(cout.greffeTtc)} TTC — tarif réglementé, taxes comprises`],
-                  ["Bénéficiaires effectifs", ei ? "Sans objet" : `${euro(cout.benefTtc)} TTC — tarif réglementé, taxes comprises`],
-                  ["Relecture complète du dossier par un expert-comptable", relecture ? `${euro(relectureHt)} HT — soit ${euro(relecture)} TTC (TVA 20 %)` : "Non demandée"],
+                  [
+                    "Bénéficiaires effectifs",
+                    ei
+                      ? "Sans objet"
+                      : `${euro(cout.benefTtc)} TTC — tarif réglementé, taxes comprises`,
+                  ],
+                  [
+                    "Relecture complète du dossier par un expert-comptable",
+                    relecture
+                      ? `${euro(relectureHt)} HT — soit ${euro(relecture)} TTC (TVA 20 %)`
+                      : "Non demandée",
+                  ],
                   ["Total dû aujourd'hui", `${euro(cout.totalTtc + relecture)} TTC`],
                 ].map(([k, v]) => (
                   <div key={k} className="grid gap-1 p-3 sm:grid-cols-[16rem_1fr]">
@@ -1772,10 +2075,10 @@ function Creation() {
                 société.
               </p>
               <p className="rounded-md border border-border bg-surface p-4 text-sm leading-relaxed text-justify">
-                Aucun prélèvement n'est effectué aujourd'hui. Votre carte est enregistrée en garantie
-                de l'engagement de 3 mois de la mission comptable ; les frais légaux et, le cas
-                échéant, la relecture vous seront facturés séparément et toujours annoncés avant tout
-                débit.
+                Aucun prélèvement n'est effectué aujourd'hui. Votre carte est enregistrée en
+                garantie de l'engagement de 3 mois de la mission comptable ; les frais légaux et, le
+                cas échéant, la relecture vous seront facturés séparément et toujours annoncés avant
+                tout débit.
               </p>
               {dossier.moyen_de_paiement_enregistre ? (
                 <p className="rounded-md border border-success/40 bg-success/8 p-3 text-sm">
@@ -1821,7 +2124,6 @@ function Creation() {
                   Service de paiement : {services?.paiement ? "configuré" : "non configuré"}.
                 </p>
               )}
-
             </div>
           )}
 
@@ -1842,16 +2144,56 @@ function Creation() {
                         ["Capital", euro(Number(dossier.capital_montant))],
                         ["Libération", `${dossier.capital_liberation} %`],
                       ] as string[][])),
-                  ["Clôture d'exercice", `${dossier.date_cloture_exercice}${dossier.exercice_etendu ? " — premier exercice étendu" : ""}`],
-                  ["Périodicité de TVA", dossier.periodicite_tva === "mensuelle" ? "Mensuelle" : dossier.periodicite_tva === "trimestrielle" ? "Trimestrielle" : "—"],
-                  ["Création", dossier.pour_qui === "tiers" ? "Pour le compte d'un tiers" : "Pour moi-même"],
+                  [
+                    "Clôture d'exercice",
+                    `${dossier.date_cloture_exercice}${dossier.exercice_etendu ? " — premier exercice étendu" : ""}`,
+                  ],
+                  [
+                    "Périodicité de TVA",
+                    dossier.periodicite_tva === "mensuelle"
+                      ? "Mensuelle"
+                      : dossier.periodicite_tva === "trimestrielle"
+                        ? "Trimestrielle"
+                        : "—",
+                  ],
+                  [
+                    "Création",
+                    dossier.pour_qui === "tiers" ? "Pour le compte d'un tiers" : "Pour moi-même",
+                  ],
                   ["Option fiscale", dossier.option_fiscale || "—"],
-                  ["Régime de TVA", TVA_OPTIONS.find((t) => t.value === dossier.regime_tva)?.label ?? "—"],
+                  [
+                    "Régime de TVA",
+                    TVA_OPTIONS.find((t) => t.value === dossier.regime_tva)?.label ?? "—",
+                  ],
                   ["ACRE", dossier.demande_acre ? "Demandée" : "Non demandée"],
-                  ["Associés", associes.map((a) => (a.type === "personne_morale" ? a.denomination : `${a.prenom} ${a.nom}`)).join(", ") || "—"],
-                  ["Lettre de mission", dossier.lettre_mission_acceptee_le ? `Acceptée par ${dossier.lettre_mission_nom}` : "Non acceptée"],
-                  ["Validation", dossier.voie_validation === "auto" ? "Sans relecture du cabinet" : dossier.voie_validation === "cabinet" ? `Relecture par l'expert-comptable (${euro(relectureHt)} HT)` : "—"],
-                  ["Moyen de paiement", dossier.moyen_de_paiement_enregistre ? "Enregistré (simulation)" : "Non enregistré"],
+                  [
+                    "Associés",
+                    associes
+                      .map((a) =>
+                        a.type === "personne_morale" ? a.denomination : `${a.prenom} ${a.nom}`,
+                      )
+                      .join(", ") || "—",
+                  ],
+                  [
+                    "Lettre de mission",
+                    dossier.lettre_mission_acceptee_le
+                      ? `Acceptée par ${dossier.lettre_mission_nom}`
+                      : "Non acceptée",
+                  ],
+                  [
+                    "Validation",
+                    dossier.voie_validation === "auto"
+                      ? "Sans relecture du cabinet"
+                      : dossier.voie_validation === "cabinet"
+                        ? `Relecture par l'expert-comptable (${euro(relectureHt)} HT)`
+                        : "—",
+                  ],
+                  [
+                    "Moyen de paiement",
+                    dossier.moyen_de_paiement_enregistre
+                      ? "Enregistré (simulation)"
+                      : "Non enregistré",
+                  ],
                 ].map(([k, v]) => (
                   <div key={k as string} className="grid gap-1 p-3 sm:grid-cols-[14rem_1fr]">
                     <dt className="text-sm text-muted-foreground">{k}</dt>
@@ -1870,7 +2212,9 @@ function Creation() {
                 </p>
                 <ul className="mt-4 space-y-2 text-sm">
                   {apercuChecklist.length === 0 && (
-                    <li className="text-muted-foreground">Complétez vos réponses pour voir la liste.</li>
+                    <li className="text-muted-foreground">
+                      Complétez vos réponses pour voir la liste.
+                    </li>
                   )}
                   {apercuChecklist.map((d, i) => (
                     <li key={`${d.type_document}-${i}`} className="flex items-start gap-2">
@@ -1886,7 +2230,8 @@ function Creation() {
                 </ul>
                 <p className="mt-4 text-sm text-muted-foreground text-justify">
                   S'y ajoutent {apercuSignatures.length} document(s) que nous préparons et vous
-                  ferons signer électroniquement : {apercuSignatures.map((s) => s.libelle).join(", ")}.
+                  ferons signer électroniquement :{" "}
+                  {apercuSignatures.map((s) => s.libelle).join(", ")}.
                 </p>
               </section>
 
@@ -1894,14 +2239,24 @@ function Creation() {
               <EncadreSignatureElectronique />
 
               <div className="flex items-start gap-3">
-                <Checkbox id="certif" checked={certifie} onCheckedChange={(v) => setCertifie(v === true)} className="mt-0.5" />
+                <Checkbox
+                  id="certif"
+                  checked={certifie}
+                  onCheckedChange={(v) => setCertifie(v === true)}
+                  className="mt-0.5"
+                />
                 <Label htmlFor="certif" className="text-sm font-normal">
                   Je certifie l'exactitude des informations saisies.
                 </Label>
               </div>
 
               <div className="flex items-start gap-3">
-                <Checkbox id="pieces" checked={piecesOk} onCheckedChange={(v) => setPiecesOk(v === true)} className="mt-0.5" />
+                <Checkbox
+                  id="pieces"
+                  checked={piecesOk}
+                  onCheckedChange={(v) => setPiecesOk(v === true)}
+                  className="mt-0.5"
+                />
                 <Label htmlFor="pieces" className="text-sm font-normal text-justify">
                   Je m'engage à déposer, dans « Mes documents », tous les justificatifs légaux
                   applicables à ma situation avant le dépôt du dossier : justificatif de domicile de
@@ -1910,7 +2265,6 @@ function Creation() {
                   « certifiée conforme à l'original », datée et signée.
                 </Label>
               </div>
-
 
               <Button size="lg" onClick={validerDossier} disabled={busy}>
                 {busy ? "Validation…" : "Valider mon dossier"}
@@ -1929,7 +2283,12 @@ function Creation() {
               <p className="text-xs font-medium">Mode conception (administrateur, aperçu)</p>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 {cle !== "recap" && (
-                  <Button type="button" variant="outline" size="sm" onClick={() => allerA(etape + 1)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => allerA(etape + 1)}
+                  >
                     Passer cette étape pour voir la page suivante
                   </Button>
                 )}
@@ -1938,14 +2297,13 @@ function Creation() {
                 </Button>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                Ces raccourcis ne sont visibles qu'en aperçu, pour un compte administrateur.
-                Passer une étape ne modifie ni n'efface aucune donnée déjà saisie : seule la
-                position dans le parcours change, et l'ensemble des contrôles obligatoires est
-                revérifié à la validation finale du dossier.
+                Ces raccourcis ne sont visibles qu'en aperçu, pour un compte administrateur. Passer
+                une étape ne modifie ni n'efface aucune donnée déjà saisie : seule la position dans
+                le parcours change, et l'ensemble des contrôles obligatoires est revérifié à la
+                validation finale du dossier.
               </p>
             </div>
           )}
-
         </div>
 
         {/* PANNEAU RECAP */}
