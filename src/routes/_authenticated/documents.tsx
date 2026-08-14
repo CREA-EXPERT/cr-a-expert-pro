@@ -18,7 +18,12 @@ import { LigneDepot, type Face } from "@/components/LigneDepot";
 import { EncadrePliable } from "@/components/EncadrePliable";
 
 import { genererPdf, telechargerPdf } from "@/lib/pdf";
-import { verifierDates, type Associe, type Dossier, type DocumentRow } from "@/lib/documents";
+import {
+  controlerChronologie,
+  type Associe,
+  type Dossier,
+  type DocumentRow,
+} from "@/lib/documents";
 import { preparerImage } from "@/lib/image";
 import { verifierPiece } from "@/lib/verification.functions";
 import {
@@ -135,7 +140,7 @@ function Documents() {
   }
 
   async function majDate(
-    champ: "date_signature" | "date_depot_fonds" | "date_parution",
+    champ: "date_signature" | "date_depot_fonds" | "date_parution" | "date_consentements",
     v: string,
   ) {
     if (!dossier) return;
@@ -300,7 +305,7 @@ function Documents() {
 
   async function telecharger(doc: DocumentRow) {
     if (!dossier) return;
-    const erreurs = verifierDates(dossier);
+    const erreurs = controlerChronologie(dossier, associes).erreurs;
     if (erreurs.length > 0) {
       toast.error(erreurs[0] as string);
       return;
@@ -325,7 +330,8 @@ function Documents() {
     );
   }
 
-  const erreursDates = verifierDates(dossier);
+  const chronologie = controlerChronologie(dossier, associes);
+  const erreursDates = chronologie.erreurs;
   const aFournir = docs.filter((d) => d.origine === "a_fournir");
   const generes = docs.filter((d) => d.origine === "genere");
   const manquants = aFournir.filter(
@@ -388,6 +394,15 @@ function Documents() {
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="dc">Consentements du conjoint ou du partenaire</Label>
+              <Input
+                id="dc"
+                type="date"
+                value={dossier.date_consentements ?? ""}
+                onChange={(e) => majDate("date_consentements", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="dp">Parution de l'annonce</Label>
               <Input
                 id="dp"
@@ -397,6 +412,13 @@ function Documents() {
               />
             </div>
           </div>
+          {chronologie.avertissements.length > 0 && (
+            <ul className="mt-6 space-y-1 rounded-md border border-warning/50 bg-warning/10 p-3 text-sm">
+              {chronologie.avertissements.map((a) => (
+                <li key={a}>{a}</li>
+              ))}
+            </ul>
+          )}
           {erreursDates.length > 0 && (
             <ul className="mt-6 space-y-1 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
               {erreursDates.map((e) => (
