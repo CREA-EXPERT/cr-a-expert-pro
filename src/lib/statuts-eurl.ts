@@ -36,16 +36,20 @@ export type VarianteArticle9 = "A" | "B" | "C";
 /**
  * Variante de l'article 9 (origine des fonds) :
  * A — fonds propres ou absence de communauté ;
- * B — fonds communs, conjoint renonçant ;
- * C — fonds communs, conjoint informé sans renonciation.
+ * B — fonds communs, conjoint renonçant (renonciation annexée) ;
+ * C — fonds communs, conjoint informé sans renonciation ni revendication.
+ *
+ * La revendication du conjoint fait basculer le dossier en SARL : elle ne
+ * donne donc jamais lieu à une variante du présent gabarit.
  */
 export function varianteArticle9(d: Dossier, associes: Associe[]): VarianteArticle9 {
   const a = associeUnique(associes);
   if (!a) return "A";
   const communs = estCommunautaire(a) && a.apport_fonds_communs === true;
   if (!communs) return "A";
-  return a.conjoint_renonce === true ? "B" : "C";
+  return a.conjoint_revendique === true ? "C" : "B";
 }
+
 
 /** Le gérant est-il l'associé unique ? À défaut, gérant tiers personne physique. */
 export function gerantTiers(d: Dossier, associes: Associe[]): Associe | undefined {
