@@ -268,7 +268,11 @@ function Documents() {
 
   async function supprimerVerso(doc: DocumentRow) {
     await supabase.from("documents").update({ fichier_verso_url: null }).eq("id", doc.id);
-    setApercus((a) => ({ ...a, [doc.id]: { ...(a[doc.id] ?? {}), verso: undefined } }));
+    setApercus((a) => {
+      const courant = { ...(a[doc.id] ?? {}) };
+      delete courant.verso;
+      return { ...a, [doc.id]: courant };
+    });
     charger();
   }
 
