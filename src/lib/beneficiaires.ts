@@ -1,4 +1,5 @@
 import type { Associe, Dossier } from "./documents";
+import { associesEffectifs } from "./statuts-sarl";
 
 /**
  * Qualification des bénéficiaires effectifs (art. L. 561-2-2 et R. 561-1 CMF).
