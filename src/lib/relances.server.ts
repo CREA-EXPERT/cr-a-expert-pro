@@ -26,7 +26,7 @@ export async function relancerPiecesManquantes(
 
   const { data: dossiers } = await supabaseAdmin
     .from("dossiers")
-    .select("id, user_id, denomination, statut")
+    .select("id, user_id, denomination, statut, denomination_risque")
     .in("statut", STATUTS_ACTIFS);
 
   let envoyees = 0;
@@ -86,6 +86,7 @@ export async function relancerPiecesManquantes(
           `<p>Votre dossier de création${d.denomination ? ` « ${echapper(d.denomination)} »` : ""} est en attente de quelques pièces :</p>` +
           `<ul>${liste}</ul>` +
           `<p>Rappels utiles : la copie de pièce d'identité doit porter la mention manuscrite de conformité, datée et signée, et la pièce doit être en cours de validité ; le justificatif de domicile doit dater de moins de trois mois.</p>` +
+          infosDenomination(d.denomination, d.denomination_risque) +
           `<p>${TEXTE_AVERTISSEMENT_REJET_SERVEUR}</p>` +
           `<p><a href="${origine}/documents">Déposer mes pièces</a></p>` +
           `<p>CREA EXPERT</p>`,
@@ -111,6 +112,19 @@ export async function relancerPiecesManquantes(
   }
 
   return { dossiers_examines: (dossiers ?? []).length, relances_envoyees: envoyees, ignores };
+}
+
+/**
+ * Rappels d'information sur la dénomination, repris mot pour mot des messages
+ * affichés à l'écran. Jamais présentés comme un blocage.
+ */
+function infosDenomination(denomination: string | null, risque: string | null) {
+  const revues = revuesDenomination(denomination, risque);
+  if (revues.length === 0) return "";
+  return (
+    `<p>Pour information, sans conséquence sur la suite de votre dossier :</p>` +
+    `<ul>${revues.map((r) => `<li>${echapper(r)}</li>`).join("")}</ul>`
+  );
 }
 
 function echapper(texte: string) {

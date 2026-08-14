@@ -48,8 +48,11 @@ export function VerifDenomination({
   denomination,
   codesNaf = [],
   onRisque,
+  dossierId,
 }: {
   denomination: string;
+  /** Dossier auquel rattacher l'historique des vérifications. */
+  dossierId?: string;
   /** Codes NAF des activités du dossier, pour apprécier la proximité d'activité. */
   codesNaf?: (string | null | undefined)[];
   onRisque?: (niveau: NiveauRisqueDenomination | null) => void;
@@ -104,6 +107,10 @@ export function VerifDenomination({
       setNiveau(n);
       setEtat("fait");
       onRisque?.(n);
+      if (dossierId) {
+        const { journaliserVerificationDenomination } = await import("@/lib/denomination-journal");
+        await journaliserVerificationDenomination(dossierId, q, n, termes);
+      }
     } catch {
       setEtat("erreur");
     }
