@@ -69,6 +69,12 @@ export function ApercuChecklist({ dossier, associes }: { dossier: Dossier; assoc
         </div>
       )}
 
+      <p className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
+        <Info className="mt-0.5 size-4 shrink-0" strokeWidth={1.5} aria-hidden />
+        Le dépôt de vos pièces s'ouvrira dans « Mes documents » une fois votre dossier validé à la
+        dernière étape.
+      </p>
+
       <div className="space-y-1 rounded-md border border-border bg-background p-3">
         <p className="text-sm font-medium">Les règles qui évitent un rejet</p>
         <ul className="space-y-1">
