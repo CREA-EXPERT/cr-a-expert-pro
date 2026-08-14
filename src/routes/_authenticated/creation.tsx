@@ -36,6 +36,8 @@ import {
   type Forme,
 } from "@/lib/domain";
 import { AdresseSiege } from "@/components/AdresseSiege";
+import { dateEnLettresFr } from "@/lib/nombres";
+import { avertissementPremierExercice, clotureParDefaut } from "@/lib/statuts-sas";
 
 import {
   apportCogestion,
