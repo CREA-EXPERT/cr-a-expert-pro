@@ -1326,6 +1326,34 @@ function Creation() {
                                 onChange={(e) => majAssocie(a.id, { lieu_mariage: e.target.value })}
                               />
                             </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs" htmlFor={`cjdn-${a.id}`}>
+                                Date de naissance du conjoint
+                              </Label>
+                              <Input
+                                id={`cjdn-${a.id}`}
+                                type="date"
+                                value={a.conjoint_date_naissance ?? ""}
+                                onChange={(e) =>
+                                  majAssocie(a.id, {
+                                    conjoint_date_naissance: e.target.value || null,
+                                  })
+                                }
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs" htmlFor={`cjln-${a.id}`}>
+                                Lieu de naissance du conjoint (commune)
+                              </Label>
+                              <Input
+                                id={`cjln-${a.id}`}
+                                maxLength={120}
+                                value={a.conjoint_lieu_naissance ?? ""}
+                                onChange={(e) =>
+                                  majAssocie(a.id, { conjoint_lieu_naissance: e.target.value })
+                                }
+                              />
+                            </div>
                             <p className="sm:col-span-2 text-xs text-muted-foreground">
                               Ces informations figurent dans la comparution des statuts.
                             </p>
