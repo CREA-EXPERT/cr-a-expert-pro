@@ -8,6 +8,7 @@ import {
 } from "./documents";
 import type { Associe, Dossier } from "./documents";
 import { activitesDuDossier } from "./activites";
+import { clausesManquantes, messageClausesManquantes, type Gabarit } from "./statuts-clauses";
 import { dateEnLettresFr, jourMoisEnLettresFr, montantEnLettresFr } from "./nombres";
 import {
   accord,
@@ -59,6 +60,8 @@ type Ctx = {
   bold: PDFFont;
   page: PDFPage;
   y: number;
+  /** Intitulés d'articles écrits, pour le contrôle des clauses obligatoires. */
+  titres: string[];
 };
 
 /** Mode de rendu courant : filigrane « PROJET » et/ou mention de pied de page. */
@@ -144,6 +147,7 @@ function ecrire(ctx: Ctx, texte: string, opts: { size?: number; bold?: boolean; 
 }
 
 function titre(ctx: Ctx, texte: string) {
+  ctx.titres.push(texte);
   espace(ctx, 10);
   ecrire(ctx, texte.toUpperCase(), { size: 11, bold: true });
   espace(ctx, 2);
@@ -155,6 +159,7 @@ function aValider(ctx: Ctx, sujet: string) {
 
 /** Intitulé d'article reproduit tel quel (sans passage en capitales). */
 function article(ctx: Ctx, texte: string) {
+  ctx.titres.push(texte);
   espace(ctx, 10);
   ecrire(ctx, texte, { size: 11, bold: true });
   espace(ctx, 2);
@@ -172,7 +177,7 @@ async function creerCtx(titreDoc: string, sousTitre: string): Promise<Ctx> {
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const page = pdf.addPage([LARGEUR, HAUTEUR]);
   filigrane(page, bold);
-  const ctx: Ctx = { pdf, regular, bold, page, y: HAUTEUR - MARGE };
+  const ctx: Ctx = { pdf, regular, bold, page, y: HAUTEUR - MARGE, titres: [] };
   ecrire(ctx, titreDoc.toUpperCase(), { size: 15, bold: true });
   espace(ctx, 4);
   ecrire(ctx, sousTitre, { size: 10, color: GRIS });
@@ -199,6 +204,12 @@ function identite(a: Associe) {
   return `${nomComplet(a)}, né(e) le ${dateFr(a.date_naissance)} à ${a.lieu_naissance ?? "[lieu]"}, de nationalité ${a.nationalite ?? "[nationalité]"}, demeurant ${a.adresse ?? "[adresse]"}`;
 }
 
+/** Bloque la génération si une clause obligatoire du gabarit fait défaut. */
+function controlerClauses(ctx: Ctx, gabarit: Gabarit) {
+  const manquantes = clausesManquantes(gabarit, ctx.titres);
+  if (manquantes.length > 0) throw new Error(messageClausesManquantes(manquantes));
+}
+
 async function fin(ctx: Ctx) {
   return await ctx.pdf.save();
 }
@@ -212,7 +223,7 @@ async function creerCtxNu(): Promise<Ctx> {
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const page = pdf.addPage([LARGEUR, HAUTEUR]);
   filigrane(page, bold);
-  return { pdf, regular, bold, page, y: HAUTEUR - MARGE };
+  return { pdf, regular, bold, page, y: HAUTEUR - MARGE, titres: [] };
 }
 
 async function statutsSas(d: Dossier, associes: Associe[]) {
@@ -1015,6 +1026,7 @@ async function statutsSas(d: Dossier, associes: Associe[]) {
   espace(ctx, 14);
   signatures();
 
+  controlerClauses(ctx, "SAS");
   return fin(ctx);
 }
 
@@ -1409,6 +1421,7 @@ async function statutsSarl(d: Dossier, associes: Associe[]) {
   espace(ctx, 14);
   signaturesSarl();
 
+  controlerClauses(ctx, "SARL");
   return fin(ctx);
 }
 
@@ -2291,6 +2304,7 @@ async function statutsEurl(d: Dossier, associes: Associe[]) {
   ecrire(ctx, `L'associé${e} unique`, { bold: true });
   ecrire(ctx, nomCompletPhysique(a));
 
+  controlerClauses(ctx, "EURL");
   return fin(ctx);
 }
 
@@ -3016,6 +3030,7 @@ async function statutsSci(d: Dossier, associes: Associe[]) {
   espace(ctx, 14);
   signaturesSci();
 
+  controlerClauses(ctx, "SCI");
   return fin(ctx);
 }
 
