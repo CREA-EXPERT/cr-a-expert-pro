@@ -2144,7 +2144,46 @@ function Creation() {
           {/* 9 — RECAP */}
           {cle === "recap" && (
             <div className="mt-6 space-y-4">
+              {!ei && (
+                <div className="grid gap-4 rounded-lg border border-border bg-surface p-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="villesig">Ville de signature des actes</Label>
+                    <Input
+                      id="villesig"
+                      value={dossier.ville_signature ?? dossier.siege_ville ?? ""}
+                      onChange={(e) => patch({ ville_signature: e.target.value })}
+                      maxLength={80}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Pré-remplie avec la ville du siège social ; modifiable.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cloture1">Clôture du premier exercice</Label>
+                    <Input
+                      id="cloture1"
+                      type="date"
+                      value={
+                        dossier.date_cloture_premier_exercice ??
+                        clotureParDefaut(dossier.date_cloture_exercice)
+                      }
+                      onChange={(e) => patch({ date_cloture_premier_exercice: e.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Par défaut, le {dateEnLettresFr(clotureParDefaut(dossier.date_cloture_exercice))}.
+                      Le premier exercice ne devrait pas se clore au-delà du 31 décembre de l'année
+                      civile suivant l'immatriculation.
+                    </p>
+                    {avertissementPremierExercice(dossier) && (
+                      <p className="text-xs text-destructive">
+                        {avertissementPremierExercice(dossier)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
               <dl className="divide-y divide-border rounded-lg border border-border bg-surface">
+
                 {[
                   ["Forme juridique", forme],
                   ["Dénomination", dossier.denomination || "—"],
