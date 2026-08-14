@@ -177,3 +177,15 @@
   line-height: 1.6;
   color: var(--color-foreground);
 }
+
+/* Ouverture / fermeture fluide des encadrés pédagogiques repliables. */
+@keyframes collapsible-down {
+  from { height: 0; }
+  to { height: var(--radix-collapsible-content-height); }
+}
+@keyframes collapsible-up {
+  from { height: var(--radix-collapsible-content-height); }
+  to { height: 0; }
+}
+.animate-collapsible-down { animation: collapsible-down 200ms ease-out; }
+.animate-collapsible-up { animation: collapsible-up 180ms ease-in; }
