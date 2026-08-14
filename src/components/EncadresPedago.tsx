@@ -2,8 +2,6 @@ import { CallbackDialog } from "@/components/CallbackDialog";
 import { CABINET, RELECTURE_LIMITES } from "@/lib/domain";
 import { EncadrePliable } from "@/components/EncadrePliable";
 
-const CADRE = "rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed text-justify";
-
 /** Rappel de responsabilité : sans recours à un professionnel, l'utilisateur assume seul. */
 export function EncadreResponsabilite({ compact = false }: { compact?: boolean }) {
   if (compact) {
