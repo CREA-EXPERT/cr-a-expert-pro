@@ -1,7 +1,6 @@
 import { CallbackDialog } from "@/components/CallbackDialog";
 import { CABINET, RELECTURE_LIMITES } from "@/lib/domain";
-
-const CADRE = "rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed text-justify";
+import { EncadrePliable } from "@/components/EncadrePliable";
 
 /** Rappel de responsabilité : sans recours à un professionnel, l'utilisateur assume seul. */
 export function EncadreResponsabilite({ compact = false }: { compact?: boolean }) {
@@ -15,9 +14,8 @@ export function EncadreResponsabilite({ compact = false }: { compact?: boolean }
     );
   }
   return (
-    <div className={CADRE}>
-      <p className="font-medium">Qui est responsable de quoi</p>
-      <p className="mt-2">
+    <EncadrePliable titre="Qui est responsable de quoi">
+      <p>
         CREA EXPERT met à votre disposition un outil de saisie, des informations générales et des
         modèles de documents. Tant que vous ne sollicitez pas la relecture d'un professionnel, les
         réponses saisies, les options retenues et les documents générés relèvent de votre{" "}
@@ -28,7 +26,7 @@ export function EncadreResponsabilite({ compact = false }: { compact?: boolean }
         Dès lors que vous demandez la relecture, l'expert-comptable examine votre dossier et engage
         sa responsabilité professionnelle dans les limites de la lettre de mission acceptée.
       </p>
-    </div>
+    </EncadrePliable>
   );
 }
 
@@ -84,9 +82,8 @@ export function EncadreMineur({ signale = false }: { signale?: boolean }) {
 /** Régimes matrimoniaux et PACS : contrat ou non, conséquences sur les apports. */
 export function EncadreRegimes() {
   return (
-    <div className={CADRE}>
-      <p className="font-medium">Mariage, PACS et contrat : pourquoi la question est posée</p>
-      <p className="mt-2">
+    <EncadrePliable titre="Mariage, PACS et contrat : pourquoi la question est posée">
+      <p>
         À défaut de contrat de mariage, les époux sont soumis à la{" "}
         <strong>communauté légale réduite aux acquêts</strong> : les biens acquis et les revenus
         perçus pendant le mariage sont communs. Avec un contrat reçu par notaire, ils peuvent
@@ -102,13 +99,13 @@ export function EncadreRegimes() {
         convention, le régime de l'<strong>indivision</strong> des biens acquis ensemble.
       </p>
       <p className="mt-2">
-        Ces éléments déterminent l'origine des fonds apportés : lorsqu'un apport provient d'une masse
-        commune ou indivise, le conjoint ou le partenaire doit être informé et peut, dans certaines
-        formes de sociétés, revendiquer la qualité d'associé. C'est pourquoi le régime exact et
-        l'existence d'un contrat sont demandés ici.
+        Ces éléments déterminent l'origine des fonds apportés : lorsqu'un apport provient d'une
+        masse commune ou indivise, le conjoint ou le partenaire doit être informé et peut, dans
+        certaines formes de sociétés, revendiquer la qualité d'associé. C'est pourquoi le régime
+        exact et l'existence d'un contrat sont demandés ici.
       </p>
       <MentionPro />
-    </div>
+    </EncadrePliable>
   );
 }
 
@@ -117,8 +114,9 @@ export function EncadreRelectureLimites() {
   return (
     <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed text-justify">
       Pour que les échanges restent efficaces et que votre création aboutisse rapidement, la
-      relecture comprend jusqu'à <strong>{RELECTURE_LIMITES.appels} entretiens téléphoniques</strong>{" "}
-      et <strong>{RELECTURE_LIMITES.mails} échanges par courriel</strong>. C'est très largement
+      relecture comprend jusqu'à{" "}
+      <strong>{RELECTURE_LIMITES.appels} entretiens téléphoniques</strong> et{" "}
+      <strong>{RELECTURE_LIMITES.mails} échanges par courriel</strong>. C'est très largement
       suffisant pour arrêter les choix d'une création courante : préparez vos questions, l'objectif
       est de décider vite et bien. Au-delà, l'accompagnement se poursuit dans le cadre de la mission
       comptable.
@@ -126,13 +124,12 @@ export function EncadreRelectureLimites() {
   );
 }
 
-
 function MentionPro() {
   return (
     <p className="mt-3 text-xs text-muted-foreground">
       Encadré pédagogique — information générale et non exhaustive, qui ne constitue pas un conseil.
-      Pour toute précision adaptée à votre situation, parlez-en à un professionnel, notamment à notre
-      expert-comptable partenaire.
+      Pour toute précision adaptée à votre situation, parlez-en à un professionnel, notamment à
+      notre expert-comptable partenaire.
     </p>
   );
 }
@@ -141,13 +138,11 @@ function MentionPro() {
 export function EncadreGouvernance({ forme }: { forme: string }) {
   const sas = forme === "SAS" || forme === "SASU";
   return (
-    <div className={CADRE}>
-      <p className="font-medium">Comprendre la gérance, la présidence et l'associé</p>
-
-      <p className="mt-2">
+    <EncadrePliable titre="Comprendre la gérance, la présidence et l'associé">
+      <p>
         <strong>Le gérant</strong> est le dirigeant d'une SARL, d'une EURL ou d'une SCI. Il
-        représente la société vis-à-vis des tiers, signe les contrats, embauche, déclare et engage la
-        société dans la limite de l'objet social. Lorsque plusieurs personnes exercent cette
+        représente la société vis-à-vis des tiers, signe les contrats, embauche, déclare et engage
+        la société dans la limite de l'objet social. Lorsque plusieurs personnes exercent cette
         fonction, on parle de <strong>co-gérants</strong> : chacun dispose en principe des mêmes
         pouvoirs et peut agir seul, sauf répartition prévue par les statuts, qui n'est opposable aux
         tiers que dans certaines limites.
@@ -171,9 +166,9 @@ export function EncadreGouvernance({ forme }: { forme: string }) {
       <p className="mt-2">
         <strong>L'associé</strong> n'est pas un dirigeant : il détient des titres (parts sociales ou
         actions), vote en assemblée et perçoit d'éventuels dividendes. Les deux qualités sont
-        indépendantes : on peut être gérant ou co-gérant <em>sans</em> détenir la moindre part, et on
-        peut être associé <em>sans</em> participer à la gérance. Beaucoup de dirigeants cumulent les
-        deux, ce n'est pas une obligation.
+        indépendantes : on peut être gérant ou co-gérant <em>sans</em> détenir la moindre part, et
+        on peut être associé <em>sans</em> participer à la gérance. Beaucoup de dirigeants cumulent
+        les deux, ce n'est pas une obligation.
       </p>
 
       <p className="mt-2">
@@ -185,24 +180,25 @@ export function EncadreGouvernance({ forme }: { forme: string }) {
         gestion, sa responsabilité fiscale ou pénale en cas de manquements graves, et une
         insuffisance d'actif peut lui être imputée en cas de liquidation fautive. Le statut social
         et le traitement fiscal de la rémunération diffèrent également selon la forme et le
-        pourcentage détenu {sas ? "(président de SAS/SASU assimilé salarié)" : "(gérant majoritaire de SARL : travailleur non salarié)"}.
+        pourcentage détenu{" "}
+        {sas
+          ? "(président de SAS/SASU assimilé salarié)"
+          : "(gérant majoritaire de SARL : travailleur non salarié)"}
+        .
       </p>
 
       <MentionPro />
-    </div>
+    </EncadrePliable>
   );
 }
 
 /** Règles de composition : combien de dirigeants, combien d'associés, selon la forme. */
 export function EncadreCompositionForme({ forme }: { forme: string }) {
   const texte: Record<string, string> = {
-    SASU:
-      "SASU : un associé unique, et un président et un seul. Des directeurs généraux peuvent être nommés si les statuts le prévoient.",
+    SASU: "SASU : un associé unique, et un président et un seul. Des directeurs généraux peuvent être nommés si les statuts le prévoient.",
     SAS: "SAS : deux associés ou plus, et un président et un seul. Des directeurs généraux et directeurs généraux délégués peuvent être nommés si les statuts le prévoient.",
-    EURL:
-      "EURL : un associé unique et un seul, personne physique ou morale. Un ou plusieurs gérants, obligatoirement personnes physiques ; le gérant peut être l'associé ou un tiers.",
-    SARL:
-      "SARL : de 2 à 100 associés. Un ou plusieurs gérants (co-gérance possible), obligatoirement personnes physiques.",
+    EURL: "EURL : un associé unique et un seul, personne physique ou morale. Un ou plusieurs gérants, obligatoirement personnes physiques ; le gérant peut être l'associé ou un tiers.",
+    SARL: "SARL : de 2 à 100 associés. Un ou plusieurs gérants (co-gérance possible), obligatoirement personnes physiques.",
     SCI: "SCI : deux associés au minimum. Un ou plusieurs gérants, associés ou non, personnes physiques ou morales.",
     EI: "Entreprise individuelle : ni associé, ni dirigeant au sens sociétaire — vous exercez en votre nom propre.",
   };
@@ -241,9 +237,8 @@ export function EncadreDemembrement() {
 /** Choix de la date de clôture de l'exercice. */
 export function EncadreCloture() {
   return (
-    <div className={CADRE}>
-      <p className="font-medium">Choisir sa date de clôture</p>
-      <p className="mt-2">
+    <EncadrePliable titre="Choisir sa date de clôture">
+      <p>
         L'essentiel des sociétés clôturent au <strong>31 décembre</strong> : les comptes coïncident
         avec l'année civile et avec l'année fiscale des associés, les échéances sont connues de tous
         et les traitements sont standards. C'est le choix par défaut, et le plus simple.
@@ -256,7 +251,8 @@ export function EncadreCloture() {
         comparaisons sectorielles moins immédiates, et vigilance accrue sur le suivi des échéances.
       </p>
       <p className="mt-2">
-        Toutes les dates de clôture proposées ici correspondent au <strong>dernier jour du mois</strong>.
+        Toutes les dates de clôture proposées ici correspondent au{" "}
+        <strong>dernier jour du mois</strong>.
       </p>
       <p className="mt-2">
         <strong>Premier exercice étendu (plus de 12 mois).</strong> Le premier exercice peut être
@@ -265,23 +261,22 @@ export function EncadreCloture() {
         premier exercice complet et représentatif. Inconvénients : les résultats du premier exercice
         se cumulent sur une période longue, ce qui peut concentrer l'imposition, et retarde d'autant
         la première image comptable officielle pour une banque. Un exercice ne peut légalement
-        comporter qu'<strong>un seul franchissement du 31 décembre</strong> : sa durée totale ne peut
-        donc pas dépasser 24 mois.
+        comporter qu'<strong>un seul franchissement du 31 décembre</strong> : sa durée totale ne
+        peut donc pas dépasser 24 mois.
       </p>
       <MentionPro />
-    </div>
+    </EncadrePliable>
   );
 }
 
 /** TVA : périodicité, avantages/inconvénients, cas de l'immobilier. */
 export function EncadreTva({ immobilier }: { immobilier: boolean }) {
   return (
-    <div className={CADRE}>
-      <p className="font-medium">Comprendre la TVA</p>
-      <p className="mt-2">
-        <strong>Être assujetti à la TVA</strong> vous permet de récupérer la TVA sur vos achats,
-        vos investissements et vos frais : c'est presque toujours favorable lorsque vos clients sont
-        des professionnels, qui la récupèrent eux aussi. À l'inverse, si vos clients sont des
+    <EncadrePliable titre="Comprendre la TVA">
+      <p>
+        <strong>Être assujetti à la TVA</strong> vous permet de récupérer la TVA sur vos achats, vos
+        investissements et vos frais : c'est presque toujours favorable lorsque vos clients sont des
+        professionnels, qui la récupèrent eux aussi. À l'inverse, si vos clients sont des
         particuliers, facturer la TVA renchérit votre prix de 20 % à qualité égale : la franchise en
         base est alors souvent préférable, au prix de la perte du droit à déduction et d'un plafond
         de chiffre d'affaires à surveiller.
@@ -310,8 +305,8 @@ export function EncadreTva({ immobilier }: { immobilier: boolean }) {
           sociétés immobilières fonctionnent donc <strong>sans TVA</strong>. C'est souvent plus
           avantageux, car les loyers ne sont pas majorés pour un locataire particulier qui ne
           récupère rien, et la gestion déclarative est allégée. Opter pour la TVA n'a d'intérêt que
-          face à des locataires professionnels assujettis : l'option permet alors de récupérer la TVA
-          sur l'acquisition et sur les travaux, souvent des montants importants. Attention à la
+          face à des locataires professionnels assujettis : l'option permet alors de récupérer la
+          TVA sur l'acquisition et sur les travaux, souvent des montants importants. Attention à la
           régularisation par <strong>vingtièmes</strong> : la TVA déduite sur un immeuble se
           régularise sur une période de 20 ans, et une revente ou une cessation d'activité avant son
           terme peut obliger à reverser les vingtièmes restants — sauf lorsque la cession est
@@ -319,18 +314,17 @@ export function EncadreTva({ immobilier }: { immobilier: boolean }) {
         </p>
       )}
       <MentionPro />
-    </div>
+    </EncadrePliable>
   );
 }
 
 /** Rappel des justificatifs légaux à déposer avant tout dépôt du dossier. */
 export function EncadreJustificatifs() {
   return (
-    <div className="rounded-lg border border-border bg-muted/40 p-4 text-sm leading-relaxed text-justify">
-      <p className="font-semibold">Encadré pédagogique — les justificatifs à déposer</p>
-      <p className="mt-2">
-        Tous les justificatifs légaux applicables à votre situation doivent être déposés dans
-        « Mes documents » <strong>avant</strong> que votre dossier puisse être déposé. Un dossier
+    <EncadrePliable titre="Les justificatifs à déposer">
+      <p>
+        Tous les justificatifs légaux applicables à votre situation doivent être déposés dans « Mes
+        documents » <strong>avant</strong> que votre dossier puisse être déposé. Un dossier
         incomplet est systématiquement rejeté par le greffe, ce qui fait perdre du temps et peut
         obliger à republier certaines formalités.
       </p>
@@ -352,16 +346,19 @@ export function EncadreJustificatifs() {
         rejet du dossier.
       </p>
       <MentionPro />
-    </div>
+    </EncadrePliable>
   );
 }
 
 /** Documents que la plateforme fera signer électroniquement (fonction à venir). */
 export function EncadreSignatureElectronique() {
   return (
-    <div className="rounded-lg border border-accent/40 bg-accent/8 p-4 text-sm leading-relaxed text-justify">
-      <p className="font-semibold">Documents signés électroniquement — envoyés par nos soins</p>
-      <p className="mt-2">
+    <EncadrePliable
+      titre="Documents signés électroniquement — envoyés par nos soins"
+      badge={null}
+      ton="accent"
+    >
+      <p>
         Vous n'avez pas à les rédiger : nous les préparons à partir de vos réponses et nous vous les
         adressons pour signature électronique. Chaque signataire reçoit un lien personnel par
         courriel ; la signature vaut engagement et la preuve (horodatage et empreinte du document)
@@ -381,6 +378,6 @@ export function EncadreSignatureElectronique() {
         libre : chacun signe quand il le souhaite, et le document est finalisé lorsque tous les
         signataires ont signé.
       </p>
-    </div>
+    </EncadrePliable>
   );
 }

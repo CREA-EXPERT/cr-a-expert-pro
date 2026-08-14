@@ -1,33 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PageShell } from "@/components/layout/PageShell";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { EncadreJustificatifs, EncadreSignatureElectronique } from "@/components/EncadresPedago";
+import { EncadreSignatureElectronique } from "@/components/EncadresPedago";
 import { GuideIdentite } from "@/components/GuideIdentite";
 import { ApercuChecklist } from "@/components/ApercuChecklist";
 import { MentionConfidentialite } from "@/components/MentionConfidentialite";
-import { ListeTransferts, ZoneDepot, type Transfert } from "@/components/ZoneDepot";
+import { ListeTransferts, type Transfert } from "@/components/ZoneDepot";
+import { AvertissementRejet, TEXTE_AVERTISSEMENT_REJET } from "@/components/AvertissementsPieces";
+import { FriseAvancement } from "@/components/FriseAvancement";
+import { LigneDepot, type Face } from "@/components/LigneDepot";
+import { EncadrePliable } from "@/components/EncadrePliable";
 
 import { genererPdf, telechargerPdf } from "@/lib/pdf";
 import { verifierDates, type Associe, type Dossier, type DocumentRow } from "@/lib/documents";
+import { preparerImage } from "@/lib/image";
+import { verifierPiece } from "@/lib/verification.functions";
 import {
-  ACCEPT_ATTR,
   LIBELLE_STATUT,
   aRedeposer,
+  categorieControle,
   estPieceIdentite,
   normaliserStatut,
   validerFichier,
@@ -40,7 +37,7 @@ import {
   type SignatureRow,
 } from "@/lib/signatures";
 import type { Tables } from "@/integrations/supabase/types";
-import { Download, HelpCircle, Upload } from "lucide-react";
+import { Download } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/documents")({
   head: () => ({
@@ -63,8 +60,6 @@ export const Route = createFileRoute("/_authenticated/documents")({
 
 type EventRow = Tables<"events_dossier">;
 
-const CIBLE_LIBRE = "autre";
-
 const horodatage = (v: string | null | undefined) =>
   v ? new Date(v).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "—";
 
@@ -78,6 +73,7 @@ function Documents() {
   const [busy, setBusy] = useState(false);
   const [transferts, setTransferts] = useState<Transfert[]>([]);
   const [mentions, setMentions] = useState<Record<string, boolean>>({});
+  const [apercus, setApercus] = useState<Record<string, { recto?: string; verso?: string }>>({});
 
   async function charger() {
     const { data: ds } = await supabase
@@ -118,6 +114,19 @@ function Documents() {
     charger();
   }, []);
 
+  const nomPersonne = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const a of associes) {
+      m.set(
+        a.id,
+        a.type === "personne_morale"
+          ? (a.denomination ?? "Personne morale")
+          : `${a.prenom ?? ""} ${a.nom ?? ""}`.trim() || "Associé",
+      );
+    }
+    return m;
+  }, [associes]);
+
   /** Écrit une ligne au journal d'audit du dossier (table en insertion seule). */
   async function journaliser(dossierId: string, type: string, message: string) {
     await supabase
@@ -138,29 +147,14 @@ function Documents() {
       .eq("id", dossier.id);
   }
 
-  /** Crée une pièce hors checklist lorsque le client dépose un fichier non rattaché. */
-  async function creerPieceLibre(nom: string): Promise<DocumentRow | null> {
-    if (!dossier) return null;
-    const { data, error } = await supabase
+  async function majExpiration(doc: DocumentRow, valeur: string) {
+    await supabase
       .from("documents")
-      .insert({
-        dossier_id: dossier.id,
-        type_document: "piece_complementaire",
-        libelle: `Pièce complémentaire — ${nom}`,
-        obligatoire: false,
-        origine: "a_fournir",
-        statut_document: "a_fournir",
-      })
-      .select("*")
-      .maybeSingle();
-    if (error || !data) {
-      toast.error("La pièce complémentaire n'a pas pu être créée.");
-      return null;
-    }
-    return data as DocumentRow;
+      .update({ date_expiration: valeur || null })
+      .eq("id", doc.id);
   }
 
-  async function televerser(doc: DocumentRow, file: File) {
+  async function televerser(doc: DocumentRow, file: File, face: Face) {
     if (!dossier) return false;
     const refus = validerFichier(file);
     if (refus) {
@@ -173,75 +167,114 @@ function Documents() {
       );
       return false;
     }
-    const extension = (file.name.split(".").pop() ?? "pdf").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const optimise = await preparerImage(file);
+    const extension = (optimise.name.split(".").pop() ?? "pdf")
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
     /** Chemin déterministe : un redépôt remplace le fichier au lieu d'en créer un doublon. */
-    const chemin = `${dossier.id}/${doc.id}.${extension || "pdf"}`;
+    const suffixe = face === "verso" ? "-verso" : "";
+    const chemin = `${dossier.id}/${doc.id}${suffixe}.${extension || "pdf"}`;
     const { error } = await supabase.storage
       .from("documents")
-      .upload(chemin, file, { upsert: true });
+      .upload(chemin, optimise, { upsert: true });
     if (error) {
       toast.error("Le dépôt du fichier a échoué. Vérifiez votre connexion puis recommencez.");
       return false;
     }
     const maintenant = new Date().toISOString();
-    await supabase
-      .from("documents")
-      .update({
-        fichier_url: chemin,
-        statut_document: "depose",
-        motif_rejet: null,
-        depose_le: maintenant,
-        atteste_conforme: false,
-        atteste_le: null,
-        valide_le: null,
-      })
-      .eq("id", doc.id);
+    const maj =
+      face === "verso"
+        ? { fichier_verso_url: chemin }
+        : {
+            fichier_url: chemin,
+            statut_document: "depose",
+            motif_rejet: null,
+            depose_le: maintenant,
+            atteste_conforme: false,
+            atteste_le: null,
+            valide_le: null,
+          };
+    await supabase.from("documents").update(maj).eq("id", doc.id);
     await journaliser(
       dossier.id,
       "piece_deposee",
-      `Pièce déposée par le client : ${doc.libelle} (fichier « ${file.name} », ${Math.round(file.size / 1024)} Ko).`,
+      `Pièce déposée par le client : ${doc.libelle}${face === "verso" ? " (verso)" : ""} (fichier « ${optimise.name} », ${Math.round(optimise.size / 1024)} Ko).`,
     );
     if (dossier.statut === "dossier_valide_client") {
       await supabase.from("dossiers").update({ statut: "pieces_en_cours" }).eq("id", dossier.id);
     }
+    if (optimise.type.startsWith("image/")) {
+      const url = URL.createObjectURL(optimise);
+      setApercus((a) => ({ ...a, [doc.id]: { ...(a[doc.id] ?? {}), [face]: url } }));
+    }
     return true;
   }
 
-  /** Dépose une série de fichiers avec suivi de progression, puis rafraîchit la liste. */
-  async function deposer(fichiers: File[], cibleId: string) {
-    for (const f of fichiers) {
-      const idTransfert = `${Date.now()}-${f.name}-${Math.random().toString(16).slice(2)}`;
-      setTransferts((t) => [
-        ...t,
-        { id: idTransfert, nom: f.name, taille: f.size, progression: 8 },
-      ]);
-      const minuteur = setInterval(() => {
-        setTransferts((t) =>
-          t.map((x) =>
-            x.id === idTransfert ? { ...x, progression: Math.min(92, x.progression + 12) } : x,
-          ),
-        );
-      }, 200);
-      const doc =
-        cibleId === CIBLE_LIBRE
-          ? await creerPieceLibre(f.name)
-          : (docs.find((d) => d.id === cibleId) ?? null);
-      const ok = doc ? await televerser(doc, f) : false;
-      clearInterval(minuteur);
+  /** Dépose un fichier avec suivi de progression, puis lance la vérification automatique. */
+  async function deposer(doc: DocumentRow, fichier: File, face: Face) {
+    const idTransfert = `${Date.now()}-${fichier.name}-${Math.random().toString(16).slice(2)}`;
+    setTransferts((t) => [
+      ...t,
+      { id: idTransfert, nom: fichier.name, taille: fichier.size, progression: 8 },
+    ]);
+    const minuteur = setInterval(() => {
       setTransferts((t) =>
         t.map((x) =>
-          x.id === idTransfert
-            ? {
-                ...x,
-                progression: 100,
-                ...(ok ? {} : { erreur: "Ce fichier n'a pas été déposé." }),
-              }
-            : x,
+          x.id === idTransfert ? { ...x, progression: Math.min(92, x.progression + 12) } : x,
         ),
       );
-      if (ok) setTimeout(() => setTransferts((t) => t.filter((x) => x.id !== idTransfert)), 2500);
+    }, 200);
+    const ok = await televerser(doc, fichier, face);
+    clearInterval(minuteur);
+    setTransferts((t) =>
+      t.map((x) =>
+        x.id === idTransfert
+          ? {
+              ...x,
+              progression: 100,
+              ...(ok ? {} : { erreur: "Ce fichier n'a pas été déposé." }),
+            }
+          : x,
+      ),
+    );
+    if (ok) setTimeout(() => setTransferts((t) => t.filter((x) => x.id !== idTransfert)), 2500);
+    await charger();
+    if (ok && categorieControle(doc.type_document)) await lancerVerification(doc);
+  }
+
+  /** Vérification automatique : aide au contrôle, la revue humaine reste maîtresse. */
+  async function lancerVerification(doc: DocumentRow) {
+    setDocs((liste) =>
+      liste.map((d) => (d.id === doc.id ? { ...d, verification_statut: "en_cours" } : d)),
+    );
+    try {
+      const r = await verifierPiece({ data: { documentId: doc.id } });
+      if (r.synthese === "non_conforme") {
+        const motifs = r.controles
+          .filter((c) => c.resultat !== "conforme")
+          .map((c) => c.motif)
+          .join(" ");
+        toast.error(`${doc.libelle} : ${motifs} ${TEXTE_AVERTISSEMENT_REJET}`, { duration: 14000 });
+      } else if (r.synthese) {
+        toast.success(
+          "Vérification automatique effectuée — votre pièce sera contrôlée par notre équipe.",
+        );
+      }
+    } catch {
+      toast.info(
+        "La vérification automatique n'a pas pu être effectuée. Le cabinet contrôlera la pièce.",
+      );
     }
-    toast.success("Dépôt terminé.");
+    await charger();
+  }
+
+  async function supprimerVerso(doc: DocumentRow) {
+    await supabase.from("documents").update({ fichier_verso_url: null }).eq("id", doc.id);
+    setApercus((a) => {
+      const courant = { ...(a[doc.id] ?? {}) };
+      delete courant.verso;
+      return { ...a, [doc.id]: courant };
+    });
     charger();
   }
 
@@ -312,151 +345,30 @@ function Documents() {
     "immatricule",
   ].includes(dossier.statut);
 
-  async function transmettre() {
-    if (!dossier || manquants.length > 0) return;
-    setBusy(true);
-    await supabase.from("dossiers").update({ statut: "en_revue_cabinet" }).eq("id", dossier.id);
-    await journaliser(
-      dossier.id,
-      "pieces_transmises",
-      `Justificatifs transmis au cabinet : ${aFournir.length} pièce(s), toutes déposées et attestées conformes par le client.`,
-    );
-    setBusy(false);
-    toast.success("Vos pièces sont transmises au cabinet.");
-    charger();
-  }
-
-  const Ligne = ({ d, genere }: { d: DocumentRow; genere: boolean }) => {
-    const statut = normaliserStatut(d.statut_document);
-    const badge = LIBELLE_STATUT[statut];
-    const kyc = !genere && estPieceIdentite(d.type_document);
-    const mentionOk = !kyc || mentions[d.id] === true;
-    return (
-      <li className="rounded-lg border border-border bg-surface p-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="font-medium">
-              {d.libelle}
-              {!genere && !d.obligatoire && (
-                <span className="text-sm font-normal text-muted-foreground"> — facultatif</span>
-              )}
-            </p>
-            <span className={`mt-1.5 inline-block rounded-full px-2.5 py-0.5 text-xs ${badge.cls}`}>
-              {badge.label}
-            </span>
-          </div>
-          {genere && (
-            <Button size="sm" variant="outline" onClick={() => telecharger(d)}>
-              <Download strokeWidth={1.5} /> Télécharger
-            </Button>
-          )}
-        </div>
-
-        {!genere && (
-          <>
-            {kyc && (
-              <div className="mt-3 rounded-md border border-border bg-muted/40 p-3">
-                <div className="flex items-start gap-3">
-                  <Checkbox
-                    id={`kyc-${d.id}`}
-                    className="mt-0.5"
-                    checked={mentions[d.id] === true}
-                    disabled={transmis}
-                    onCheckedChange={(v) => setMentions((m) => ({ ...m, [d.id]: v === true }))}
-                  />
-                  <Label htmlFor={`kyc-${d.id}`} className="text-sm font-normal text-justify">
-                    J'ai recopié à la main sur la copie la mention « Je soussigné(e) [prénom NOM],
-                    certifie la présente copie conforme à l'original de ma pièce d'identité »,
-                    suivie du lieu, de la date du jour et de ma signature.
-                  </Label>
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Le dépôt reste bloqué tant que cette case n'est pas cochée. Le{" "}
-                  <Link to="/documents" className="underline underline-offset-2">
-                    gabarit à imprimer
-                  </Link>{" "}
-                  est disponible plus haut sur cette page.
-                </p>
-              </div>
-            )}
-            <div className="mt-3">
-              <ZoneDepot
-                multiple={false}
-                disabled={transmis || !mentionOk}
-                libelle={d.fichier_url ? "Déposer une nouvelle version" : "Glissez le fichier ici"}
-                aide={
-                  mentionOk
-                    ? "PDF, JPG ou PNG — 10 Mo maximum."
-                    : "Cochez d'abord la case ci-dessus pour débloquer le dépôt."
-                }
-                className="p-4"
-                onFichiers={(fs) => fs[0] && deposer([fs[0]], d.id)}
-              />
-            </div>
-          </>
-        )}
-
-        {!genere && (
-          <div className="mt-3 space-y-2">
-            <div className="flex items-start gap-3">
-              <Checkbox
-                id={`att-${d.id}`}
-                className="mt-0.5"
-                checked={d.atteste_conforme}
-                disabled={!d.fichier_url || transmis}
-                onCheckedChange={(v) => attester(d, v === true)}
-              />
-              <Label htmlFor={`att-${d.id}`} className="text-sm font-normal text-justify">
-                Je certifie que cette pièce est complète, lisible, en cours de validité et conforme
-                à l'original.
-              </Label>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Déposée le {horodatage(d.depose_le)} · cochée conforme le {horodatage(d.atteste_le)} ·
-              acceptée par le cabinet le {horodatage(d.valide_le)}
-            </p>
-          </div>
-        )}
-
-        {aRedeposer(statut) && d.motif_rejet && (
-          <p className="mt-3 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
-            <strong>{statut === "refuse" ? "Pièce refusée" : "Pièce à corriger"} :</strong>{" "}
-            {d.motif_rejet}
-          </p>
-        )}
-
-        {d.aide_client && (
-          <Collapsible>
-            <CollapsibleTrigger className="mt-3 inline-flex items-center gap-1.5 text-sm underline underline-offset-2">
-              <HelpCircle className="size-4" strokeWidth={1.5} aria-hidden /> Aide
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2 rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
-              {d.aide_client}
-            </CollapsibleContent>
-          </Collapsible>
-        )}
-      </li>
-    );
-  };
-
   return (
     <PageShell>
-      <div className="container-page max-w-4xl py-10">
-        <h1 className="font-serif text-3xl">Mes documents</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Formats acceptés : PDF, JPG, PNG. 10 Mo maximum par fichier.
-        </p>
-        <MentionConfidentialite className="mt-2" />
+      <div className="container-page max-w-4xl space-y-12 px-4 py-10">
+        <header className="space-y-3">
+          <h1 className="font-serif text-3xl">Mes documents</h1>
+          <p className="max-w-prose text-sm text-muted-foreground">
+            Chaque pièce se dépose sur sa propre ligne, comme au guichet unique : repérez le
+            document demandé, puis déposez le fichier correspondant.
+          </p>
+          <MentionConfidentialite />
+        </header>
 
-        <div className="mt-6 space-y-5">
-          {dossier && <ApercuChecklist dossier={dossier} associes={associes} />}
-          <EncadreJustificatifs />
+        <FriseAvancement dossier={dossier} docs={docs} signatures={signatures} />
+
+        <AvertissementRejet />
+
+        <div className="space-y-6">
+          <ApercuChecklist dossier={dossier} associes={associes} />
           <GuideIdentite dossier={dossier} associes={associes} />
         </div>
 
-        <section className="mt-6 rounded-lg border border-border bg-surface p-5">
-          <h2 className="font-serif text-xl">Dates du dossier</h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+        <section className="rounded-lg border border-border bg-surface p-6">
+          <h2 className="mt-0 font-serif text-xl">Dates du dossier</h2>
+          <div className="mt-6 grid gap-6 sm:grid-cols-3">
             <div className="space-y-2">
               <Label htmlFor="ds">Signature des statuts</Label>
               <Input
@@ -486,29 +398,30 @@ function Documents() {
             </div>
           </div>
           {erreursDates.length > 0 && (
-            <ul className="mt-4 space-y-1 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
+            <ul className="mt-6 space-y-1 rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm">
               {erreursDates.map((e) => (
                 <li key={e}>{e}</li>
               ))}
             </ul>
           )}
-          <p className="mt-3 text-sm text-muted-foreground text-justify">
+          <p className="mt-6 max-w-prose text-sm leading-relaxed text-muted-foreground">
             Les statuts et leurs annexes portent tous la date de signature. L'attestation de dépôt
             des fonds doit lui être antérieure ou du même jour ; l'attestation de parution
-            postérieure ou du même jour. La génération des documents est bloquée tant que cet ordre
-            n'est pas respecté.
+            postérieure ou du même jour.
           </p>
         </section>
 
-        <section className="mt-8">
-          <h2 className="font-serif text-2xl">À nous fournir</h2>
-          <p className="mt-1 text-sm text-muted-foreground text-justify">
-            Cette liste dépend de votre situation : forme juridique, associés, régime matrimonial,
-            type de siège. Chaque pièce obligatoire doit être déposée puis cochée conforme avant que
-            le dossier puisse partir au cabinet.
-          </p>
+        <section className="space-y-6">
+          <div>
+            <h2 className="font-serif text-2xl">À nous fournir</h2>
+            <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">
+              Cette liste dépend de votre situation : forme juridique, associés, régime matrimonial,
+              type de siège. Chaque pièce obligatoire doit être déposée puis cochée conforme avant
+              que le dossier puisse partir au cabinet.
+            </p>
+          </div>
 
-          <div className="mt-4 rounded-lg border border-border bg-surface p-4">
+          <div className="rounded-lg border border-border bg-surface p-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm font-medium">Avancement de vos pièces</p>
               <p className="text-xs text-muted-foreground">
@@ -517,34 +430,42 @@ function Documents() {
             </div>
             <Progress
               value={progression}
-              className="mt-2 h-2"
+              className="mt-3 h-2"
               aria-label="Progression des pièces obligatoires"
             />
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground text-justify">
-              Chaque pièce se dépose sur sa propre ligne, comme au guichet unique : repérez le
-              document demandé dans la liste ci-dessous, puis déposez le fichier correspondant.
-            </p>
             <ListeTransferts
               transferts={transferts}
               onSupprimer={(id) => setTransferts((t) => t.filter((x) => x.id !== id))}
             />
           </div>
 
-          <ul className="mt-4 space-y-3">
+          <ul className="space-y-6">
             {aFournir.length === 0 && (
               <li className="text-sm text-muted-foreground">
                 Aucune pièce demandée pour le moment.
               </li>
             )}
             {aFournir.map((d) => (
-              <Ligne key={d.id} d={d} genere={false} />
+              <LigneDepot
+                key={d.id}
+                doc={d}
+                personne={d.associe_id ? (nomPersonne.get(d.associe_id) ?? null) : null}
+                transmis={transmis}
+                mentionOk={mentions[d.id] === true}
+                onMention={(v) => setMentions((m) => ({ ...m, [d.id]: v }))}
+                onFichier={(f, face) => deposer(d, f, face)}
+                onAttester={(v) => attester(d, v)}
+                onSupprimerVerso={() => supprimerVerso(d)}
+                onExpiration={(v) => majExpiration(d, v)}
+                apercus={apercus[d.id] ?? {}}
+              />
             ))}
           </ul>
 
           {aFournir.length > 0 && (
-            <div className="mt-5 rounded-lg border border-accent/40 bg-accent/8 p-4">
+            <div className="rounded-lg border border-accent/40 bg-accent/8 p-6">
               {transmis ? (
-                <p className="text-sm">
+                <p className="max-w-prose text-sm leading-relaxed">
                   Vos justificatifs ont été transmis au cabinet. Toute nouvelle pièce déposée est
                   également enregistrée au journal du dossier.
                 </p>
@@ -553,28 +474,14 @@ function Documents() {
                   <p className="text-sm font-medium">
                     {manquants.length === 0
                       ? "Toutes les pièces obligatoires sont déposées et attestées conformes."
-                      : `Validation bloquée : ${manquants.length} pièce(s) obligatoire(s) restent à régulariser.`}
+                      : `${manquants.length} pièce(s) obligatoire(s) restent à régulariser.`}
                   </p>
-                  {manquants.length > 0 && (
-                    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
-                      {manquants.map((d) => (
-                        <li key={d.id}>
-                          {d.libelle} —{" "}
-                          {aRedeposer(normaliserStatut(d.statut_document))
-                            ? "à corriger puis à redéposer"
-                            : !d.fichier_url
-                              ? "fichier non déposé"
-                              : "à cocher comme conforme"}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  <Button
-                    className="mt-4"
-                    disabled={manquants.length > 0 || busy}
-                    onClick={transmettre}
-                  >
-                    {busy ? "Transmission…" : "Transmettre mes pièces au cabinet"}
+                  <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">
+                    La transmission se fait depuis l'écran de vérification finale, qui contrôle
+                    l'ensemble de votre dossier avant envoi.
+                  </p>
+                  <Button className="mt-4" asChild disabled={busy}>
+                    <Link to="/verification-finale">Vérifier et transmettre mon dossier</Link>
                   </Button>
                 </>
               )}
@@ -582,98 +489,112 @@ function Documents() {
           )}
         </section>
 
-        <section className="mt-8">
+        <section className="space-y-6">
           <h2 className="font-serif text-2xl">Signature électronique</h2>
-          <div className="mt-4 space-y-4">
+          <EncadrePliable titre="Comment se déroule la signature électronique ?">
             <EncadreSignatureElectronique />
-            <ul className="space-y-3">
-              {signatures.length === 0 && (
-                <li className="text-sm text-muted-foreground">
-                  Le suivi apparaîtra dès la validation de votre dossier.
-                </li>
-              )}
-              {signatures.map((s) => {
-                const courant = etapeCourante(s.statut);
-                const lignes = signataires.filter((x) => x.signature_id === s.id);
-                return (
-                  <li key={s.id} className="rounded-lg border border-border bg-surface p-4">
-                    <p className="font-medium">{s.libelle}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {LABEL_SIGNATURE(s.statut)}
-                    </p>
-                    <ol className="mt-3 grid gap-2 sm:grid-cols-4">
-                      {ORDRE_SIGNATURE.map((etape, i) => (
-                        <li
-                          key={etape}
-                          className={`rounded-md border p-2 text-xs ${
-                            i <= courant
-                              ? "border-accent bg-accent/10 font-medium"
-                              : "border-border text-muted-foreground"
-                          }`}
-                        >
-                          {LABEL_SIGNATURE(etape)}
+          </EncadrePliable>
+          <ul className="space-y-6">
+            {signatures.length === 0 && (
+              <li className="text-sm text-muted-foreground">
+                Le suivi apparaîtra dès la validation de votre dossier.
+              </li>
+            )}
+            {signatures.map((s) => {
+              const courant = etapeCourante(s.statut);
+              const lignes = signataires.filter((x) => x.signature_id === s.id);
+              return (
+                <li key={s.id} className="rounded-lg border border-border bg-surface p-6">
+                  <p className="font-medium">{s.libelle}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{LABEL_SIGNATURE(s.statut)}</p>
+                  <ol className="mt-4 grid gap-2 sm:grid-cols-4">
+                    {ORDRE_SIGNATURE.map((etape, i) => (
+                      <li
+                        key={etape}
+                        className={`rounded-md border p-2 text-xs ${
+                          i <= courant
+                            ? "border-accent bg-accent/10 font-medium"
+                            : "border-border text-muted-foreground"
+                        }`}
+                      >
+                        {LABEL_SIGNATURE(etape)}
+                      </li>
+                    ))}
+                  </ol>
+                  {lignes.length > 0 && (
+                    <ul className="mt-4 space-y-1">
+                      {lignes.map((l) => (
+                        <li key={l.id} className="text-xs text-muted-foreground">
+                          {l.signataire_nom} —{" "}
+                          {l.horodatage
+                            ? `signé le ${new Date(l.horodatage).toLocaleString("fr-FR")}`
+                            : "en attente de signature"}
                         </li>
                       ))}
-                    </ol>
-                    {lignes.length > 0 && (
-                      <ul className="mt-3 space-y-1">
-                        {lignes.map((l) => (
-                          <li key={l.id} className="text-xs text-muted-foreground">
-                            {l.signataire_nom} —{" "}
-                            {l.horodatage
-                              ? `signé le ${new Date(l.horodatage).toLocaleString("fr-FR")}`
-                              : "en attente de signature"}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      Envoyé le {horodatage(s.envoye_le)} · signé le {horodatage(s.signe_le)}
-                    </p>
-                    {s.aide_client && (
-                      <p className="mt-2 text-sm leading-relaxed text-justify text-muted-foreground">
-                        {s.aide_client}
-                      </p>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
+                    </ul>
+                  )}
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Envoyé le {horodatage(s.envoye_le)} · signé le {horodatage(s.signe_le)}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
         </section>
 
-        <section className="mt-8">
-          <h2 className="font-serif text-2xl">Générés pour vous</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Ces documents portent le filigrane « PROJET — soumis à la validation du cabinet ».
-          </p>
-          <ul className="mt-4 space-y-3">
+        <section className="space-y-6">
+          <div>
+            <h2 className="font-serif text-2xl">Générés pour vous</h2>
+            <p className="mt-2 max-w-prose text-sm text-muted-foreground">
+              Ces documents portent le filigrane « PROJET — soumis à la validation du cabinet ».
+            </p>
+          </div>
+          <ul className="space-y-4">
             {generes.length === 0 && (
               <li className="text-sm text-muted-foreground">
                 Aucun document généré pour le moment.
               </li>
             )}
-            {generes.map((d) => (
-              <Ligne key={d.id} d={d} genere />
-            ))}
+            {generes.map((d) => {
+              const badge = LIBELLE_STATUT[normaliserStatut(d.statut_document)];
+              return (
+                <li
+                  key={d.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-surface p-6"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium">{d.libelle}</p>
+                    <span
+                      className={`mt-1.5 inline-block rounded-full px-2.5 py-0.5 text-xs ${badge.cls}`}
+                    >
+                      {badge.label}
+                    </span>
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => telecharger(d)}>
+                    <Download strokeWidth={1.5} /> Télécharger
+                  </Button>
+                </li>
+              );
+            })}
           </ul>
         </section>
 
-        <section className="mt-8">
-          <h2 className="font-serif text-2xl">Journal de validation</h2>
-          <p className="mt-1 text-sm text-muted-foreground text-justify">
-            Chaque dépôt, chaque attestation de conformité et chaque décision du cabinet est
-            horodaté et conservé. Ce journal ne peut être ni modifié ni supprimé : il permet de
-            vérifier à tout moment l'historique de votre dossier.
-          </p>
-          <ol className="mt-4 space-y-3">
+        <section className="space-y-6">
+          <div>
+            <h2 className="font-serif text-2xl">Journal de validation</h2>
+            <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">
+              Chaque dépôt, chaque attestation de conformité et chaque décision du cabinet est
+              horodaté et conservé. Ce journal ne peut être ni modifié ni supprimé.
+            </p>
+          </div>
+          <ol className="space-y-3">
             {events.length === 0 && (
               <li className="text-sm text-muted-foreground">Aucun événement enregistré.</li>
             )}
             {events.map((e) => (
-              <li key={e.id} className="rounded-lg border border-border bg-surface p-3">
+              <li key={e.id} className="rounded-lg border border-border bg-surface p-4">
                 <p className="text-xs text-muted-foreground">{horodatage(e.created_at)}</p>
-                <p className="mt-1 text-sm leading-relaxed text-justify">{e.message}</p>
+                <p className="mt-1 max-w-prose text-sm leading-relaxed">{e.message}</p>
               </li>
             ))}
           </ol>

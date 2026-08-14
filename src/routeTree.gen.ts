@@ -24,12 +24,14 @@ import { Route as AuthenticatedCreationRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
 import { Route as AuthenticatedMonCompteRouteImport } from './routes/_authenticated/mon-compte'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
+import { Route as AuthenticatedVerificationFinaleRouteImport } from './routes/_authenticated/verification-finale'
 import { Route as DevAssocieDateRouteImport } from './routes/dev.associe-date'
 import { Route as SignerJetonRouteImport } from './routes/signer.$jeton'
 import { Route as AuthenticatedCabinetIndexRouteImport } from './routes/_authenticated/cabinet.index'
 import { Route as AuthenticatedCabinetIdRouteImport } from './routes/_authenticated/cabinet.$id'
 import { Route as AuthenticatedCabinetRappelsRouteImport } from './routes/_authenticated/cabinet.rappels'
 import { Route as ApiPublicHooksPurgeDonneesRouteImport } from './routes/api/public/hooks/purge-donnees'
+import { Route as ApiPublicHooksRelancePiecesRouteImport } from './routes/api/public/hooks/relance-pieces'
 import { Route as ApiPublicHooksRelanceSignaturesRouteImport } from './routes/api/public/hooks/relance-signatures'
 
 const IndexRoute = IndexRouteImport.update({
@@ -107,6 +109,12 @@ const AuthenticatedTableauDeBordRoute =
     path: '/tableau-de-bord',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedVerificationFinaleRoute =
+  AuthenticatedVerificationFinaleRouteImport.update({
+    id: '/verification-finale',
+    path: '/verification-finale',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const DevAssocieDateRoute = DevAssocieDateRouteImport.update({
   id: '/dev/associe-date',
   path: '/dev/associe-date',
@@ -140,6 +148,12 @@ const ApiPublicHooksPurgeDonneesRoute =
     path: '/api/public/hooks/purge-donnees',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksRelancePiecesRoute =
+  ApiPublicHooksRelancePiecesRouteImport.update({
+    id: '/api/public/hooks/relance-pieces',
+    path: '/api/public/hooks/relance-pieces',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksRelanceSignaturesRoute =
   ApiPublicHooksRelanceSignaturesRouteImport.update({
     id: '/api/public/hooks/relance-signatures',
@@ -162,12 +176,14 @@ export interface FileRoutesByFullPath {
   '/documents': typeof AuthenticatedDocumentsRoute
   '/mon-compte': typeof AuthenticatedMonCompteRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/verification-finale': typeof AuthenticatedVerificationFinaleRoute
   '/dev/associe-date': typeof DevAssocieDateRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/cabinet/': typeof AuthenticatedCabinetIndexRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
+  '/api/public/hooks/relance-pieces': typeof ApiPublicHooksRelancePiecesRoute
   '/api/public/hooks/relance-signatures': typeof ApiPublicHooksRelanceSignaturesRoute
 }
 export interface FileRoutesByTo {
@@ -185,12 +201,14 @@ export interface FileRoutesByTo {
   '/documents': typeof AuthenticatedDocumentsRoute
   '/mon-compte': typeof AuthenticatedMonCompteRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/verification-finale': typeof AuthenticatedVerificationFinaleRoute
   '/dev/associe-date': typeof DevAssocieDateRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/cabinet': typeof AuthenticatedCabinetIndexRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
+  '/api/public/hooks/relance-pieces': typeof ApiPublicHooksRelancePiecesRoute
   '/api/public/hooks/relance-signatures': typeof ApiPublicHooksRelanceSignaturesRoute
 }
 export interface FileRoutesById {
@@ -210,12 +228,14 @@ export interface FileRoutesById {
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
   '/_authenticated/mon-compte': typeof AuthenticatedMonCompteRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/_authenticated/verification-finale': typeof AuthenticatedVerificationFinaleRoute
   '/dev/associe-date': typeof DevAssocieDateRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/_authenticated/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/_authenticated/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/_authenticated/cabinet/': typeof AuthenticatedCabinetIndexRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
+  '/api/public/hooks/relance-pieces': typeof ApiPublicHooksRelancePiecesRoute
   '/api/public/hooks/relance-signatures': typeof ApiPublicHooksRelanceSignaturesRoute
 }
 export interface FileRouteTypes {
@@ -235,12 +255,14 @@ export interface FileRouteTypes {
     | '/documents'
     | '/mon-compte'
     | '/tableau-de-bord'
+    | '/verification-finale'
     | '/dev/associe-date'
     | '/signer/$jeton'
     | '/cabinet/$id'
     | '/cabinet/rappels'
     | '/cabinet/'
     | '/api/public/hooks/purge-donnees'
+    | '/api/public/hooks/relance-pieces'
     | '/api/public/hooks/relance-signatures'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -258,12 +280,14 @@ export interface FileRouteTypes {
     | '/documents'
     | '/mon-compte'
     | '/tableau-de-bord'
+    | '/verification-finale'
     | '/dev/associe-date'
     | '/signer/$jeton'
     | '/cabinet/$id'
     | '/cabinet/rappels'
     | '/cabinet'
     | '/api/public/hooks/purge-donnees'
+    | '/api/public/hooks/relance-pieces'
     | '/api/public/hooks/relance-signatures'
   id:
     | '__root__'
@@ -282,12 +306,14 @@ export interface FileRouteTypes {
     | '/_authenticated/documents'
     | '/_authenticated/mon-compte'
     | '/_authenticated/tableau-de-bord'
+    | '/_authenticated/verification-finale'
     | '/dev/associe-date'
     | '/signer/$jeton'
     | '/_authenticated/cabinet/$id'
     | '/_authenticated/cabinet/rappels'
     | '/_authenticated/cabinet/'
     | '/api/public/hooks/purge-donnees'
+    | '/api/public/hooks/relance-pieces'
     | '/api/public/hooks/relance-signatures'
   fileRoutesById: FileRoutesById
 }
@@ -305,6 +331,7 @@ export interface RootRouteChildren {
   DevAssocieDateRoute: typeof DevAssocieDateRoute
   SignerJetonRoute: typeof SignerJetonRoute
   ApiPublicHooksPurgeDonneesRoute: typeof ApiPublicHooksPurgeDonneesRoute
+  ApiPublicHooksRelancePiecesRoute: typeof ApiPublicHooksRelancePiecesRoute
   ApiPublicHooksRelanceSignaturesRoute: typeof ApiPublicHooksRelanceSignaturesRoute
 }
 
@@ -415,6 +442,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTableauDeBordRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/verification-finale': {
+      id: '/_authenticated/verification-finale'
+      path: '/verification-finale'
+      fullPath: '/verification-finale'
+      preLoaderRoute: typeof AuthenticatedVerificationFinaleRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/dev/associe-date': {
       id: '/dev/associe-date'
       path: '/dev/associe-date'
@@ -457,6 +491,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksPurgeDonneesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/relance-pieces': {
+      id: '/api/public/hooks/relance-pieces'
+      path: '/api/public/hooks/relance-pieces'
+      fullPath: '/api/public/hooks/relance-pieces'
+      preLoaderRoute: typeof ApiPublicHooksRelancePiecesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/relance-signatures': {
       id: '/api/public/hooks/relance-signatures'
       path: '/api/public/hooks/relance-signatures'
@@ -473,6 +514,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
   AuthenticatedMonCompteRoute: typeof AuthenticatedMonCompteRoute
   AuthenticatedTableauDeBordRoute: typeof AuthenticatedTableauDeBordRoute
+  AuthenticatedVerificationFinaleRoute: typeof AuthenticatedVerificationFinaleRoute
   AuthenticatedCabinetIdRoute: typeof AuthenticatedCabinetIdRoute
   AuthenticatedCabinetRappelsRoute: typeof AuthenticatedCabinetRappelsRoute
   AuthenticatedCabinetIndexRoute: typeof AuthenticatedCabinetIndexRoute
@@ -484,6 +526,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
   AuthenticatedMonCompteRoute: AuthenticatedMonCompteRoute,
   AuthenticatedTableauDeBordRoute: AuthenticatedTableauDeBordRoute,
+  AuthenticatedVerificationFinaleRoute: AuthenticatedVerificationFinaleRoute,
   AuthenticatedCabinetIdRoute: AuthenticatedCabinetIdRoute,
   AuthenticatedCabinetRappelsRoute: AuthenticatedCabinetRappelsRoute,
   AuthenticatedCabinetIndexRoute: AuthenticatedCabinetIndexRoute,
@@ -506,6 +549,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevAssocieDateRoute: DevAssocieDateRoute,
   SignerJetonRoute: SignerJetonRoute,
   ApiPublicHooksPurgeDonneesRoute: ApiPublicHooksPurgeDonneesRoute,
+  ApiPublicHooksRelancePiecesRoute: ApiPublicHooksRelancePiecesRoute,
   ApiPublicHooksRelanceSignaturesRoute: ApiPublicHooksRelanceSignaturesRoute,
 }
 export const routeTree = rootRouteImport

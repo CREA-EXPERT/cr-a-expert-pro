@@ -3,6 +3,15 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { CATEGORIES_REJET, type CategorieRejet } from "@/lib/qualite";
 import { VisionneusePiece, type PieceApercu } from "@/components/VisionneusePiece";
 import { deciderPiece, liensPiecesDossier } from "@/lib/pieces.functions";
 import { LIBELLE_STATUT, estImage, normaliserStatut } from "@/lib/pieces";
@@ -30,6 +39,7 @@ export function RevuePieces({
   const [liens, setLiens] = useState<Record<string, string>>({});
   const [index, setIndex] = useState<number | null>(null);
   const [motifs, setMotifs] = useState<Record<string, string>>({});
+  const [categories, setCategories] = useState<Record<string, CategorieRejet>>({});
   const [enCours, setEnCours] = useState<string | null>(null);
 
   const deposees = useMemo(
@@ -93,6 +103,15 @@ export function RevuePieces({
       const r = await deciderPiece({
         data: { documentId, decision, motif: motifs[documentId] ?? "" },
       });
+      if (decision === "a_corriger" || decision === "refuse") {
+        // Statistiques qualité : catégorie et motif, sans donnée personnelle.
+        await supabase.from("motifs_rejet_greffe").insert({
+          dossier_id: dossier.id,
+          categorie: categories[documentId] ?? "autre",
+          motif_texte: (motifs[documentId] ?? "").slice(0, 500),
+          piece_concernee: docs.find((d) => d.id === documentId)?.type_document ?? null,
+        });
+      }
       setMotifs((m) => ({ ...m, [documentId]: "" }));
       toast.success(
         decision === "valide"
@@ -185,6 +204,26 @@ export function RevuePieces({
                           value={motifs[p.id] ?? ""}
                           onChange={(e) => setMotifs((m) => ({ ...m, [p.id]: e.target.value }))}
                         />
+                        <Select
+                          value={categories[p.id] ?? "autre"}
+                          onValueChange={(v) =>
+                            setCategories((c) => ({ ...c, [p.id]: v as CategorieRejet }))
+                          }
+                        >
+                          <SelectTrigger
+                            className="h-9 w-52"
+                            aria-label={`Catégorie du motif pour ${p.libelle}`}
+                          >
+                            <SelectValue placeholder="Catégorie" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CATEGORIES_REJET.map((c) => (
+                              <SelectItem key={c.value} value={c.value}>
+                                {c.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <Button
                           size="sm"
                           variant="outline"
