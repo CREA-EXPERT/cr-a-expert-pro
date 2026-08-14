@@ -376,11 +376,11 @@ function VerificationFinale() {
                 {chronologie.erreurs.length > 0
                   ? "Transmission impossible : la chronologie des actes doit être corrigée."
                   : bloquants.length === 0
-                  ? "Tous les points de contrôle sont au vert : vous pouvez transmettre votre dossier."
-                  : `Transmission impossible : ${bloquants.length} élément(s) restent à corriger — ${bloquants
-                      .slice(0, 4)
-                      .map((b) => b.libelle)
-                      .join(", ")}${bloquants.length > 4 ? "…" : ""}.`}
+                    ? "Tous les points de contrôle sont au vert : vous pouvez transmettre votre dossier."
+                    : `Transmission impossible : ${bloquants.length} élément(s) restent à corriger — ${bloquants
+                        .slice(0, 4)
+                        .map((b) => b.libelle)
+                        .join(", ")}${bloquants.length > 4 ? "…" : ""}.`}
               </p>
               <Button
                 className="mt-4"
