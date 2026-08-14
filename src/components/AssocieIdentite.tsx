@@ -242,6 +242,14 @@ export function AssocieIdentite({
             ))}
           </select>
         </div>
+        <NormaliserAdresse
+          voie={associe.adresse ?? ""}
+          codePostal={associe.adresse_code_postal ?? ""}
+          ville={associe.adresse_ville ?? ""}
+          pays={associe.adresse_pays ?? "France"}
+          onRetenir={(v) => onChange(v)}
+        />
+
         <div className="space-y-1">
           <Label className="text-xs">Adresse électronique</Label>
           <Input
