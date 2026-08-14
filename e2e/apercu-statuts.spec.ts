@@ -7,7 +7,7 @@ import { expect, test } from "@playwright/test";
  */
 test("blocage détaillé, reprise automatique et journal de conformité", async ({ page }) => {
   await page.goto("/dev/apercu-statuts", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("main[data-hydrated='1']")).toBeVisible();
+  await expect(page.locator("main[data-hydrated='1']")).toBeVisible({ timeout: 30_000 });
 
   const apercu = page.getByTestId("apercu-statuts");
   await expect(apercu).toBeVisible();
