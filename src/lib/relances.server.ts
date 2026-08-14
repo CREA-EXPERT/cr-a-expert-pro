@@ -4,6 +4,7 @@
  * clos, transmis ou immatriculé. Serveur uniquement.
  */
 import { TEXTE_AVERTISSEMENT_REJET_SERVEUR } from "./relances.texte";
+import { revuesDenomination } from "./denomination";
 
 const STATUTS_ACTIFS = ["brouillon", "dossier_valide_client", "pieces_en_cours"];
 const DELAI_JOURS = 7;
