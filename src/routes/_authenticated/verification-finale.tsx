@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PageShell } from "@/components/layout/PageShell";
+import { HistoriqueDenomination } from "@/components/HistoriqueDenomination";
 import { Button } from "@/components/ui/button";
 import { AvertissementRejet } from "@/components/AvertissementsPieces";
 import { normaliserStatut, aRedeposer, LIBELLE_STATUT } from "@/lib/pieces";
@@ -295,6 +296,8 @@ function VerificationFinale() {
         <Section titre="Associés et dirigeants" lignes={personnes} />
         <Section titre="La société" lignes={societe} />
         <Section titre="Pièces justificatives" lignes={pieces} />
+
+        <HistoriqueDenomination dossierId={dossier.id} />
 
         {(chronologie.erreurs.length > 0 || chronologie.avertissements.length > 0) && (
           <section className="space-y-2 rounded-lg border border-border bg-surface p-6">
