@@ -10,6 +10,7 @@ import type { Associe, Dossier } from "./documents";
 import { activitesDuDossier } from "./activites";
 import { dateEnLettresFr, jourMoisEnLettresFr, montantEnLettresFr } from "./nombres";
 import {
+  accord,
   associesDe,
   champsManquantsStatutsSas,
   comparution,
@@ -19,6 +20,16 @@ import {
   nomCompletPhysique,
   presidentDe,
 } from "./statuts-sas";
+import {
+  associesEffectifs,
+  champsManquantsStatutsSarl,
+  comparutionSarl,
+  conjointRenonce,
+  conjointRevendique,
+  gerantsDe,
+  isSarl,
+  repartitionParts,
+} from "./statuts-sarl";
 
 const MARGE = 56;
 const LARGEUR = 595.28;
@@ -991,11 +1002,407 @@ async function statutsSas(d: Dossier, associes: Associe[]) {
   return fin(ctx);
 }
 
+/* --------------------- STATUTS SARL (gabarit cabinet) --------------------- */
+
+async function statutsSarl(d: Dossier, associes: Associe[]) {
+  const manquants = champsManquantsStatutsSarl(d, associes);
+  if (manquants.length > 0) {
+    throw new Error(
+      `Statuts non générés — informations manquantes : ${manquants
+        .map((m) => `${m.champ} (étape « ${m.etape} »)`)
+        .join(" ; ")}.`,
+    );
+  }
+  if (d.apport_nature) {
+    throw new Error(
+      "Statuts non générés — apport en nature : revue cabinet requise (commissaire aux apports ou dispense, art. L. 223-9 du code de commerce).",
+    );
+  }
+
+  const parts = associesEffectifs(d, associes);
+  const gerants = gerantsDe(associes);
+  const capital = Number(d.capital_montant);
+  const nominal = Number(d.valeur_part);
+  const nbParts = parts.reduce((s, a) => s + (Number(a.nb_titres) || 0), 0);
+  const totalNumeraire = parts.reduce((s, a) => s + (Number(a.montant_apport) || 0), 0);
+  const [jourCloture, moisCloture] = (d.date_cloture_exercice ?? "31/12").split("/");
+  const ouverture = jourMoisEnLettresFr(1, (Number(moisCloture) % 12) + 1);
+  const cloture = jourMoisEnLettresFr(Number(jourCloture), Number(moisCloture));
+  const activites = activitesDuDossier(d);
+  const libere = Number(d.capital_liberation) >= 100;
+  const nomDe = (a: Associe) =>
+    a.type === "personne_morale" ? (a.denomination ?? "") : nomCompletPhysique(a);
+
+  const ctx = await creerCtxNu();
+
+  ecrire(ctx, `${d.denomination} Société à responsabilité limitée au capital de ${capital} euros`, {
+    bold: true,
+  });
+  ecrire(ctx, `Siège social : ${d.siege_adresse}`);
+  espace(ctx, 14);
+  ecrire(ctx, "STATUTS", { size: 16, bold: true });
+  espace(ctx, 14);
+
+  ecrire(ctx, "Les soussignés :");
+  espace(ctx, 6);
+  parts.forEach((a, i) => {
+    if (i > 0) {
+      ecrire(ctx, "Et,");
+      espace(ctx, 4);
+    }
+    comparutionSarl(a).forEach((l) => ecrire(ctx, l));
+    espace(ctx, 6);
+  });
+  ecrire(ctx, "Ci-après désignés ensemble les « Associés »,");
+  espace(ctx, 6);
+  ecrire(
+    ctx,
+    "Ont établi ainsi qu'il suit les statuts d'une société à responsabilité limitée (ci-après la « Société ») devant exister entre eux et les propriétaires des parts sociales créées lors de la constitution et en cours de vie sociale.",
+  );
+
+  // Article 1832-2 du Code civil : revendication ou renonciation du conjoint commun en biens.
+  const conjointsRevendiquants = associes.filter((a) => conjointRevendique(d, a));
+  const conjointsRenoncants = associes.filter((a) => conjointRenonce(d, a));
+  if (conjointsRevendiquants.length > 0 || conjointsRenoncants.length > 0) {
+    espace(ctx, 8);
+    ecrire(ctx, "Article 1832-2 du Code civil", { bold: true });
+    espace(ctx, 4);
+    for (const a of conjointsRevendiquants) {
+      ecrire(
+        ctx,
+        `${nomCompletPhysique(a)} déclare que les fonds apportés proviennent de la communauté de biens existant avec ${
+          a.conjoint_civilite ?? ""
+        } ${a.conjoint_prenom ?? ""} ${a.conjoint_nom ?? ""}. Dûment averti${accord(
+          a,
+        )} conformément à l'article 1832-2 du Code civil, le conjoint a expressément revendiqué la qualité d'associé pour la moitié des parts souscrites ; il est en conséquence associé de la Société pour la moitié desdites parts, ainsi qu'il ressort de la répartition figurant à l'article 8.`
+          .replace(/\s+/g, " ")
+          .trim(),
+      );
+      espace(ctx, 4);
+    }
+    for (const a of conjointsRenoncants) {
+      ecrire(
+        ctx,
+        `${nomCompletPhysique(a)} déclare que les fonds apportés proviennent de la communauté de biens existant avec ${
+          a.conjoint_civilite ?? ""
+        } ${a.conjoint_nom ?? ""}. Dûment averti conformément à l'article 1832-2 du Code civil, le conjoint a renoncé à revendiquer la qualité d'associé, ainsi qu'il en est justifié par le document annexé aux présents statuts. Cette renonciation ne fait pas obstacle à ce qu'il revendique ultérieurement cette qualité dans les conditions légales.`
+          .replace(/\s+/g, " ")
+          .trim(),
+      );
+      espace(ctx, 4);
+    }
+  }
+
+  article(ctx, "TITRE I - FORME - OBJET - DENOMINATION - SIEGE SOCIAL - DUREE - EXERCICE SOCIAL");
+
+  article(ctx, "ARTICLE 1 - Forme");
+  ecrire(
+    ctx,
+    "La Société est une société à responsabilité limitée régie par les dispositions légales et réglementaires en vigueur, notamment les articles L. 223-1 et suivants du Code de commerce, ainsi que par les présents statuts.",
+  );
+
+  article(ctx, "ARTICLE 2 - Objet");
+  ecrire(
+    ctx,
+    "La Société a pour objet, en France et à l'étranger, pour elle-même ou en participation avec des tiers :",
+  );
+  espace(ctx, 4);
+  if (activites.length > 0) activites.forEach((a) => puce(ctx, a.texte));
+  else puce(ctx, d.objet_social as string);
+  puce(
+    ctx,
+    "Toutes prestations accessoires ou connexes se rapportant directement ou indirectement aux activités ci-dessus ;",
+  );
+  puce(
+    ctx,
+    "Et, plus généralement, toutes opérations industrielles, commerciales, financières, civiles, mobilières ou immobilières, pouvant se rattacher directement ou indirectement à l'objet social ou à tout objet similaire ou connexe, ou de nature à en favoriser le développement.",
+  );
+
+  article(ctx, "ARTICLE 3 - Dénomination sociale");
+  ecrire(ctx, `La Société prend la dénomination : ${d.denomination}.`);
+  espace(ctx, 4);
+  ecrire(
+    ctx,
+    "Tous les actes et documents émanant de la Société et destinés aux tiers doivent indiquer la dénomination sociale précédée ou suivie immédiatement des mots « société à responsabilité limitée » ou des initiales « SARL » et de l'énonciation du capital social.",
+  );
+
+  article(ctx, "ARTICLE 4 - Durée");
+  ecrire(
+    ctx,
+    `La durée de la Société est fixée à ${d.duree_annees} années à compter de son immatriculation au Registre du Commerce et des Sociétés, sauf prorogation ou dissolution anticipée.`,
+  );
+
+  article(ctx, "ARTICLE 5 - Exercice social");
+  ecrire(ctx, `L'exercice social commence le ${ouverture} et se termine le ${cloture} de chaque année.`);
+  espace(ctx, 4);
+  ecrire(
+    ctx,
+    `Toutefois, par exception, le premier exercice social débutera à compter de la date d'immatriculation de la Société au Registre du Commerce et des Sociétés et se terminera le ${dateEnLettresFr(
+      d.date_cloture_premier_exercice,
+    )}.`,
+  );
+
+  article(ctx, "ARTICLE 6 - Siège social");
+  ecrire(ctx, `Le siège social est fixé : ${d.siege_adresse}.`);
+  espace(ctx, 4);
+  ecrire(
+    ctx,
+    "Il peut être transféré en tout autre lieu du territoire français par décision de la gérance, sous réserve de ratification par les associés statuant dans les conditions requises pour la modification des statuts.",
+  );
+
+  article(ctx, "TITRE II - APPORTS - CAPITAL SOCIAL - PARTS SOCIALES");
+
+  article(ctx, "ARTICLE 7 - Apports");
+  ecrire(ctx, "Apports en numéraire :", { bold: true });
+  espace(ctx, 4);
+  ecrire(ctx, "Les Associés font apport à la Société des sommes suivantes en numéraire :");
+  espace(ctx, 4);
+  parts.forEach((a) => ecrire(ctx, `${nomDe(a)} : ${Number(a.montant_apport)} euros`));
+  espace(ctx, 4);
+  ecrire(ctx, `Soit au total, une somme de ${totalNumeraire} euros.`);
+  espace(ctx, 4);
+  ecrire(ctx, `Lesdits apports correspondent à ${nbParts} parts sociales de ${nominal} euro(s) chacune.`);
+  espace(ctx, 4);
+  ecrire(
+    ctx,
+    `Les fonds correspondant aux apports en numéraire seront déposés par les Associés sur le compte ouvert au nom de la Société en formation auprès de ${d.banque_depot}, ainsi qu'il résultera du certificat établi par la banque dépositaire des fonds.`,
+  );
+
+  const cons1424Sarl = consentement1424(d, associes);
+  if (cons1424Sarl.requis) {
+    espace(ctx, 6);
+    for (const a of cons1424Sarl.apporteurs)
+      ecrire(
+        ctx,
+        `${nomCompletPhysique(a)} déclare que son conjoint, ${a.conjoint_nom}, a expressément consenti à l'apport du bien commun suivant : ${d.bien_commun_designation}, conformément à l'article 1424 du Code civil, ainsi qu'il en est justifié par le consentement annexé aux présents statuts.`,
+      );
+  }
+  espace(ctx, 6);
+  ecrire(
+    ctx,
+    `Le total des apports consentis à la Société s'élève à la somme de ${montantEnLettresFr(
+      capital,
+    )} (${capital}) euros.`,
+  );
+
+  article(ctx, "ARTICLE 8 - Capital social et répartition des parts");
+  ecrire(
+    ctx,
+    `Le capital social est fixé à la somme de ${capital} euros. Il est divisé en ${nbParts} parts sociales de ${nominal} euro(s) chacune, ${
+      libere
+        ? "intégralement libérées"
+        : `libérées à hauteur de ${d.capital_liberation} % de leur valeur nominale, soit au moins le cinquième conformément à l'article L. 223-7 du Code de commerce, le surplus devant être libéré en une ou plusieurs fois sur décision de la gérance dans un délai maximum de cinq ans à compter de l'immatriculation`
+    }, souscrites en totalité et attribuées aux associés comme suit :`,
+  );
+  espace(ctx, 6);
+  repartitionParts(parts).forEach((l) =>
+    ecrire(
+      ctx,
+      `${nomDe(l.associe)} : ${l.parts} parts sociales, numérotées de ${l.debut} à ${l.fin}, en rémunération d'un apport de ${Number(
+        l.associe.montant_apport,
+      )} euros.`,
+    ),
+  );
+  espace(ctx, 6);
+  ecrire(
+    ctx,
+    `Total : ${nbParts} parts sociales, soit la totalité du capital social, ${montantEnLettresFr(
+      capital,
+    )} (${capital}) euros.`,
+    { bold: true },
+  );
+
+  article(ctx, "ARTICLE 9 - Modification du capital social");
+  ecrire(
+    ctx,
+    "Le capital social peut être augmenté ou réduit dans les conditions prévues par la loi, par décision collective extraordinaire des associés. En cas d'augmentation de capital en numéraire, les fonds sont déposés dans les conditions légales et le capital antérieur doit être intégralement libéré.",
+  );
+
+  article(ctx, "ARTICLE 10 - Représentation des parts sociales");
+  ecrire(
+    ctx,
+    "Les parts sociales ne peuvent jamais être représentées par des titres négociables. Les droits de chaque associé résultent exclusivement des présents statuts, des actes modificatifs ultérieurs et des cessions de parts régulièrement consenties.",
+  );
+
+  article(ctx, "ARTICLE 11 - Droits et obligations attachés aux parts sociales");
+  ecrire(
+    ctx,
+    "Chaque part sociale donne droit à une fraction des bénéfices et de l'actif social proportionnelle au nombre de parts existantes. Les associés ne supportent les pertes qu'à concurrence de leurs apports. Chaque part est indivisible à l'égard de la Société ; les copropriétaires indivis sont tenus de se faire représenter par un mandataire unique.",
+  );
+
+  article(ctx, "ARTICLE 12 - Cession et transmission des parts sociales");
+  ecrire(
+    ctx,
+    "Toute cession de parts sociales doit être constatée par écrit et n'est opposable à la Société que dans les formes prévues à l'article 1690 du Code civil ou par dépôt d'un original de l'acte de cession au siège social contre remise par le gérant d'une attestation de ce dépôt.",
+  );
+  espace(ctx, 4);
+  ecrire(
+    ctx,
+    "Les parts sociales sont librement cessibles entre associés, ainsi qu'entre conjoints, ascendants et descendants. Elles ne peuvent être cédées à des tiers étrangers à la Société qu'avec le consentement de la majorité des associés représentant au moins la moitié des parts sociales, conformément à l'article L. 223-14 du Code de commerce.",
+  );
+  espace(ctx, 4);
+  ecrire(
+    ctx,
+    "En cas de décès d'un associé, la Société continue entre les associés survivants et les héritiers ou ayants droit de l'associé décédé, sans qu'il y ait lieu à agrément.",
+  );
+
+  article(ctx, "TITRE III - GERANCE - DECISIONS COLLECTIVES");
+
+  article(ctx, "ARTICLE 13 - Gérance");
+  ecrire(
+    ctx,
+    "La Société est gérée et administrée par un ou plusieurs gérants, personnes physiques, associés ou non, nommés par les associés. Le gérant est révocable par décision des associés représentant plus de la moitié des parts sociales ; la révocation sans juste motif ouvre droit à dommages et intérêts.",
+  );
+
+  article(ctx, "ARTICLE 14 - Pouvoirs de la gérance");
+  ecrire(
+    ctx,
+    "Dans les rapports avec les tiers, le gérant est investi des pouvoirs les plus étendus pour agir en toute circonstance au nom de la Société, sous réserve des pouvoirs que la loi attribue expressément aux associés. Dans les rapports entre associés, le gérant peut accomplir tous les actes de gestion dans l'intérêt de la Société.",
+  );
+
+  article(ctx, "ARTICLE 15 - Rémunération de la gérance");
+  ecrire(
+    ctx,
+    "La rémunération du ou des gérants est fixée par décision collective ordinaire des associés. Le gérant a droit au remboursement de ses frais de représentation et de déplacement sur justificatifs.",
+  );
+
+  article(ctx, "ARTICLE 16 - Conventions réglementées");
+  ecrire(
+    ctx,
+    "Les conventions intervenues directement ou par personne interposée entre la Société et l'un de ses gérants ou associés sont soumises aux dispositions de l'article L. 223-19 du Code de commerce. Les conventions portant sur des opérations courantes conclues à des conditions normales échappent à cette procédure.",
+  );
+
+  article(ctx, "ARTICLE 17 - Décisions collectives");
+  ecrire(
+    ctx,
+    "Les décisions collectives sont prises en assemblée ou, à l'exception de celles portant sur l'approbation des comptes annuels, par consultation écrite des associés. Chaque associé dispose d'un nombre de voix égal au nombre de parts qu'il possède.",
+  );
+  espace(ctx, 4);
+  ecrire(
+    ctx,
+    "Les décisions ordinaires sont adoptées par un ou plusieurs associés représentant plus de la moitié des parts sociales ; à défaut, sur seconde consultation, à la majorité des votes émis. Les décisions extraordinaires emportant modification des statuts sont adoptées à la majorité des deux tiers des parts détenues par les associés présents ou représentés, conformément à l'article L. 223-30 du Code de commerce.",
+  );
+
+  article(ctx, "TITRE IV - COMPTES SOCIAUX - AFFECTATION DES RESULTATS");
+
+  article(ctx, "ARTICLE 18 - Comptes annuels");
+  ecrire(
+    ctx,
+    "Il est tenu une comptabilité régulière des opérations sociales. À la clôture de chaque exercice, la gérance dresse l'inventaire, les comptes annuels et le rapport de gestion. Les comptes sont soumis à l'approbation des associés dans les six mois de la clôture de l'exercice.",
+  );
+
+  article(ctx, "ARTICLE 19 - Affectation et répartition des résultats");
+  ecrire(
+    ctx,
+    "Le bénéfice distribuable est constitué par le bénéfice de l'exercice diminué des pertes antérieures et des sommes portées en réserve légale, augmenté du report bénéficiaire. Il est réparti entre les associés proportionnellement au nombre de parts qu'ils détiennent, après dotation de cinq pour cent au moins à la réserve légale jusqu'à ce que celle-ci atteigne le dixième du capital social.",
+  );
+
+  article(ctx, "ARTICLE 20 - Commissaires aux comptes");
+  ecrire(
+    ctx,
+    "La nomination d'un commissaire aux comptes est facultative tant que les seuils légaux ne sont pas dépassés. Elle devient obligatoire dans les cas prévus par les articles L. 223-35 et suivants du Code de commerce.",
+  );
+
+  article(ctx, "TITRE V - DISSOLUTION - LIQUIDATION - CONTESTATIONS");
+
+  article(ctx, "ARTICLE 21 - Dissolution - Liquidation");
+  ecrire(
+    ctx,
+    "La Société est dissoute à l'arrivée du terme, par décision collective extraordinaire des associés ou dans les cas prévus par la loi. La dissolution entraîne sa liquidation ; un ou plusieurs liquidateurs sont nommés par les associés. Après paiement du passif et remboursement du capital, le solde est réparti entre les associés proportionnellement au nombre de leurs parts.",
+  );
+
+  article(ctx, "ARTICLE 22 - Contestations");
+  ecrire(
+    ctx,
+    "Toutes les contestations relatives aux affaires sociales pouvant survenir pendant la durée de la Société ou de sa liquidation, soit entre les associés, soit entre un associé et la Société, sont soumises aux tribunaux compétents du lieu du siège social.",
+  );
+
+  article(ctx, "TITRE VI - NOMINATION DE LA GERANCE - ACTES ACCOMPLIS POUR LA SOCIETE EN FORMATION");
+
+  article(ctx, "ARTICLE 23 - Nomination du ou des gérants");
+  ecrire(
+    ctx,
+    gerants.length > 1
+      ? "Sont nommés premiers gérants de la Société, pour une durée indéterminée, aux termes des présents statuts :"
+      : `${feminin(gerants[0] as Associe) ? "Est nommée première gérante" : "Est nommé premier gérant"} de la Société, pour une durée indéterminée, aux termes des présents statuts :`,
+  );
+  espace(ctx, 4);
+  gerants.forEach((g) => {
+    comparutionSarl(g).forEach((l) => ecrire(ctx, l));
+    espace(ctx, 4);
+    ecrire(
+      ctx,
+      `${feminin(g) ? "Laquelle déclare accepter lesdites fonctions" : "Lequel déclare accepter lesdites fonctions"} et satisfaire à toutes les conditions requises par la loi et les règlements pour leur exercice.`,
+    );
+    espace(ctx, 6);
+  });
+
+  article(ctx, "ARTICLE 24 - Formalités de publicité - Immatriculation");
+  ecrire(
+    ctx,
+    "Tous pouvoirs sont conférés au porteur d'un original des présentes à l'effet d'accomplir les formalités de publicité, de dépôt et autres nécessaires pour parvenir à l'immatriculation de la Société au Registre du Commerce et des Sociétés.",
+  );
+  espace(ctx, 10);
+  ecrire(
+    ctx,
+    `Fait à ${d.ville_signature}, le ${dateEnLettresFr(d.date_signature)}, en autant d'exemplaires originaux que requis.`,
+    { bold: true },
+  );
+  espace(ctx, 14);
+  const signaturesSarl = () => {
+    for (const a of parts) {
+      const estGerant = gerants.some((g) => g.id === a.id);
+      ecrire(
+        ctx,
+        estGerant ? `${nomDe(a)} — ${feminin(a) ? "La Gérante" : "Le Gérant"}` : nomDe(a),
+      );
+      espace(ctx, 22);
+    }
+  };
+  signaturesSarl();
+
+  article(ctx, "ANNEXE");
+  article(ctx, "I. ETAT DES ACTES ACCOMPLIS POUR LE COMPTE DE LA SOCIETE EN FORMATION");
+  ecrire(ctx, "NEANT");
+  article(ctx, "II. ETAT DES ACTES A ACCOMPLIR POUR LE COMPTE DE LA SOCIETE EN FORMATION");
+  ecrire(ctx, "Les soussignés :");
+  espace(ctx, 4);
+  parts.forEach((a) => {
+    ecrire(ctx, comparutionCourte(a));
+    espace(ctx, 4);
+  });
+  ecrire(
+    ctx,
+    `Agissant en qualité d'associés de la société ${d.denomination}, société à responsabilité limitée au capital de ${capital} euros, en cours de formation, dont le siège social est situé ${d.siege_adresse}, déclarent donner mandat à la gérance désignée à l'article 23 de prendre pour le compte de la Société les engagements ci-après :`,
+  );
+  espace(ctx, 6);
+  [
+    "Dépôt du capital social auprès d'un établissement bancaire ;",
+    "Ouverture d'un compte courant auprès d'un établissement bancaire ;",
+    "De procéder ou de faire procéder à toutes les formalités de constitution prescrites par la loi et de requérir l'immatriculation de la Société au Registre du Commerce et des Sociétés ;",
+    "De prendre tous engagements devant permettre à la Société, dès qu'elle aura la pleine capacité, de poursuivre son activité ;",
+    "D'assurer les dépenses courantes en ce qu'elles concernent la mise en fonctionnement de la Société ;",
+    "D'encaisser et régler les sommes, faire toutes déclarations, signer toutes pièces et en général faire le nécessaire.",
+  ].forEach((t) => puce(ctx, t));
+  ecrire(
+    ctx,
+    "Les susnommés tiendront avec exactitude la comptabilité de ces opérations dont le bénéfice et les charges seront repris par la Société du fait même de son immatriculation au Registre du Commerce et des Sociétés.",
+  );
+  espace(ctx, 10);
+  ecrire(ctx, `Fait à ${d.ville_signature}, le ${dateEnLettresFr(d.date_signature)}.`, { bold: true });
+  espace(ctx, 14);
+  signaturesSarl();
+
+  return fin(ctx);
+}
+
 /* ------------------------------ STATUTS ------------------------------ */
 
 async function statuts(d: Dossier, associes: Associe[]) {
   const forme = d.forme_juridique as Forme;
   if (isSas(forme)) return statutsSas(d, associes);
+  if (isSarl(forme) && associesEffectifs(d, associes).length > 1)
+    return statutsSarl(d, associes);
 
   const ctx = await creerCtx(
     `Statuts — ${forme}`,

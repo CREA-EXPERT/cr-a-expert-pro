@@ -1326,6 +1326,34 @@ function Creation() {
                                 onChange={(e) => majAssocie(a.id, { lieu_mariage: e.target.value })}
                               />
                             </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs" htmlFor={`cjdn-${a.id}`}>
+                                Date de naissance du conjoint
+                              </Label>
+                              <Input
+                                id={`cjdn-${a.id}`}
+                                type="date"
+                                value={a.conjoint_date_naissance ?? ""}
+                                onChange={(e) =>
+                                  majAssocie(a.id, {
+                                    conjoint_date_naissance: e.target.value || null,
+                                  })
+                                }
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs" htmlFor={`cjln-${a.id}`}>
+                                Lieu de naissance du conjoint (commune)
+                              </Label>
+                              <Input
+                                id={`cjln-${a.id}`}
+                                maxLength={120}
+                                value={a.conjoint_lieu_naissance ?? ""}
+                                onChange={(e) =>
+                                  majAssocie(a.id, { conjoint_lieu_naissance: e.target.value })
+                                }
+                              />
+                            </div>
                             <p className="sm:col-span-2 text-xs text-muted-foreground">
                               Ces informations figurent dans la comparution des statuts.
                             </p>
@@ -1356,8 +1384,19 @@ function Creation() {
                               </select>
                             </div>
                             <div className="space-y-1">
+                              <Label className="text-xs" htmlFor={`cjp-${a.id}`}>
+                                Prénom {a.situation_matrimoniale === "pacse" ? "du partenaire" : "du conjoint"}
+                              </Label>
+                              <Input
+                                id={`cjp-${a.id}`}
+                                maxLength={80}
+                                value={a.conjoint_prenom ?? ""}
+                                onChange={(e) => majAssocie(a.id, { conjoint_prenom: e.target.value })}
+                              />
+                            </div>
+                            <div className="space-y-1">
                               <Label className="text-xs" htmlFor={`cjn-${a.id}`}>
-                                Prénom et nom {a.situation_matrimoniale === "pacse" ? "du partenaire" : "du conjoint"}
+                                Nom {a.situation_matrimoniale === "pacse" ? "du partenaire" : "du conjoint"}
                               </Label>
                               <Input
                                 id={`cjn-${a.id}`}
@@ -1546,6 +1585,34 @@ function Creation() {
                                   />
                                 </div>
                               )}
+                              {forme === "SARL" &&
+                                a.situation_matrimoniale === "marie" &&
+                                a.apport_fonds_communs && (
+                                  <div className="space-y-2 rounded-md border border-border bg-background p-3">
+                                    <div className="flex items-start gap-3">
+                                      <Checkbox
+                                        id={`rev-${a.id}`}
+                                        checked={a.conjoint_revendique === true}
+                                        onCheckedChange={(v) =>
+                                          majAssocie(a.id, { conjoint_revendique: v === true })
+                                        }
+                                        className="mt-0.5"
+                                      />
+                                      <Label
+                                        htmlFor={`rev-${a.id}`}
+                                        className="text-sm font-normal leading-relaxed"
+                                      >
+                                        Le conjoint revendique la qualité d'associé pour la moitié
+                                        des parts souscrites (art. 1832-2 du Code civil).
+                                      </Label>
+                                    </div>
+                                    <p className="text-sm text-justify text-muted-foreground">
+                                      {a.conjoint_revendique
+                                        ? "Le conjoint devient associé : la moitié des parts que vous souscrivez lui est attribuée dans les statuts, il figure dans la comparution et signe les actes. Sa date et son lieu de naissance sont obligatoires. Le dossier est soumis à la revue du cabinet."
+                                        : "À défaut de revendication, une clause de renonciation figure dans les statuts. Le conjoint pourra revendiquer cette qualité ultérieurement dans les conditions légales."}
+                                    </p>
+                                  </div>
+                                )}
                             </div>
                           )}
                       </div>
