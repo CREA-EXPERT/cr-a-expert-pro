@@ -24,15 +24,90 @@ function nomAssocie(a: Associe) {
     : `${a.prenom ?? ""} ${a.nom ?? ""}`.trim() || "Associé";
 }
 
-export function conjointConcerne(dossier: Dossier, a: Associe) {
+/**
+ * Régime comportant une masse commune. Un régime étranger n'est plus présumé
+ * séparatiste : la réponse déclarée par l'associé fait foi.
+ */
+export function estCommunautaire(a: Associe) {
+  if (a.type !== "personne_physique" || a.situation_matrimoniale !== "marie") return false;
+  if (a.regime_matrimonial === "regime_etranger")
+    return a.regime_etranger_communautaire === "oui";
+  return REGIMES_COMMUNAUTAIRES.includes(a.regime_matrimonial ?? "");
+}
+
+/** Régime étranger dont le caractère communautaire n'est pas déterminé. */
+export function regimeEtrangerIndetermine(a: Associe) {
   return (
     a.type === "personne_physique" &&
     a.situation_matrimoniale === "marie" &&
-    REGIMES_COMMUNAUTAIRES.includes(a.regime_matrimonial ?? "") &&
+    a.regime_matrimonial === "regime_etranger" &&
+    (a.regime_etranger_communautaire ?? "") !== "oui" &&
+    (a.regime_etranger_communautaire ?? "") !== "non"
+  );
+}
+
+export function conjointConcerne(dossier: Dossier, a: Associe) {
+  return (
+    estCommunautaire(a) &&
     a.apport_fonds_communs === true &&
     FORMES_COMMUNAUTE.includes(dossier.forme_juridique as Forme)
   );
 }
+
+/**
+ * Partenaire de PACS co-indivisaire : son consentement à l'apport de fonds
+ * indivis est requis (art. 815-3 C. civ.), quelle que soit la forme sociale.
+ * L'article 1832-2, propre aux époux, ne s'applique pas.
+ */
+export function partenaireIndivisConcerne(a: Associe) {
+  return (
+    a.type === "personne_physique" &&
+    a.situation_matrimoniale === "pacse" &&
+    a.regime_matrimonial === "indivision_pacs" &&
+    a.apport_fonds_communs === true
+  );
+}
+
+/** Le dossier comporte-t-il un apport en nature soumis à cogestion ? */
+export function apportCogestion(dossier: Dossier) {
+  return dossier.fonds_commerce === "apport" || dossier.apport_immeuble === true;
+}
+
+/**
+ * Consentement du conjoint à l'apport d'un bien commun (art. 1424 C. civ.),
+ * exigé pour toutes les formes, y compris les SAS et SASU.
+ */
+export function consentement1424(dossier: Dossier, associes: Associe[]) {
+  const apporteurs = associes.filter((a) => estCommunautaire(a));
+  const applicable = apportCogestion(dossier) && apporteurs.length > 0;
+  return {
+    applicable,
+    requis: applicable && dossier.bien_commun_apport === "oui",
+    doute: applicable && dossier.bien_commun_apport === "je_ne_sais_pas",
+    apporteurs,
+  };
+}
+
+/** Points qui imposent la revue d'un professionnel avant dépôt. */
+export function revuesHumaines(dossier: Dossier, associes: Associe[]): string[] {
+  const out: string[] = [];
+  if (consentement1424(dossier, associes).doute)
+    out.push(
+      "La nature commune ou propre du bien apporté n'est pas déterminée : un professionnel doit qualifier le bien avant la signature des statuts.",
+    );
+  for (const a of associes.filter(regimeEtrangerIndetermine))
+    out.push(
+      `Le régime matrimonial étranger de ${a.prenom ?? ""} ${a.nom ?? ""}`.trim() +
+        " n'est pas qualifié : un professionnel doit déterminer s'il comporte une masse commune.",
+    );
+  for (const a of associes.filter((p) => p.type === "personne_morale"))
+    out.push(
+      `Associé personne morale (${a.denomination ?? "dénomination à préciser"}) : la détention indirecte doit être vérifiée pour le registre des bénéficiaires effectifs.`,
+    );
+  return out;
+}
+
+
 
 /** Construit la checklist documentaire d'un dossier à partir des règles éditables. */
 export function construireDocuments(
@@ -132,4 +207,41 @@ export function verifierDates(dossier: Dossier): string[] {
       "L'attestation de parution de l'annonce légale doit être postérieure ou du même jour que la signature des statuts.",
     );
   return erreurs;
+}
+
+export type Chronologie = { erreurs: string[]; avertissements: string[] };
+
+/**
+ * Contrôle complet de la chronologie des actes, au récapitulatif final.
+ * Les écarts d'ancienneté ne bloquent pas : ils avertissent.
+ */
+export function controlerChronologie(dossier: Dossier, associes: Associe[]): Chronologie {
+  const erreurs = verifierDates(dossier);
+  const avertissements: string[] = [];
+  const sig = dossier.date_signature ? new Date(dossier.date_signature) : null;
+  const consentements = dossier.date_consentements ? new Date(dossier.date_consentements) : null;
+
+  const consentementAttendu =
+    associes.some((a) => conjointConcerne(dossier, a) || partenaireIndivisConcerne(a)) ||
+    consentement1424(dossier, associes).requis;
+
+  if (consentementAttendu) {
+    if (!consentements)
+      erreurs.push(
+        "La date de signature des courriers et consentements du conjoint ou du partenaire n'est pas renseignée.",
+      );
+    else if (sig && consentements > sig)
+      erreurs.push(
+        "Les courriers et consentements du conjoint ou du partenaire doivent être signés avant la signature des statuts, ou le même jour.",
+      );
+  }
+
+  if (sig) {
+    const jours = Math.floor((Date.now() - sig.getTime()) / 86_400_000);
+    if (jours > 30)
+      avertissements.push(
+        "Des documents anciens peuvent conduire le greffe à demander des pièces actualisées.",
+      );
+  }
+  return { erreurs, avertissements };
 }

@@ -63,13 +63,16 @@ export type Database = {
           adresse_pays: string | null
           adresse_ville: string | null
           apport_fonds_communs: boolean
+          beneficiaires_indirects: string | null
           civilite: string | null
+          conjoint_nom: string | null
           conjoint_statut: string | null
           conjoint_travaille: boolean
           contrat_mariage: boolean
           contrat_mariage_detail: string | null
           created_at: string
           date_naissance: string | null
+          date_pacs: string | null
           denomination: string | null
           dossier_id: string
           email: string | null
@@ -88,6 +91,7 @@ export type Database = {
           nom_naissance: string | null
           prenom: string | null
           prenoms: string[]
+          regime_etranger_communautaire: string | null
           regime_matrimonial: string | null
           representant: string | null
           reside_en_france: boolean
@@ -103,13 +107,16 @@ export type Database = {
           adresse_pays?: string | null
           adresse_ville?: string | null
           apport_fonds_communs?: boolean
+          beneficiaires_indirects?: string | null
           civilite?: string | null
+          conjoint_nom?: string | null
           conjoint_statut?: string | null
           conjoint_travaille?: boolean
           contrat_mariage?: boolean
           contrat_mariage_detail?: string | null
           created_at?: string
           date_naissance?: string | null
+          date_pacs?: string | null
           denomination?: string | null
           dossier_id: string
           email?: string | null
@@ -128,6 +135,7 @@ export type Database = {
           nom_naissance?: string | null
           prenom?: string | null
           prenoms?: string[]
+          regime_etranger_communautaire?: string | null
           regime_matrimonial?: string | null
           representant?: string | null
           reside_en_france?: boolean
@@ -143,13 +151,16 @@ export type Database = {
           adresse_pays?: string | null
           adresse_ville?: string | null
           apport_fonds_communs?: boolean
+          beneficiaires_indirects?: string | null
           civilite?: string | null
+          conjoint_nom?: string | null
           conjoint_statut?: string | null
           conjoint_travaille?: boolean
           contrat_mariage?: boolean
           contrat_mariage_detail?: string | null
           created_at?: string
           date_naissance?: string | null
+          date_pacs?: string | null
           denomination?: string | null
           dossier_id?: string
           email?: string | null
@@ -168,6 +179,7 @@ export type Database = {
           nom_naissance?: string | null
           prenom?: string | null
           prenoms?: string[]
+          regime_etranger_communautaire?: string | null
           regime_matrimonial?: string | null
           representant?: string | null
           reside_en_france?: boolean
@@ -403,6 +415,8 @@ export type Database = {
           apport_nature: boolean
           autovalidation_le: string | null
           avec_compta: boolean
+          bien_commun_apport: string | null
+          bien_commun_designation: string | null
           cabinet_engage: boolean
           capital_liberation: number
           capital_montant: number
@@ -412,6 +426,7 @@ export type Database = {
           created_at: string
           date_archivage_kyc: string | null
           date_cloture_exercice: string
+          date_consentements: string | null
           date_depot_fonds: string | null
           date_derniere_activite: string
           date_fin_relation: string | null
@@ -488,6 +503,8 @@ export type Database = {
           apport_nature?: boolean
           autovalidation_le?: string | null
           avec_compta?: boolean
+          bien_commun_apport?: string | null
+          bien_commun_designation?: string | null
           cabinet_engage?: boolean
           capital_liberation?: number
           capital_montant?: number
@@ -497,6 +514,7 @@ export type Database = {
           created_at?: string
           date_archivage_kyc?: string | null
           date_cloture_exercice?: string
+          date_consentements?: string | null
           date_depot_fonds?: string | null
           date_derniere_activite?: string
           date_fin_relation?: string | null
@@ -573,6 +591,8 @@ export type Database = {
           apport_nature?: boolean
           autovalidation_le?: string | null
           avec_compta?: boolean
+          bien_commun_apport?: string | null
+          bien_commun_designation?: string | null
           cabinet_engage?: boolean
           capital_liberation?: number
           capital_montant?: number
@@ -582,6 +602,7 @@ export type Database = {
           created_at?: string
           date_archivage_kyc?: string | null
           date_cloture_exercice?: string
+          date_consentements?: string | null
           date_depot_fonds?: string | null
           date_derniere_activite?: string
           date_fin_relation?: string | null
