@@ -1,5 +1,6 @@
 import { CallbackDialog } from "@/components/CallbackDialog";
 import { CABINET, RELECTURE_LIMITES } from "@/lib/domain";
+import { EncadrePliable } from "@/components/EncadrePliable";
 
 const CADRE = "rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed text-justify";
 
@@ -15,9 +16,8 @@ export function EncadreResponsabilite({ compact = false }: { compact?: boolean }
     );
   }
   return (
-    <div className={CADRE}>
-      <p className="font-medium">Qui est responsable de quoi</p>
-      <p className="mt-2">
+    <EncadrePliable titre="Qui est responsable de quoi">
+      <p>
         CREA EXPERT met à votre disposition un outil de saisie, des informations générales et des
         modèles de documents. Tant que vous ne sollicitez pas la relecture d'un professionnel, les
         réponses saisies, les options retenues et les documents générés relèvent de votre{" "}
@@ -28,7 +28,7 @@ export function EncadreResponsabilite({ compact = false }: { compact?: boolean }
         Dès lors que vous demandez la relecture, l'expert-comptable examine votre dossier et engage
         sa responsabilité professionnelle dans les limites de la lettre de mission acceptée.
       </p>
-    </div>
+    </EncadrePliable>
   );
 }
 
@@ -84,9 +84,8 @@ export function EncadreMineur({ signale = false }: { signale?: boolean }) {
 /** Régimes matrimoniaux et PACS : contrat ou non, conséquences sur les apports. */
 export function EncadreRegimes() {
   return (
-    <div className={CADRE}>
-      <p className="font-medium">Mariage, PACS et contrat : pourquoi la question est posée</p>
-      <p className="mt-2">
+    <EncadrePliable titre="Mariage, PACS et contrat : pourquoi la question est posée">
+      <p>
         À défaut de contrat de mariage, les époux sont soumis à la{" "}
         <strong>communauté légale réduite aux acquêts</strong> : les biens acquis et les revenus
         perçus pendant le mariage sont communs. Avec un contrat reçu par notaire, ils peuvent
@@ -108,7 +107,7 @@ export function EncadreRegimes() {
         l'existence d'un contrat sont demandés ici.
       </p>
       <MentionPro />
-    </div>
+    </EncadrePliable>
   );
 }
 
@@ -141,10 +140,8 @@ function MentionPro() {
 export function EncadreGouvernance({ forme }: { forme: string }) {
   const sas = forme === "SAS" || forme === "SASU";
   return (
-    <div className={CADRE}>
-      <p className="font-medium">Comprendre la gérance, la présidence et l'associé</p>
-
-      <p className="mt-2">
+    <EncadrePliable titre="Comprendre la gérance, la présidence et l'associé">
+      <p>
         <strong>Le gérant</strong> est le dirigeant d'une SARL, d'une EURL ou d'une SCI. Il
         représente la société vis-à-vis des tiers, signe les contrats, embauche, déclare et engage la
         société dans la limite de l'objet social. Lorsque plusieurs personnes exercent cette
@@ -189,7 +186,7 @@ export function EncadreGouvernance({ forme }: { forme: string }) {
       </p>
 
       <MentionPro />
-    </div>
+    </EncadrePliable>
   );
 }
 
@@ -241,9 +238,8 @@ export function EncadreDemembrement() {
 /** Choix de la date de clôture de l'exercice. */
 export function EncadreCloture() {
   return (
-    <div className={CADRE}>
-      <p className="font-medium">Choisir sa date de clôture</p>
-      <p className="mt-2">
+    <EncadrePliable titre="Choisir sa date de clôture">
+      <p>
         L'essentiel des sociétés clôturent au <strong>31 décembre</strong> : les comptes coïncident
         avec l'année civile et avec l'année fiscale des associés, les échéances sont connues de tous
         et les traitements sont standards. C'est le choix par défaut, et le plus simple.
@@ -269,16 +265,15 @@ export function EncadreCloture() {
         donc pas dépasser 24 mois.
       </p>
       <MentionPro />
-    </div>
+    </EncadrePliable>
   );
 }
 
 /** TVA : périodicité, avantages/inconvénients, cas de l'immobilier. */
 export function EncadreTva({ immobilier }: { immobilier: boolean }) {
   return (
-    <div className={CADRE}>
-      <p className="font-medium">Comprendre la TVA</p>
-      <p className="mt-2">
+    <EncadrePliable titre="Comprendre la TVA">
+      <p>
         <strong>Être assujetti à la TVA</strong> vous permet de récupérer la TVA sur vos achats,
         vos investissements et vos frais : c'est presque toujours favorable lorsque vos clients sont
         des professionnels, qui la récupèrent eux aussi. À l'inverse, si vos clients sont des
@@ -319,16 +314,15 @@ export function EncadreTva({ immobilier }: { immobilier: boolean }) {
         </p>
       )}
       <MentionPro />
-    </div>
+    </EncadrePliable>
   );
 }
 
 /** Rappel des justificatifs légaux à déposer avant tout dépôt du dossier. */
 export function EncadreJustificatifs() {
   return (
-    <div className="rounded-lg border border-border bg-muted/40 p-4 text-sm leading-relaxed text-justify">
-      <p className="font-semibold">Encadré pédagogique — les justificatifs à déposer</p>
-      <p className="mt-2">
+    <EncadrePliable titre="Les justificatifs à déposer">
+      <p>
         Tous les justificatifs légaux applicables à votre situation doivent être déposés dans
         « Mes documents » <strong>avant</strong> que votre dossier puisse être déposé. Un dossier
         incomplet est systématiquement rejeté par le greffe, ce qui fait perdre du temps et peut
@@ -352,16 +346,19 @@ export function EncadreJustificatifs() {
         rejet du dossier.
       </p>
       <MentionPro />
-    </div>
+    </EncadrePliable>
   );
 }
 
 /** Documents que la plateforme fera signer électroniquement (fonction à venir). */
 export function EncadreSignatureElectronique() {
   return (
-    <div className="rounded-lg border border-accent/40 bg-accent/8 p-4 text-sm leading-relaxed text-justify">
-      <p className="font-semibold">Documents signés électroniquement — envoyés par nos soins</p>
-      <p className="mt-2">
+    <EncadrePliable
+      titre="Documents signés électroniquement — envoyés par nos soins"
+      badge={null}
+      ton="accent"
+    >
+      <p>
         Vous n'avez pas à les rédiger : nous les préparons à partir de vos réponses et nous vous les
         adressons pour signature électronique. Chaque signataire reçoit un lien personnel par
         courriel ; la signature vaut engagement et la preuve (horodatage et empreinte du document)
@@ -381,6 +378,6 @@ export function EncadreSignatureElectronique() {
         libre : chacun signe quand il le souhaite, et le document est finalisé lorsque tous les
         signataires ont signé.
       </p>
-    </div>
+    </EncadrePliable>
   );
 }
