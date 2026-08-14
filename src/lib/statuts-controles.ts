@@ -86,3 +86,24 @@ export function statutsGenerables(d: Dossier, associes: Associe[]) {
     alertesStatuts(d, associes).bloquantes.length === 0
   );
 }
+
+export type MotifRefus = { texte: string; etape?: string };
+
+/**
+ * Motifs de refus de génération des statuts, tous confondus : champs juridiques
+ * manquants (avec l'étape du parcours) et alertes bloquantes de conformité.
+ */
+export function motifsRefusStatuts(d: Dossier, associes: Associe[]): MotifRefus[] {
+  if (gabaritApplique(d, associes) === null) return [];
+  return [
+    ...champsManquantsStatuts(d, associes).map((m) => ({ texte: m.champ, etape: m.etape })),
+    ...alertesStatuts(d, associes).bloquantes.map((a) => ({ texte: a })),
+  ];
+}
+
+/** Message d'erreur listant chaque motif de refus, formulé pour le client. */
+export function messageRefusStatuts(motifs: MotifRefus[]) {
+  return `Statuts non générés — ${motifs.length} point${motifs.length > 1 ? "s" : ""} à traiter : ${motifs
+    .map((m) => (m.etape ? `${m.texte} (étape « ${m.etape} »)` : m.texte))
+    .join(" ; ")}.`;
+}
