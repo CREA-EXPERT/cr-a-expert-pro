@@ -260,9 +260,11 @@ export type Database = {
           atteste_conforme: boolean
           atteste_le: string | null
           created_at: string
+          date_expiration: string | null
           depose_le: string | null
           dossier_id: string
           fichier_url: string | null
+          fichier_verso_url: string | null
           id: string
           libelle: string
           motif_rejet: string | null
@@ -272,6 +274,7 @@ export type Database = {
           type_document: string
           updated_at: string
           valide_le: string | null
+          verification_statut: string
         }
         Insert: {
           aide_client?: string | null
@@ -279,9 +282,11 @@ export type Database = {
           atteste_conforme?: boolean
           atteste_le?: string | null
           created_at?: string
+          date_expiration?: string | null
           depose_le?: string | null
           dossier_id: string
           fichier_url?: string | null
+          fichier_verso_url?: string | null
           id?: string
           libelle: string
           motif_rejet?: string | null
@@ -291,6 +296,7 @@ export type Database = {
           type_document: string
           updated_at?: string
           valide_le?: string | null
+          verification_statut?: string
         }
         Update: {
           aide_client?: string | null
@@ -298,9 +304,11 @@ export type Database = {
           atteste_conforme?: boolean
           atteste_le?: string | null
           created_at?: string
+          date_expiration?: string | null
           depose_le?: string | null
           dossier_id?: string
           fichier_url?: string | null
+          fichier_verso_url?: string | null
           id?: string
           libelle?: string
           motif_rejet?: string | null
@@ -310,6 +318,7 @@ export type Database = {
           type_document?: string
           updated_at?: string
           valide_le?: string | null
+          verification_statut?: string
         }
         Relationships: [
           {
@@ -798,6 +807,44 @@ export type Database = {
         }
         Relationships: []
       }
+      motifs_rejet_greffe: {
+        Row: {
+          categorie: string
+          created_at: string
+          date_rejet: string
+          dossier_id: string
+          id: string
+          motif_texte: string
+          piece_concernee: string | null
+        }
+        Insert: {
+          categorie: string
+          created_at?: string
+          date_rejet?: string
+          dossier_id: string
+          id?: string
+          motif_texte: string
+          piece_concernee?: string | null
+        }
+        Update: {
+          categorie?: string
+          created_at?: string
+          date_rejet?: string
+          dossier_id?: string
+          id?: string
+          motif_texte?: string
+          piece_concernee?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "motifs_rejet_greffe_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offres_creation: {
         Row: {
           actif: boolean
@@ -1064,6 +1111,38 @@ export type Database = {
           },
         ]
       }
+      relances_pieces: {
+        Row: {
+          created_at: string
+          dossier_id: string
+          envoye_le: string
+          id: string
+          pieces_listees: string
+        }
+        Insert: {
+          created_at?: string
+          dossier_id: string
+          envoye_le?: string
+          id?: string
+          pieces_listees?: string
+        }
+        Update: {
+          created_at?: string
+          dossier_id?: string
+          envoye_le?: string
+          id?: string
+          pieces_listees?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relances_pieces_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       signatures_electroniques: {
         Row: {
           aide_client: string | null
@@ -1301,6 +1380,54 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      verifications_pieces: {
+        Row: {
+          created_at: string
+          document_id: string
+          dossier_id: string
+          id: string
+          modele: string | null
+          motif: string
+          resultat: string
+          type_controle: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          dossier_id: string
+          id?: string
+          modele?: string | null
+          motif?: string
+          resultat: string
+          type_controle: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          dossier_id?: string
+          id?: string
+          modele?: string | null
+          motif?: string
+          resultat?: string
+          type_controle?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verifications_pieces_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "verifications_pieces_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
