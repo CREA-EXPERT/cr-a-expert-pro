@@ -3565,8 +3565,18 @@ async function estampillerMetadonnees(
     pdf.setSubject(
       `Gabarit ${version} — règles de conformité en vigueur au ${DATE_REGLES_CONFORMITE}`,
     );
+    const risqueDenomination =
+      (dossier as unknown as { denomination_risque?: string | null }).denomination_risque ??
+      "non_verifie";
+    const termes = termesReglementesDetectes(dossier.denomination ?? "");
     pdf.setKeywords([
       `gabarit=${gabarit ?? "generique"}`,
+      `denomination_risque=${risqueDenomination}`,
+      `denomination_termes_reglementes=${termes.length > 0 ? termes.join("|") : "aucun"}`,
+      `denomination_revue_cabinet=${etatRevue(
+        (risqueDenomination === "proche" ? "proche" : "aucun") as "proche" | "aucun",
+        termes,
+      )}`,
       `version_gabarit=${version}`,
       `regles_conformite=${DATE_REGLES_CONFORMITE}`,
       `rendu=${RENDU.filigrane ? "projet" : "valide"}`,
