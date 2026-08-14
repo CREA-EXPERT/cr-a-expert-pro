@@ -414,7 +414,7 @@ function Creation() {
   async function ajouterDepuisDescription() {
     if (!dossier) return;
     const description = descriptionActivite.trim();
-    if (description.length < 5) return;
+    if (description.length < 1) return;
     setRedaction(true);
     try {
       const res = await analyserActivite({ data: { description, forme: dossier.forme_juridique } });
@@ -875,7 +875,7 @@ function Creation() {
                 <div className="mt-3 flex flex-wrap items-center gap-3">
                   <Button
                     type="button"
-                    disabled={redaction || descriptionActivite.trim().length < 10}
+                    disabled={redaction || descriptionActivite.trim().length < 1}
                     onClick={ajouterDepuisDescription}
                   >
                     <Sparkle strokeWidth={1.5} />
@@ -977,7 +977,10 @@ function Creation() {
                 </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="cap">Montant du capital social (minimum 1 €)</Label>
+                <Label htmlFor="cap">
+                  Montant du capital social (minimum 1 €)
+                  <Requis />
+                </Label>
                 <Input
                   id="cap"
                   type="number"
@@ -990,7 +993,6 @@ function Creation() {
                 />
                 <Err nom="capital_montant" />
 
-                <p className="text-xs text-muted-foreground">Valeur suggérée : 1 000 €.</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="valpart">Valeur nominale d'une part ou action (€)</Label>
@@ -1058,7 +1060,11 @@ function Creation() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="banque">Établissement bancaire de dépôt des fonds</Label>
+                <Label htmlFor="banque">
+                  Établissement bancaire de dépôt des fonds — étude notariale ou organisme
+                  récipiendaire
+                  <Requis />
+                </Label>
                 <Input
                   id="banque"
                   value={dossier.banque_depot ?? ""}
@@ -1066,8 +1072,27 @@ function Creation() {
                   maxLength={120}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Nom de la banque où le capital sera déposé (ex. Qonto, Crédit Agricole de
-                  Lorraine). Cette mention figure dans les statuts.
+                  Nom de la banque, de l'étude notariale ou de l'organisme récipiendaire où le
+                  capital sera déposé (ex. Qonto, Crédit Agricole de Lorraine, étude notariale
+                  Martin). Cette mention figure dans les statuts.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="mention-depot">
+                  En cas de dépôt du capital en ligne, veuillez coller ici la mention à ajouter au
+                  statut relative au dépôt du capital social
+                </Label>
+                <Textarea
+                  id="mention-depot"
+                  rows={4}
+                  maxLength={1000}
+                  placeholder="Collez ici la mention transmise par l'établissement dépositaire."
+                  value={dossier.mention_depot_capital ?? ""}
+                  onChange={(e) => patch({ mention_depot_capital: e.target.value })}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Les plateformes de dépôt en ligne fournissent une formulation précise à reprendre
+                  dans les statuts. Recopiez-la telle quelle : elle sera insérée sans modification.
                 </p>
               </div>
               <div className="rounded-md border border-border bg-surface p-4 text-sm leading-relaxed">
