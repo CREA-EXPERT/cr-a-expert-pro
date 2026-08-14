@@ -108,6 +108,9 @@ function CabinetListe() {
               <Link to="/cabinet/conformite">Suivi de conformité</Link>
             </Button>
             <Button asChild variant="outline">
+              <Link to="/cabinet/denominations">Suivi des dénominations</Link>
+            </Button>
+            <Button asChild variant="outline">
               <Link to="/cabinet/rappels">
                 Demandes de rappel{data?.rappels ? ` (${data.rappels})` : ""}
               </Link>

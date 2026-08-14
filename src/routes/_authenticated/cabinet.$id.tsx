@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useRoles } from "@/hooks/useAuth";
 import { PageShell } from "@/components/layout/PageShell";
+import { HistoriqueDenomination } from "@/components/HistoriqueDenomination";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -366,6 +367,10 @@ function CabinetDossier() {
             </ol>
           </div>
         </aside>
+      </div>
+
+      <div className="mt-8">
+        <HistoriqueDenomination dossierId={dossier.id} titre={dossier.denomination ?? ""} />
       </div>
     </PageShell>
   );
