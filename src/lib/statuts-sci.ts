@@ -86,9 +86,11 @@ export function champsManquantsStatutsSci(d: Dossier, associes: Associe[]): Cham
 
   // La numérotation des parts doit être continue, de 1 au nombre total de parts.
   const lignes = repartitionParts(titulaires);
+  const premiere = lignes[0];
   const derniere = lignes[lignes.length - 1];
-  if (lignes.length > 0 && (lignes[0].debut !== 1 || derniere.fin !== nbParts))
+  if (premiere && derniere && (premiere.debut !== 1 || derniere.fin !== nbParts))
     add("Numérotation des parts sociales discontinue", "Associés");
+
 
   if (!d.regime_fiscal_sci)
     add("Régime fiscal de la SCI (IR de plein droit ou option pour l'IS)", "Fiscalité");
