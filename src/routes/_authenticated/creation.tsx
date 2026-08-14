@@ -1174,9 +1174,94 @@ function Creation() {
                           </div>
                         )}
 
+                        {a.situation_matrimoniale === "marie" &&
+                          a.regime_matrimonial === "regime_etranger" && (
+                            <div className="sm:col-span-2 space-y-2 rounded-md border border-border bg-muted/50 p-3">
+                              <Label className="text-sm">
+                                Votre régime comporte-t-il une masse commune de biens (communauté) ?
+                              </Label>
+                              <div className="flex flex-wrap gap-2">
+                                {[
+                                  { v: "oui", t: "Oui" },
+                                  { v: "non", t: "Non" },
+                                  { v: "je_ne_sais_pas", t: "Je ne sais pas" },
+                                ].map((o) => (
+                                  <Button
+                                    key={o.v}
+                                    type="button"
+                                    size="sm"
+                                    variant={a.regime_etranger_communautaire === o.v ? "default" : "outline"}
+                                    onClick={() =>
+                                      majAssocie(a.id, {
+                                        regime_etranger_communautaire: o.v,
+                                        ...(o.v === "non" ? { apport_fonds_communs: false } : {}),
+                                      })
+                                    }
+                                  >
+                                    {o.t}
+                                  </Button>
+                                ))}
+                              </div>
+                              <EncadrePliable titre="Pourquoi cette question ?">
+                                <p>
+                                  De nombreux régimes légaux étrangers comportent une masse commune
+                                  de biens. Présumer une séparation exposerait l'apport à une
+                                  contestation. Si vous ne savez pas, votre dossier est soumis à la
+                                  revue d'un professionnel. Information générale, pas un conseil.
+                                </p>
+                              </EncadrePliable>
+                            </div>
+                          )}
+
+                        {a.situation_matrimoniale === "pacse" && (
+                          <div className="sm:col-span-2 space-y-2 rounded-md border border-border bg-muted/50 p-3">
+                            <Label className="text-xs" htmlFor={`pacs-${a.id}`}>
+                              Date de conclusion du PACS
+                            </Label>
+                            <Input
+                              id={`pacs-${a.id}`}
+                              type="date"
+                              value={a.date_pacs ?? ""}
+                              onChange={(e) => {
+                                const v = e.target.value || null;
+                                const avant2007 = Boolean(v && v < "2007-01-01");
+                                majAssocie(a.id, {
+                                  date_pacs: v,
+                                  ...(avant2007 && !a.regime_matrimonial?.endsWith("_pacs")
+                                    ? { regime_matrimonial: "indivision_pacs", contrat_mariage: true }
+                                    : {}),
+                                  ...(avant2007 && a.regime_matrimonial === "separation_pacs"
+                                    ? { regime_matrimonial: "indivision_pacs" }
+                                    : {}),
+                                });
+                              }}
+                            />
+                            {a.date_pacs && a.date_pacs < "2007-01-01" && (
+                              <p className="text-sm leading-relaxed">
+                                Votre PACS a été conclu avant 2007 : sauf convention modificative, il
+                                relève de la présomption d'indivision. Vous pouvez corriger le régime
+                                si vous disposez d'une convention.
+                              </p>
+                            )}
+                          </div>
+                        )}
+
+                        {(a.situation_matrimoniale === "veuf" || a.situation_matrimoniale === "divorce") && (
+                          <div className="sm:col-span-2">
+                            <EncadrePliable titre="Communauté ou succession non liquidée : ce qu'il faut savoir">
+                              <p>
+                                Si la communauté ou la succession n'est pas encore liquidée, les fonds
+                                peuvent être en indivision : l'accord des co-indivisaires est alors
+                                nécessaire pour l'apport. En cas de doute, demandez la revue par
+                                l'expert-comptable. Information générale, pas un conseil.
+                              </p>
+                            </EncadrePliable>
+                          </div>
+                        )}
+
                         {(a.situation_matrimoniale === "marie" || a.situation_matrimoniale === "pacse") &&
-                          REGIMES_COMMUNAUTAIRES.includes(a.regime_matrimonial ?? "") &&
-                          FORMES_COMMUNAUTE.includes(forme) && (
+                          (estCommunautaire(a) || a.regime_matrimonial === "indivision_pacs") &&
+                          (FORMES_COMMUNAUTE.includes(forme) || a.regime_matrimonial === "indivision_pacs") && (
                             <div className="sm:col-span-2 space-y-2 rounded-md border border-border bg-muted/50 p-3">
                               <div className="flex items-start gap-3">
                                 <Checkbox id={`fc-${a.id}`} checked={a.apport_fonds_communs} onCheckedChange={(v) => majAssocie(a.id, { apport_fonds_communs: v === true })} className="mt-0.5" />
@@ -1185,10 +1270,25 @@ function Creation() {
                                 </Label>
                               </div>
                               <p className="text-sm text-justify">
-                                Dans ce cas, votre conjoint ou partenaire doit être informé de
-                                l'apport. Un courrier d'information sera généré et devra être signé
-                                avant la signature des statuts.
+                                {a.situation_matrimoniale === "pacse"
+                                  ? "Dans ce cas, le consentement de votre partenaire co-indivisaire est requis (art. 815-3 du Code civil). Un consentement sera généré et devra être signé avant la signature des statuts."
+                                  : "Dans ce cas, votre conjoint doit être averti de l'apport (art. 1832-2 du Code civil), et cet avertissement est justifié dans les statuts. Un courrier d'information sera généré et devra être signé avant la signature des statuts."}
                               </p>
+                              {a.apport_fonds_communs && (
+                                <div className="space-y-1">
+                                  <Label className="text-xs" htmlFor={`cj-${a.id}`}>
+                                    {a.situation_matrimoniale === "pacse"
+                                      ? "Prénom et nom du partenaire"
+                                      : "Prénom et nom du conjoint"}
+                                  </Label>
+                                  <Input
+                                    id={`cj-${a.id}`}
+                                    maxLength={120}
+                                    value={a.conjoint_nom ?? ""}
+                                    onChange={(e) => majAssocie(a.id, { conjoint_nom: e.target.value })}
+                                  />
+                                </div>
+                              )}
                             </div>
                           )}
                       </div>
@@ -1201,8 +1301,31 @@ function Creation() {
                       <Input placeholder="SIREN" maxLength={20} value={a.siren ?? ""} onChange={(e) => majAssocie(a.id, { siren: e.target.value })} />
                       <Input placeholder="Siège" maxLength={200} value={a.siege ?? ""} onChange={(e) => majAssocie(a.id, { siege: e.target.value })} />
                       <Input placeholder="Représentant" maxLength={120} value={a.representant ?? ""} onChange={(e) => majAssocie(a.id, { representant: e.target.value })} />
+                      <div className="sm:col-span-2 space-y-2 rounded-md border border-border bg-muted/50 p-3">
+                        <Label className="text-xs" htmlFor={`be-${a.id}`}>
+                          Personnes physiques qui contrôlent cette société (une par ligne)
+                        </Label>
+                        <Textarea
+                          id={`be-${a.id}`}
+                          rows={3}
+                          maxLength={600}
+                          placeholder="Prénom NOM — nature du contrôle (détention, direction…)"
+                          value={a.beneficiaires_indirects ?? ""}
+                          onChange={(e) => majAssocie(a.id, { beneficiaires_indirects: e.target.value })}
+                        />
+                        <EncadrePliable titre="Pourquoi identifier ces personnes ?">
+                          <p>
+                            Le registre des bénéficiaires effectifs remonte la chaîne de détention
+                            jusqu'aux personnes physiques (art. L. 561-2-2 et R. 561-1 du code
+                            monétaire et financier). Votre dossier est soumis à la revue d'un
+                            professionnel pour vérifier cette chaîne. Information générale, pas un
+                            conseil.
+                          </p>
+                        </EncadrePliable>
+                      </div>
                     </div>
                   )}
+
 
                   {!ei && (
                     <div className="space-y-3 rounded-md border border-border bg-muted/40 p-3">
