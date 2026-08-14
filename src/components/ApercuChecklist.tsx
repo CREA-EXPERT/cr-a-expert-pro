@@ -1,3 +1,4 @@
+import { Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { analyserChecklist, LIBELLE_STATUT_PIECE, REGLES_ANTI_REJET, type StatutPiece } from "@/lib/checklist";
 import type { Associe, Dossier } from "@/lib/documents";
