@@ -66,7 +66,11 @@ export type Database = {
           beneficiaires_indirects: string | null
           civilite: string | null
           conjoint_civilite: string | null
+          conjoint_date_naissance: string | null
+          conjoint_lieu_naissance: string | null
           conjoint_nom: string | null
+          conjoint_prenom: string | null
+          conjoint_revendique: boolean
           conjoint_statut: string | null
           conjoint_travaille: boolean
           contrat_mariage: boolean
@@ -113,7 +117,11 @@ export type Database = {
           beneficiaires_indirects?: string | null
           civilite?: string | null
           conjoint_civilite?: string | null
+          conjoint_date_naissance?: string | null
+          conjoint_lieu_naissance?: string | null
           conjoint_nom?: string | null
+          conjoint_prenom?: string | null
+          conjoint_revendique?: boolean
           conjoint_statut?: string | null
           conjoint_travaille?: boolean
           contrat_mariage?: boolean
@@ -160,7 +168,11 @@ export type Database = {
           beneficiaires_indirects?: string | null
           civilite?: string | null
           conjoint_civilite?: string | null
+          conjoint_date_naissance?: string | null
+          conjoint_lieu_naissance?: string | null
           conjoint_nom?: string | null
+          conjoint_prenom?: string | null
+          conjoint_revendique?: boolean
           conjoint_statut?: string | null
           conjoint_travaille?: boolean
           contrat_mariage?: boolean
