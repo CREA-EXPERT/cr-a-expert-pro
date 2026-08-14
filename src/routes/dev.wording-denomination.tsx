@@ -33,10 +33,16 @@ const CAS = [
 
 /** Texte brut d'un fragment HTML d'email, pour comparaison stricte avec l'écran. */
 function texteHtml(html: string) {
-  if (typeof document === "undefined") return "";
-  const d = document.createElement("div");
-  d.innerHTML = html;
-  return (d.textContent ?? "").replace(/\s+/g, " ").trim();
+  return html
+    .replace(/<\/(p|li|ul)>/g, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function BancWording() {
