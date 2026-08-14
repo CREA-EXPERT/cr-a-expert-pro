@@ -14,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/cabinet/conformite")({
   head: () => ({
     meta: [
       { title: "Suivi de conformité — CREA EXPERT" },
+      { name: "robots", content: "noindex, nofollow" },
       {
         name: "description",
         content:

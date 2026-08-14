@@ -22,6 +22,7 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Créer un compte ou se connecter — CREA EXPERT" },
+      { name: "robots", content: "noindex, nofollow" },
       {
         name: "description",
         content:

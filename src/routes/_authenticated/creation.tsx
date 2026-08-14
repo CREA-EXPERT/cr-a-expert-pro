@@ -109,6 +109,7 @@ export const Route = createFileRoute("/_authenticated/creation")({
   head: () => ({
     meta: [
       { title: "Créer ma société — CREA EXPERT" },
+      { name: "robots", content: "noindex, nofollow" },
       {
         name: "description",
         content: "Parcours guidé de création de société, sauvegardé à chaque étape.",

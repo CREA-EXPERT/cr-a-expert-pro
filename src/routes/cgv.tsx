@@ -17,6 +17,7 @@ export const Route = createFileRoute("/cgv")({
         content: "Conditions financières et contractuelles des prestations CREA EXPERT.",
       },
     ],
+    links: [{ rel: "canonical", href: "https://crea-expert.fr/cgv" }],
   }),
   component: Cgv,
 });

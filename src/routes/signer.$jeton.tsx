@@ -16,6 +16,7 @@ export const Route = createFileRoute("/signer/$jeton")({
   head: () => ({
     meta: [
       { title: "Signer un document — CREA EXPERT" },
+      { name: "robots", content: "noindex, nofollow" },
       {
         name: "description",
         content:

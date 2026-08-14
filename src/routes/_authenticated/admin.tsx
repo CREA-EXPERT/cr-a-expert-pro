@@ -32,6 +32,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
       { title: "Administration — CREA EXPERT" },
+      { name: "robots", content: "noindex, nofollow" },
       {
         name: "description",
         content:

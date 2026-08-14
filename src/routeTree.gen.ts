@@ -29,10 +29,12 @@ import { Route as DevApercuStatutsRouteImport } from './routes/dev.apercu-statut
 import { Route as DevAssocieDateRouteImport } from './routes/dev.associe-date'
 import { Route as DevConformiteRouteImport } from './routes/dev.conformite'
 import { Route as DevDenominationRouteImport } from './routes/dev.denomination'
+import { Route as DevWordingDenominationRouteImport } from './routes/dev.wording-denomination'
 import { Route as SignerJetonRouteImport } from './routes/signer.$jeton'
 import { Route as AuthenticatedCabinetIndexRouteImport } from './routes/_authenticated/cabinet.index'
 import { Route as AuthenticatedCabinetIdRouteImport } from './routes/_authenticated/cabinet.$id'
 import { Route as AuthenticatedCabinetConformiteRouteImport } from './routes/_authenticated/cabinet.conformite'
+import { Route as AuthenticatedCabinetDenominationsRouteImport } from './routes/_authenticated/cabinet.denominations'
 import { Route as AuthenticatedCabinetRappelsRouteImport } from './routes/_authenticated/cabinet.rappels'
 import { Route as ApiPublicHooksPurgeDonneesRouteImport } from './routes/api/public/hooks/purge-donnees'
 import { Route as ApiPublicHooksRelancePiecesRouteImport } from './routes/api/public/hooks/relance-pieces'
@@ -139,6 +141,11 @@ const DevDenominationRoute = DevDenominationRouteImport.update({
   path: '/dev/denomination',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DevWordingDenominationRoute = DevWordingDenominationRouteImport.update({
+  id: '/dev/wording-denomination',
+  path: '/dev/wording-denomination',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignerJetonRoute = SignerJetonRouteImport.update({
   id: '/signer/$jeton',
   path: '/signer/$jeton',
@@ -159,6 +166,12 @@ const AuthenticatedCabinetConformiteRoute =
   AuthenticatedCabinetConformiteRouteImport.update({
     id: '/cabinet/conformite',
     path: '/cabinet/conformite',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCabinetDenominationsRoute =
+  AuthenticatedCabinetDenominationsRouteImport.update({
+    id: '/cabinet/denominations',
+    path: '/cabinet/denominations',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedCabinetRappelsRoute =
@@ -206,9 +219,11 @@ export interface FileRoutesByFullPath {
   '/dev/associe-date': typeof DevAssocieDateRoute
   '/dev/conformite': typeof DevConformiteRoute
   '/dev/denomination': typeof DevDenominationRoute
+  '/dev/wording-denomination': typeof DevWordingDenominationRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/cabinet/conformite': typeof AuthenticatedCabinetConformiteRoute
+  '/cabinet/denominations': typeof AuthenticatedCabinetDenominationsRoute
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/cabinet/': typeof AuthenticatedCabinetIndexRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
@@ -235,9 +250,11 @@ export interface FileRoutesByTo {
   '/dev/associe-date': typeof DevAssocieDateRoute
   '/dev/conformite': typeof DevConformiteRoute
   '/dev/denomination': typeof DevDenominationRoute
+  '/dev/wording-denomination': typeof DevWordingDenominationRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/cabinet/conformite': typeof AuthenticatedCabinetConformiteRoute
+  '/cabinet/denominations': typeof AuthenticatedCabinetDenominationsRoute
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/cabinet': typeof AuthenticatedCabinetIndexRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
@@ -266,9 +283,11 @@ export interface FileRoutesById {
   '/dev/associe-date': typeof DevAssocieDateRoute
   '/dev/conformite': typeof DevConformiteRoute
   '/dev/denomination': typeof DevDenominationRoute
+  '/dev/wording-denomination': typeof DevWordingDenominationRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/_authenticated/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/_authenticated/cabinet/conformite': typeof AuthenticatedCabinetConformiteRoute
+  '/_authenticated/cabinet/denominations': typeof AuthenticatedCabinetDenominationsRoute
   '/_authenticated/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/_authenticated/cabinet/': typeof AuthenticatedCabinetIndexRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
@@ -297,9 +316,11 @@ export interface FileRouteTypes {
     | '/dev/associe-date'
     | '/dev/conformite'
     | '/dev/denomination'
+    | '/dev/wording-denomination'
     | '/signer/$jeton'
     | '/cabinet/$id'
     | '/cabinet/conformite'
+    | '/cabinet/denominations'
     | '/cabinet/rappels'
     | '/cabinet/'
     | '/api/public/hooks/purge-donnees'
@@ -326,9 +347,11 @@ export interface FileRouteTypes {
     | '/dev/associe-date'
     | '/dev/conformite'
     | '/dev/denomination'
+    | '/dev/wording-denomination'
     | '/signer/$jeton'
     | '/cabinet/$id'
     | '/cabinet/conformite'
+    | '/cabinet/denominations'
     | '/cabinet/rappels'
     | '/cabinet'
     | '/api/public/hooks/purge-donnees'
@@ -356,9 +379,11 @@ export interface FileRouteTypes {
     | '/dev/associe-date'
     | '/dev/conformite'
     | '/dev/denomination'
+    | '/dev/wording-denomination'
     | '/signer/$jeton'
     | '/_authenticated/cabinet/$id'
     | '/_authenticated/cabinet/conformite'
+    | '/_authenticated/cabinet/denominations'
     | '/_authenticated/cabinet/rappels'
     | '/_authenticated/cabinet/'
     | '/api/public/hooks/purge-donnees'
@@ -381,6 +406,7 @@ export interface RootRouteChildren {
   DevAssocieDateRoute: typeof DevAssocieDateRoute
   DevConformiteRoute: typeof DevConformiteRoute
   DevDenominationRoute: typeof DevDenominationRoute
+  DevWordingDenominationRoute: typeof DevWordingDenominationRoute
   SignerJetonRoute: typeof SignerJetonRoute
   ApiPublicHooksPurgeDonneesRoute: typeof ApiPublicHooksPurgeDonneesRoute
   ApiPublicHooksRelancePiecesRoute: typeof ApiPublicHooksRelancePiecesRoute
@@ -529,6 +555,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevDenominationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dev/wording-denomination': {
+      id: '/dev/wording-denomination'
+      path: '/dev/wording-denomination'
+      fullPath: '/dev/wording-denomination'
+      preLoaderRoute: typeof DevWordingDenominationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signer/$jeton': {
       id: '/signer/$jeton'
       path: '/signer/$jeton'
@@ -555,6 +588,13 @@ declare module '@tanstack/react-router' {
       path: '/cabinet/conformite'
       fullPath: '/cabinet/conformite'
       preLoaderRoute: typeof AuthenticatedCabinetConformiteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/cabinet/denominations': {
+      id: '/_authenticated/cabinet/denominations'
+      path: '/cabinet/denominations'
+      fullPath: '/cabinet/denominations'
+      preLoaderRoute: typeof AuthenticatedCabinetDenominationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/cabinet/rappels': {
@@ -597,6 +637,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedVerificationFinaleRoute: typeof AuthenticatedVerificationFinaleRoute
   AuthenticatedCabinetIdRoute: typeof AuthenticatedCabinetIdRoute
   AuthenticatedCabinetConformiteRoute: typeof AuthenticatedCabinetConformiteRoute
+  AuthenticatedCabinetDenominationsRoute: typeof AuthenticatedCabinetDenominationsRoute
   AuthenticatedCabinetRappelsRoute: typeof AuthenticatedCabinetRappelsRoute
   AuthenticatedCabinetIndexRoute: typeof AuthenticatedCabinetIndexRoute
 }
@@ -610,6 +651,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedVerificationFinaleRoute: AuthenticatedVerificationFinaleRoute,
   AuthenticatedCabinetIdRoute: AuthenticatedCabinetIdRoute,
   AuthenticatedCabinetConformiteRoute: AuthenticatedCabinetConformiteRoute,
+  AuthenticatedCabinetDenominationsRoute:
+    AuthenticatedCabinetDenominationsRoute,
   AuthenticatedCabinetRappelsRoute: AuthenticatedCabinetRappelsRoute,
   AuthenticatedCabinetIndexRoute: AuthenticatedCabinetIndexRoute,
 }
@@ -632,6 +675,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevAssocieDateRoute: DevAssocieDateRoute,
   DevConformiteRoute: DevConformiteRoute,
   DevDenominationRoute: DevDenominationRoute,
+  DevWordingDenominationRoute: DevWordingDenominationRoute,
   SignerJetonRoute: SignerJetonRoute,
   ApiPublicHooksPurgeDonneesRoute: ApiPublicHooksPurgeDonneesRoute,
   ApiPublicHooksRelancePiecesRoute: ApiPublicHooksRelancePiecesRoute,

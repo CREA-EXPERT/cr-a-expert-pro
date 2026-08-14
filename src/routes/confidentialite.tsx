@@ -16,6 +16,7 @@ export const Route = createFileRoute("/confidentialite")({
         content: "Comment CREA EXPERT traite vos données personnelles, hébergées en Union européenne.",
       },
     ],
+    links: [{ rel: "canonical", href: "https://crea-expert.fr/confidentialite" }],
   }),
   component: Confidentialite,
 });

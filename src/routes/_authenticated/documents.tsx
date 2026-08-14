@@ -17,6 +17,7 @@ import { FriseAvancement } from "@/components/FriseAvancement";
 import { LigneDepot, type Face } from "@/components/LigneDepot";
 import { EncadrePliable } from "@/components/EncadrePliable";
 import { HistoriqueConformite } from "@/components/HistoriqueConformite";
+import { HistoriqueDenomination } from "@/components/HistoriqueDenomination";
 import { GuideCorrection } from "@/components/GuideCorrection";
 import { MotifCorrigible } from "@/components/MotifCorrigible";
 import { champsManquantsStatuts, motifsRefusStatuts } from "@/lib/statuts-controles";
@@ -52,6 +53,7 @@ export const Route = createFileRoute("/_authenticated/documents")({
   head: () => ({
     meta: [
       { title: "Mes documents — CREA EXPERT" },
+      { name: "robots", content: "noindex, nofollow" },
       {
         name: "description",
         content:
@@ -697,6 +699,10 @@ function Documents() {
         </section>
 
         {dossier && <HistoriqueConformite dossier={dossier} associes={associes} />}
+
+        {dossier && (
+          <HistoriqueDenomination dossierId={dossier.id} titre={dossier.denomination ?? ""} />
+        )}
 
         <section className="space-y-6">
           <div>

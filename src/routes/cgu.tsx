@@ -17,6 +17,7 @@ export const Route = createFileRoute("/cgu")({
         content: "Périmètre du service, obligations réciproques et conditions tarifaires.",
       },
     ],
+    links: [{ rel: "canonical", href: "https://crea-expert.fr/cgu" }],
   }),
   component: Cgu,
 });
