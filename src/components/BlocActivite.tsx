@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -32,6 +33,10 @@ export function BlocActivite({
   onDescendre: () => void;
   onSupprimer: () => void;
 }) {
+  const [verdict, setVerdict] = useState<"oui" | "non" | "doute" | null>(null);
+  /** L'analyse conclut à une activité non réglementée et le client ne l'a pas contredite. */
+  const nonReglementee = verdict === "non" && !activite.reglementee;
+
   return (
     <div className="rounded-md border border-border bg-surface p-3">
       <div className="mb-2 flex items-center justify-between gap-2">
@@ -95,8 +100,10 @@ export function BlocActivite({
       />
 
       <div className="mt-3 space-y-3 rounded-md border border-border bg-muted/40 p-3">
-        <p className="text-sm font-medium">Cette activité est-elle réglementée ?</p>
-        <div className="flex items-start gap-3">
+        {!nonReglementee && (
+          <p className="text-sm font-medium">Cette activité est-elle réglementée ?</p>
+        )}
+        <div className={nonReglementee ? "hidden" : "flex items-start gap-3"}>
           <Checkbox
             id={`regl-${activite.id}`}
             checked={activite.reglementee}
@@ -119,6 +126,7 @@ export function BlocActivite({
           auto
           activite={activite.texte}
           naf={activite.naf_code ? `${activite.naf_code} — ${activite.naf_libelle ?? ""}` : null}
+          onVerdict={setVerdict}
           onResultat={(reglementee, resume) => {
             if (!reglementee) return;
             onChange({
@@ -127,6 +135,28 @@ export function BlocActivite({
             });
           }}
         />
+
+        {nonReglementee && (
+          <div
+            className="space-y-2 rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed"
+            data-testid="activite-non-reglementee"
+          >
+            <p className="font-medium">Cette activité ne semble pas réglementée.</p>
+            <p className="text-justify">
+              Cette appréciation est automatique et générale : il vous appartient de vérifier
+              qu'aucun diplôme, agrément, carte professionnelle ou inscription à un ordre n'est
+              exigé pour l'exercer. Si vous poursuivez seul cette démarche, CREA EXPERT et ODEON ne
+              peuvent en assumer la responsabilité.
+            </p>
+            <button
+              type="button"
+              className="text-sm font-medium underline underline-offset-2"
+              onClick={() => onChange({ reglementee: true })}
+            >
+              Mon activité est en réalité réglementée
+            </button>
+          </div>
+        )}
 
         {activite.reglementee && (
           <div className="space-y-3 rounded-md border border-warning/50 bg-warning/10 p-3 text-sm leading-relaxed">
