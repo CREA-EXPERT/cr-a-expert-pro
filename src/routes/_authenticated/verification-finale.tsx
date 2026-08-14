@@ -298,7 +298,7 @@ function VerificationFinale() {
         <Section titre="La société" lignes={societe} />
         <Section titre="Pièces justificatives" lignes={pieces} />
 
-        <HistoriqueDenomination dossierId={dossier.id} />
+        <HistoriqueDenomination dossierId={dossier.id} titre={dossier.denomination ?? ""} />
 
         {(chronologie.erreurs.length > 0 || chronologie.avertissements.length > 0) && (
           <section className="space-y-2 rounded-lg border border-border bg-surface p-6">
