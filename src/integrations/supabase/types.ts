@@ -470,11 +470,14 @@ export type Database = {
           exercice_etendu: boolean
           fonds_commerce: string
           forme_juridique: string
+          gerant_est_associe_unique: boolean
+          greffe_ville: string | null
           id: string
           justificatif_detail: string | null
           justificatif_type: string | null
           lettre_mission_acceptee_le: string | null
           lettre_mission_nom: string | null
+          location_meublee: boolean
           moyen_de_paiement_enregistre: boolean
           moyen_de_paiement_enregistre_le: string | null
           objet_social: string | null
@@ -485,6 +488,8 @@ export type Database = {
           periodicite_tva: string | null
           pour_qui: string
           prix_creation_ht: number
+          regime_fiscal_eurl: string | null
+          regime_fiscal_sci: string | null
           regime_tva: string | null
           reglementee_source: string | null
           relecture_incluse: boolean
@@ -561,11 +566,14 @@ export type Database = {
           exercice_etendu?: boolean
           fonds_commerce?: string
           forme_juridique?: string
+          gerant_est_associe_unique?: boolean
+          greffe_ville?: string | null
           id?: string
           justificatif_detail?: string | null
           justificatif_type?: string | null
           lettre_mission_acceptee_le?: string | null
           lettre_mission_nom?: string | null
+          location_meublee?: boolean
           moyen_de_paiement_enregistre?: boolean
           moyen_de_paiement_enregistre_le?: string | null
           objet_social?: string | null
@@ -576,6 +584,8 @@ export type Database = {
           periodicite_tva?: string | null
           pour_qui?: string
           prix_creation_ht?: number
+          regime_fiscal_eurl?: string | null
+          regime_fiscal_sci?: string | null
           regime_tva?: string | null
           reglementee_source?: string | null
           relecture_incluse?: boolean
@@ -652,11 +662,14 @@ export type Database = {
           exercice_etendu?: boolean
           fonds_commerce?: string
           forme_juridique?: string
+          gerant_est_associe_unique?: boolean
+          greffe_ville?: string | null
           id?: string
           justificatif_detail?: string | null
           justificatif_type?: string | null
           lettre_mission_acceptee_le?: string | null
           lettre_mission_nom?: string | null
+          location_meublee?: boolean
           moyen_de_paiement_enregistre?: boolean
           moyen_de_paiement_enregistre_le?: string | null
           objet_social?: string | null
@@ -667,6 +680,8 @@ export type Database = {
           periodicite_tva?: string | null
           pour_qui?: string
           prix_creation_ht?: number
+          regime_fiscal_eurl?: string | null
+          regime_fiscal_sci?: string | null
           regime_tva?: string | null
           reglementee_source?: string | null
           relecture_incluse?: boolean
