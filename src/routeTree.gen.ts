@@ -31,6 +31,7 @@ import { Route as AuthenticatedCabinetIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedCabinetIdRouteImport } from './routes/_authenticated/cabinet.$id'
 import { Route as AuthenticatedCabinetRappelsRouteImport } from './routes/_authenticated/cabinet.rappels'
 import { Route as ApiPublicHooksPurgeDonneesRouteImport } from './routes/api/public/hooks/purge-donnees'
+import { Route as ApiPublicHooksRelancePiecesRouteImport } from './routes/api/public/hooks/relance-pieces'
 import { Route as ApiPublicHooksRelanceSignaturesRouteImport } from './routes/api/public/hooks/relance-signatures'
 
 const IndexRoute = IndexRouteImport.update({
@@ -147,6 +148,12 @@ const ApiPublicHooksPurgeDonneesRoute =
     path: '/api/public/hooks/purge-donnees',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksRelancePiecesRoute =
+  ApiPublicHooksRelancePiecesRouteImport.update({
+    id: '/api/public/hooks/relance-pieces',
+    path: '/api/public/hooks/relance-pieces',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksRelanceSignaturesRoute =
   ApiPublicHooksRelanceSignaturesRouteImport.update({
     id: '/api/public/hooks/relance-signatures',
@@ -176,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/cabinet/': typeof AuthenticatedCabinetIndexRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
+  '/api/public/hooks/relance-pieces': typeof ApiPublicHooksRelancePiecesRoute
   '/api/public/hooks/relance-signatures': typeof ApiPublicHooksRelanceSignaturesRoute
 }
 export interface FileRoutesByTo {
@@ -200,6 +208,7 @@ export interface FileRoutesByTo {
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/cabinet': typeof AuthenticatedCabinetIndexRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
+  '/api/public/hooks/relance-pieces': typeof ApiPublicHooksRelancePiecesRoute
   '/api/public/hooks/relance-signatures': typeof ApiPublicHooksRelanceSignaturesRoute
 }
 export interface FileRoutesById {
@@ -226,6 +235,7 @@ export interface FileRoutesById {
   '/_authenticated/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/_authenticated/cabinet/': typeof AuthenticatedCabinetIndexRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
+  '/api/public/hooks/relance-pieces': typeof ApiPublicHooksRelancePiecesRoute
   '/api/public/hooks/relance-signatures': typeof ApiPublicHooksRelanceSignaturesRoute
 }
 export interface FileRouteTypes {
@@ -252,6 +262,7 @@ export interface FileRouteTypes {
     | '/cabinet/rappels'
     | '/cabinet/'
     | '/api/public/hooks/purge-donnees'
+    | '/api/public/hooks/relance-pieces'
     | '/api/public/hooks/relance-signatures'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -276,6 +287,7 @@ export interface FileRouteTypes {
     | '/cabinet/rappels'
     | '/cabinet'
     | '/api/public/hooks/purge-donnees'
+    | '/api/public/hooks/relance-pieces'
     | '/api/public/hooks/relance-signatures'
   id:
     | '__root__'
@@ -301,6 +313,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cabinet/rappels'
     | '/_authenticated/cabinet/'
     | '/api/public/hooks/purge-donnees'
+    | '/api/public/hooks/relance-pieces'
     | '/api/public/hooks/relance-signatures'
   fileRoutesById: FileRoutesById
 }
@@ -318,6 +331,7 @@ export interface RootRouteChildren {
   DevAssocieDateRoute: typeof DevAssocieDateRoute
   SignerJetonRoute: typeof SignerJetonRoute
   ApiPublicHooksPurgeDonneesRoute: typeof ApiPublicHooksPurgeDonneesRoute
+  ApiPublicHooksRelancePiecesRoute: typeof ApiPublicHooksRelancePiecesRoute
   ApiPublicHooksRelanceSignaturesRoute: typeof ApiPublicHooksRelanceSignaturesRoute
 }
 
@@ -477,6 +491,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksPurgeDonneesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/relance-pieces': {
+      id: '/api/public/hooks/relance-pieces'
+      path: '/api/public/hooks/relance-pieces'
+      fullPath: '/api/public/hooks/relance-pieces'
+      preLoaderRoute: typeof ApiPublicHooksRelancePiecesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/relance-signatures': {
       id: '/api/public/hooks/relance-signatures'
       path: '/api/public/hooks/relance-signatures'
@@ -528,6 +549,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevAssocieDateRoute: DevAssocieDateRoute,
   SignerJetonRoute: SignerJetonRoute,
   ApiPublicHooksPurgeDonneesRoute: ApiPublicHooksPurgeDonneesRoute,
+  ApiPublicHooksRelancePiecesRoute: ApiPublicHooksRelancePiecesRoute,
   ApiPublicHooksRelanceSignaturesRoute: ApiPublicHooksRelanceSignaturesRoute,
 }
 export const routeTree = rootRouteImport
