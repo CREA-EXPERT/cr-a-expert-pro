@@ -7,6 +7,18 @@ import {
   partenaireIndivisConcerne,
 } from "./documents";
 import type { Associe, Dossier } from "./documents";
+import { activitesDuDossier } from "./activites";
+import { dateEnLettresFr, jourMoisEnLettresFr, montantEnLettresFr } from "./nombres";
+import {
+  associesDe,
+  champsManquantsStatutsSas,
+  comparution,
+  comparutionCourte,
+  directeurGeneralDe,
+  feminin,
+  nomCompletPhysique,
+  presidentDe,
+} from "./statuts-sas";
 
 const MARGE = 56;
 const LARGEUR = 595.28;
