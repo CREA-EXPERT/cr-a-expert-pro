@@ -22,7 +22,7 @@ export function nomCompletPhysique(a: Associe) {
 }
 
 /** Libellé du régime matrimonial tel qu'il figure dans les actes. */
-const LIBELLE_REGIME: Record<string, string> = {
+export const LIBELLE_REGIME: Record<string, string> = {
   communaute_legale:
     "de la communauté réduite aux acquêts à défaut de contrat de mariage préalable",
   communaute_universelle: "de la communauté universelle de biens",
