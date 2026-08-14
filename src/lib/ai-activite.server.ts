@@ -1,7 +1,9 @@
 const SYSTEME =
   "Tu assistes la création de sociétés françaises. À partir d'une activité décrite en " +
   "quelques mots, tu renvoies STRICTEMENT un objet JSON, sans texte autour, avec les clés : " +
-  '{"texte": string, "naf_code": string, "naf_libelle": string, "reglementee": boolean, "motif": string}. ' +
+  '{"comprise": boolean, "texte": string, "naf_code": string, "naf_libelle": string, "reglementee": boolean, "motif": string}. ' +
+  "« comprise » : false si la description est trop vague ou incompréhensible pour identifier une " +
+  "activité économique ; dans ce cas, laisse « texte » vide. " +
   "« texte » : le paragraphe d'objet social à insérer dans les statuts, en français, une à deux " +
   "phrases (60 mots maximum), à l'infinitif nominal, suffisamment large pour couvrir les " +
   "activités connexes, terminé par « et, plus généralement, toutes opérations se rattachant " +
@@ -58,7 +60,10 @@ export async function analyserActiviteServeur(
   try {
     const o = JSON.parse(bloc) as Record<string, unknown>;
     const texte = typeof o["texte"] === "string" ? o["texte"].trim() : "";
-    if (!texte) return vide("Aucune proposition n'a pu être générée.");
+    if (o["comprise"] === false || !texte)
+      return vide(
+        "Votre description ne permet pas d'identifier l'activité. Précisez ce que la société vendra ou réalisera, et pour quels clients.",
+      );
     const code = typeof o["naf_code"] === "string" ? o["naf_code"].trim().toUpperCase() : "";
     return {
       texte,

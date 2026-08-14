@@ -3,7 +3,7 @@ import { z } from "zod";
 import { analyserActiviteServeur } from "./ai-activite.server";
 
 const Entree = z.object({
-  description: z.string().min(5).max(600),
+  description: z.string().min(1).max(600),
   forme: z.string().max(20),
 });
 
