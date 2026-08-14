@@ -21,7 +21,7 @@ export type EntrepriseHomonyme = {
 export function divisionNaf(code: string | null | undefined) {
   if (!code) return null;
   const m = /^(\d{2})/.exec(code.trim());
-  return m ? m[1] : null;
+  return m?.[1] ?? null;
 }
 
 /**
