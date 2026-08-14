@@ -46,6 +46,8 @@ import {
   conjointInforme as conjointInformeSci,
   isSciForme,
 } from "./statuts-sci";
+import { messageRefusStatuts, motifsRefusStatuts } from "./statuts-controles";
+
 
 
 const MARGE = 56;
@@ -102,7 +104,7 @@ export function renduPour(d: Dossier): { filigrane: boolean; pied: string | null
   if (d.voie_validation === "auto" && d.autovalidation_le) {
     return {
       filigrane: false,
-      pied: "Document genere a partir des reponses du declarant - non revu par un professionnel.",
+      pied: "Document généré à partir des réponses du déclarant — non revu par un professionnel.",
     };
   }
   return { filigrane: true, pied: null };
@@ -3548,8 +3550,13 @@ export async function genererPdf(
   RENDU = renduPour(dossier);
   const cible = associes.find((a) => a.id === associeId);
   switch (type) {
-    case "statuts":
+    case "statuts": {
+      // Garde centrale : aucun chemin (aperçu, page Documents, autre) ne peut
+      // produire des statuts incomplets ou non conformes.
+      const motifs = motifsRefusStatuts(dossier, associes);
+      if (motifs.length > 0) throw new Error(messageRefusStatuts(motifs));
       return statuts(dossier, associes);
+    }
     case "non_condamnation":
       return nonCondamnation(dossier, cible);
     case "attestation_domiciliation":

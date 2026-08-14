@@ -77,6 +77,7 @@ function Documents() {
   const [events, setEvents] = useState<EventRow[]>([]);
   const [busy, setBusy] = useState(false);
   const [transferts, setTransferts] = useState<Transfert[]>([]);
+  const [refus, setRefus] = useState<{ libelle: string; motifs: string[] } | null>(null);
   const [mentions, setMentions] = useState<Record<string, boolean>>({});
   const [apercus, setApercus] = useState<Record<string, { recto?: string; verso?: string }>>({});
 
@@ -305,12 +306,30 @@ function Documents() {
 
   async function telecharger(doc: DocumentRow) {
     if (!dossier) return;
+    setRefus(null);
     const erreurs = controlerChronologie(dossier, associes).erreurs;
     if (erreurs.length > 0) {
-      toast.error(erreurs[0] as string);
+      setRefus({ libelle: doc.libelle, motifs: erreurs });
+      toast.error(`${doc.libelle} : ${erreurs.length} point(s) à corriger, détail affiché à l'écran.`);
       return;
     }
-    const octets = await genererPdf(doc.type_document, dossier, associes, doc.associe_id);
+    let octets: Uint8Array;
+    try {
+      octets = await genererPdf(doc.type_document, dossier, associes, doc.associe_id);
+    } catch (e) {
+      // La garde centrale de génération liste tous les motifs : ils sont tous affichés.
+      const message = e instanceof Error ? e.message : "Ce document n'a pas pu être généré.";
+      const detail = message.replace(/^[^:]+:\s*/, "");
+      setRefus({ libelle: doc.libelle, motifs: detail.split(" ; ").map((m) => m.replace(/\.$/, "")) });
+      toast.error(`${doc.libelle} : génération refusée, détail affiché à l'écran.`);
+      await journaliser(
+        dossier.id,
+        "statuts_generation_bloquee",
+        `Téléchargement refusé — ${doc.libelle} : ${message}`,
+      );
+      charger();
+      return;
+    }
     telechargerPdf(octets, doc.libelle);
     await journaliser(
       dossier.id,
@@ -571,6 +590,23 @@ function Documents() {
               Ces documents portent le filigrane « PROJET — soumis à la validation du cabinet ».
             </p>
           </div>
+          {refus && (
+            <div
+              role="alert"
+              data-testid="refus-telechargement"
+              className="rounded-lg border border-border bg-background p-5"
+            >
+              <p className="text-sm font-medium">
+                {refus.libelle} — téléchargement refusé ({refus.motifs.length} point
+                {refus.motifs.length > 1 ? "s" : ""} à traiter)
+              </p>
+              <ul className="mt-3 space-y-2 text-sm text-justify">
+                {refus.motifs.map((m, i) => (
+                  <li key={i}>{m}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           <ul className="space-y-4">
             {generes.length === 0 && (
               <li className="text-sm text-muted-foreground">

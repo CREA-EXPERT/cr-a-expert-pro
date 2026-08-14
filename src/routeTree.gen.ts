@@ -25,6 +25,7 @@ import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedMonCompteRouteImport } from './routes/_authenticated/mon-compte'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
 import { Route as AuthenticatedVerificationFinaleRouteImport } from './routes/_authenticated/verification-finale'
+import { Route as DevApercuStatutsRouteImport } from './routes/dev.apercu-statuts'
 import { Route as DevAssocieDateRouteImport } from './routes/dev.associe-date'
 import { Route as SignerJetonRouteImport } from './routes/signer.$jeton'
 import { Route as AuthenticatedCabinetIndexRouteImport } from './routes/_authenticated/cabinet.index'
@@ -115,6 +116,11 @@ const AuthenticatedVerificationFinaleRoute =
     path: '/verification-finale',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const DevApercuStatutsRoute = DevApercuStatutsRouteImport.update({
+  id: '/dev/apercu-statuts',
+  path: '/dev/apercu-statuts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DevAssocieDateRoute = DevAssocieDateRouteImport.update({
   id: '/dev/associe-date',
   path: '/dev/associe-date',
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/mon-compte': typeof AuthenticatedMonCompteRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/verification-finale': typeof AuthenticatedVerificationFinaleRoute
+  '/dev/apercu-statuts': typeof DevApercuStatutsRoute
   '/dev/associe-date': typeof DevAssocieDateRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
@@ -202,6 +209,7 @@ export interface FileRoutesByTo {
   '/mon-compte': typeof AuthenticatedMonCompteRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/verification-finale': typeof AuthenticatedVerificationFinaleRoute
+  '/dev/apercu-statuts': typeof DevApercuStatutsRoute
   '/dev/associe-date': typeof DevAssocieDateRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
@@ -229,6 +237,7 @@ export interface FileRoutesById {
   '/_authenticated/mon-compte': typeof AuthenticatedMonCompteRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/_authenticated/verification-finale': typeof AuthenticatedVerificationFinaleRoute
+  '/dev/apercu-statuts': typeof DevApercuStatutsRoute
   '/dev/associe-date': typeof DevAssocieDateRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/_authenticated/cabinet/$id': typeof AuthenticatedCabinetIdRoute
@@ -256,6 +265,7 @@ export interface FileRouteTypes {
     | '/mon-compte'
     | '/tableau-de-bord'
     | '/verification-finale'
+    | '/dev/apercu-statuts'
     | '/dev/associe-date'
     | '/signer/$jeton'
     | '/cabinet/$id'
@@ -281,6 +291,7 @@ export interface FileRouteTypes {
     | '/mon-compte'
     | '/tableau-de-bord'
     | '/verification-finale'
+    | '/dev/apercu-statuts'
     | '/dev/associe-date'
     | '/signer/$jeton'
     | '/cabinet/$id'
@@ -307,6 +318,7 @@ export interface FileRouteTypes {
     | '/_authenticated/mon-compte'
     | '/_authenticated/tableau-de-bord'
     | '/_authenticated/verification-finale'
+    | '/dev/apercu-statuts'
     | '/dev/associe-date'
     | '/signer/$jeton'
     | '/_authenticated/cabinet/$id'
@@ -328,6 +340,7 @@ export interface RootRouteChildren {
   MentionsLegalesRoute: typeof MentionsLegalesRoute
   SimulateurRoute: typeof SimulateurRoute
   TarifsRoute: typeof TarifsRoute
+  DevApercuStatutsRoute: typeof DevApercuStatutsRoute
   DevAssocieDateRoute: typeof DevAssocieDateRoute
   SignerJetonRoute: typeof SignerJetonRoute
   ApiPublicHooksPurgeDonneesRoute: typeof ApiPublicHooksPurgeDonneesRoute
@@ -449,6 +462,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVerificationFinaleRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/dev/apercu-statuts': {
+      id: '/dev/apercu-statuts'
+      path: '/dev/apercu-statuts'
+      fullPath: '/dev/apercu-statuts'
+      preLoaderRoute: typeof DevApercuStatutsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dev/associe-date': {
       id: '/dev/associe-date'
       path: '/dev/associe-date'
@@ -546,6 +566,7 @@ const rootRouteChildren: RootRouteChildren = {
   MentionsLegalesRoute: MentionsLegalesRoute,
   SimulateurRoute: SimulateurRoute,
   TarifsRoute: TarifsRoute,
+  DevApercuStatutsRoute: DevApercuStatutsRoute,
   DevAssocieDateRoute: DevAssocieDateRoute,
   SignerJetonRoute: SignerJetonRoute,
   ApiPublicHooksPurgeDonneesRoute: ApiPublicHooksPurgeDonneesRoute,
