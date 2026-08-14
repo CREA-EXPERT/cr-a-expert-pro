@@ -771,59 +771,6 @@ function Creation() {
               <MentionObligatoire />
             </div>
           )}
-              <div className="space-y-2">
-                <Label htmlFor="sigle">{ei ? "Enseigne (facultatif)" : "Sigle (facultatif)"}</Label>
-                <Input
-                  id="sigle"
-                  maxLength={40}
-                  value={dossier.sigle ?? ""}
-                  onChange={(e) => patch({ sigle: e.target.value })}
-                />
-              </div>
-              <VerifDenomination denomination={dossier.denomination ?? ""} />
-
-              <div className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed">
-                <p className="font-medium">Vérifiez que ce nom est disponible</p>
-                <p className="mt-2">
-                  Un nom identique ou similaire à une marque déjà déposée pour des produits ou
-                  services proches expose à une action en contrefaçon et à l'interdiction d'utiliser
-                  le nom, même après immatriculation. La recherche est gratuite dans la base des
-                  marques de l'INPI.
-                </p>
-                <p className="mt-2">
-                  <a
-                    href="https://data.inpi.fr/search?displayStyle=LIST&type=MARQUES"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 font-medium underline underline-offset-2"
-                  >
-                    Rechercher dans la base des marques (INPI)
-                    <ExternalLink className="size-3.5" strokeWidth={1.5} aria-hidden />
-                  </a>
-                </p>
-                <p className="mt-3 text-xs text-muted-foreground">
-                  Articles L. 713-2 à L. 713-6 du code de la propriété intellectuelle : usage
-                  interdit d'un signe identique à une marque pour des produits ou services
-                  identiques, et d'un signe identique ou similaire s'il existe un risque de
-                  confusion ; protection étendue aux marques renommées, sous réserve de l'usage de
-                  bonne foi de son nom patronymique et de l'usage antérieur d'un signe local.
-                </p>
-              </div>
-              <div className="flex items-start gap-3">
-                <Checkbox
-                  id="verif"
-                  checked={dossier.denomination_verifiee}
-                  onCheckedChange={(v) => patch({ denomination_verifiee: v === true })}
-                  className="mt-0.5"
-                />
-                <Label htmlFor="verif" className="text-sm font-normal">
-                  J'ai vérifié dans la base de l'INPI qu'aucune marque antérieure ne s'oppose à
-                  l'usage de ce nom, et j'en assume la responsabilité. (obligatoire)
-                </Label>
-              </div>
-              <Err nom="denomination_verifiee" />
-            </div>
-          )}
 
           {/* 3 — SIEGE */}
           {cle === "siege" && (
