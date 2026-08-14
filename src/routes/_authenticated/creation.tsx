@@ -39,7 +39,15 @@ import {
 } from "@/lib/domain";
 import { AdresseSiege } from "@/components/AdresseSiege";
 
-import { construireDocuments, type Associe, type Dossier } from "@/lib/documents";
+import {
+  apportCogestion,
+  construireDocuments,
+  estCommunautaire,
+  type Associe,
+  type Dossier,
+} from "@/lib/documents";
+import { EncadrePliable } from "@/components/EncadrePliable";
+import { VerifDenomination } from "@/components/VerifDenomination";
 import { analyserChecklist, estMineur, piecesEnDrafts } from "@/lib/checklist";
 import { useAuth, useRoles } from "@/hooks/useAuth";
 import { etatServices } from "@/lib/services.functions";
