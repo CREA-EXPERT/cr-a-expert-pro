@@ -48,6 +48,7 @@ import {
 } from "@/lib/documents";
 import { EncadrePliable } from "@/components/EncadrePliable";
 import { VerifDenomination } from "@/components/VerifDenomination";
+import { MentionObligatoire, Requis } from "@/components/Obligatoire";
 import { analyserChecklist, estMineur, piecesEnDrafts } from "@/lib/checklist";
 import { useAuth, useRoles } from "@/hooks/useAuth";
 import { etatServices } from "@/lib/services.functions";
@@ -95,7 +96,7 @@ import { CLES_EI, CLES_SOCIETE, TITRES, type Cle } from "@/lib/etapes";
 import { ApercuStatuts } from "@/components/ApercuStatuts";
 
 import { z } from "zod";
-import { ArrowDown, ArrowLeft, ArrowUp, ExternalLink, Plus, Sparkle, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, Plus, Sparkle, Trash2 } from "lucide-react";
 
 const searchSchema = z.object({
   forme: z.string().optional(),
