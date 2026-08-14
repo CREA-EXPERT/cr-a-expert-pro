@@ -1,6 +1,7 @@
 import type { Tables } from "@/integrations/supabase/types";
 import { activitesDuDossier, activitesReglementees, libelleActivite } from "./activites";
 import { isEI, isSas, REGIMES_COMMUNAUTAIRES, FORMES_COMMUNAUTE, type Forme } from "./domain";
+import { revuesDenomination } from "./denomination";
 
 export type Dossier = Tables<"dossiers">;
 export type Associe = Tables<"associes">;
