@@ -91,6 +91,7 @@ import {
 import { estCodeReglemente } from "@/lib/naf-reglemente";
 import { analyserActivite } from "@/lib/activite.functions";
 import { estHoteApercu } from "@/lib/apercu";
+import { ApercuStatuts } from "@/components/ApercuStatuts";
 
 import { z } from "zod";
 import { ArrowDown, ArrowLeft, ArrowUp, ExternalLink, Plus, Sparkle, Trash2 } from "lucide-react";
@@ -2425,6 +2426,8 @@ function Creation() {
                   {apercuSignatures.map((s) => s.libelle).join(", ")}.
                 </p>
               </section>
+
+              <ApercuStatuts dossier={dossier} associes={associes} />
 
               <EncadreJustificatifs />
               <EncadreSignatureElectronique />
