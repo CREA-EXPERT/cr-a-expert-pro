@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { CIVILITES, MOIS, NB_PRENOMS_MAX, PAYS } from "@/lib/domain";
 import type { Associe } from "@/lib/documents";
+import { NormaliserAdresse } from "@/components/NormaliserAdresse";
 import { Plus, X } from "lucide-react";
 
 const champ = "h-10 w-full rounded-md border border-input bg-surface px-3 text-sm";
@@ -242,6 +243,14 @@ export function AssocieIdentite({
             ))}
           </select>
         </div>
+        <NormaliserAdresse
+          voie={associe.adresse ?? ""}
+          codePostal={associe.adresse_code_postal ?? ""}
+          ville={associe.adresse_ville ?? ""}
+          pays={associe.adresse_pays ?? "France"}
+          onRetenir={(v) => onChange(v)}
+        />
+
         <div className="space-y-1">
           <Label className="text-xs">Adresse électronique</Label>
           <Input

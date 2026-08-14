@@ -1,5 +1,12 @@
+import { analyserBeneficiaires } from "./beneficiaires";
 import { activitesDuDossier, activitesReglementees, libelleActivite } from "./activites";
-import { isCivile, isEI, isSas, REGIMES_COMMUNAUTAIRES } from "./domain";
+import { isCivile, isEI, isSas } from "./domain";
+import {
+  consentement1424,
+  estCommunautaire,
+  partenaireIndivisConcerne,
+  regimeEtrangerIndetermine,
+} from "./documents";
 import type { Associe, Dossier, DocumentDraft } from "./documents";
 
 /**
@@ -187,15 +194,46 @@ export function analyserChecklist(dossier: Dossier, associes: Associe[]): Analys
       statut: "a_televerser",
       obligatoire: true,
     });
+    const be = analyserBeneficiaires(dossier, associes);
     add({
       code: "beneficiaires_effectifs",
       libelle: "Déclaration des bénéficiaires effectifs",
       pourquoi:
-        "Elle identifie les personnes physiques détenant plus de 25 % du capital ou des droits de vote, ou exerçant un contrôle.",
+        "Elle identifie les personnes physiques détenant, directement ou indirectement, plus de 25 % du capital ou des droits de vote, ou exerçant un pouvoir de contrôle." +
+        (be.beneficiaires.length > 0
+          ? ` D'après votre répartition : ${be.beneficiaires.map((b) => (b.pourcentage !== null ? `${b.nom} (${b.pourcentage.toFixed(2)} %)` : b.nom)).join(", ")}.`
+          : "") +
+        (be.parDefaut && be.beneficiaires.length > 0
+          ? " Aucun associé ne dépasse 25 % : le ou les représentants légaux sont désignés par défaut (art. R. 561-1 CMF)."
+          : ""),
       exigences: "Aucun document à téléverser : la déclaration est remplie directement en ligne sur le guichet unique.",
       statut: "guichet_unique",
       obligatoire: true,
     });
+    for (const b of be.beneficiaires.filter((x) => x.motif !== "detention_indirecte")) {
+      if (b.associeId && physiques.some((p) => p.id === b.associeId && !p.est_dirigeant))
+        add({
+          code: `identite_be_${b.associeId}`,
+          libelle: "Pièce d'identité du bénéficiaire effectif",
+          pourquoi:
+            "Les obligations de vigilance imposent d'identifier chaque bénéficiaire effectif du registre.",
+          exigences:
+            "Copie recto-verso en cours de validité, portant la mention manuscrite de certification conforme, datée et signée.",
+          statut: "a_televerser",
+          obligatoire: true,
+          associeId: b.associeId,
+          personne: b.nom,
+        });
+    }
+    for (const m of be.moralesAControler) {
+      if (!(m.beneficiaires_indirects ?? "").trim())
+        blocages.push({
+          titre: `${nomDe(m)} — bénéficiaires effectifs indirects à identifier`,
+          message:
+            "Indiquez la ou les personnes physiques qui contrôlent cet associé personne morale. Cette chaîne de détention est vérifiée par un professionnel avant le dépôt.",
+        });
+    }
+
     if (!dossier.dirigeant_nomme_statuts) {
       add({
         code: "acte_nomination",
@@ -313,12 +351,11 @@ export function analyserChecklist(dossier: Dossier, associes: Associe[]): Analys
     });
   }
 
-  /* ---------------- Conjoint et régimes matrimoniaux ---------------- */
-  const communaute = (a: Associe) =>
-    a.situation_matrimoniale === "marie" && REGIMES_COMMUNAUTAIRES.includes(a.regime_matrimonial ?? "");
+  /* ---------------- Conjoint, partenaire et régimes matrimoniaux ---------------- */
+  const communaute = (a: Associe) => estCommunautaire(a);
   if (sas) {
     riens.push(
-      "SAS ou SASU : aucune formalité liée au conjoint, quelle que soit la situation matrimoniale des associés — les actions sont librement négociables.",
+      "SAS ou SASU : aucune formalité liée au conjoint pour les apports en numéraire ; en cas d'apport en nature d'un bien commun (fonds de commerce, immeuble), le consentement du conjoint reste requis.",
     );
   } else if (!ei) {
     for (const a of physiques.filter((p) => communaute(p) && p.apport_fonds_communs)) {
@@ -326,9 +363,9 @@ export function analyserChecklist(dossier: Dossier, associes: Associe[]): Analys
         code: `information_conjoint_${a.id}`,
         libelle: "Justificatif d'information du conjoint",
         pourquoi:
-          "L'apport de biens communs oblige à informer le conjoint, qui peut revendiquer la qualité d'associé (art. 1832-2 du Code civil).",
+          "L'apport de biens communs oblige à informer le conjoint, qui peut revendiquer la qualité d'associé (art. 1832-2 du Code civil). L'avertissement est justifié dans les statuts et le courrier leur est annexé.",
         exigences:
-          "Lettre d'information avec accusé de réception ou attestation contresignée par le conjoint ; une renonciation à revendiquer la qualité d'associé peut y être jointe.",
+          "Courrier d'information signé AVANT la signature des statuts, contresigné par le conjoint ou accompagné d'un accusé de réception ; une renonciation à revendiquer la qualité d'associé peut y être jointe.",
         statut: "genere",
         obligatoire: true,
         associeId: a.id,
@@ -336,16 +373,77 @@ export function analyserChecklist(dossier: Dossier, associes: Associe[]): Analys
       });
     }
     const separes = physiques.filter(
-      (p) => p.situation_matrimoniale === "marie" && !REGIMES_COMMUNAUTAIRES.includes(p.regime_matrimonial ?? ""),
+      (p) => p.situation_matrimoniale === "marie" && !estCommunautaire(p) && p.regime_matrimonial !== "regime_etranger",
     );
     if (separes.length > 0)
       riens.push("Associé marié en séparation de biens : aucune pièce supplémentaire n'est à fournir.");
-    const pacses = physiques.filter((p) => p.situation_matrimoniale === "pacse");
-    if (pacses.length > 0)
+  }
+
+  /* Partenaire de PACS co-indivisaire : art. 815-3, toutes formes sociales. */
+  if (!ei) {
+    for (const a of physiques.filter(partenaireIndivisConcerne)) {
+      add({
+        code: `consentement_partenaire_indivis_${a.id}`,
+        libelle: "Consentement du partenaire co-indivisaire",
+        pourquoi:
+          "L'apport de fonds indivis provenant d'un PACS soumis à l'indivision exige le consentement du partenaire co-indivisaire (art. 815-3 du Code civil).",
+        exigences:
+          "Consentement signé par le partenaire AVANT la signature des statuts. À la différence des époux, le partenaire ne peut pas revendiquer la qualité d'associé.",
+        statut: "genere",
+        obligatoire: true,
+        associeId: a.id,
+        personne: nomDe(a),
+      });
+    }
+    const pacsesSepares = physiques.filter(
+      (p) => p.situation_matrimoniale === "pacse" && !partenaireIndivisConcerne(p),
+    );
+    if (pacsesSepares.length > 0)
       riens.push(
-        "Associé pacsé : le régime légal depuis 2007 est la séparation de patrimoines, aucune pièce n'est à fournir. En cas de PACS soumis à l'indivision, l'accord du partenaire co-indivisaire est requis.",
+        "Associé pacsé hors indivision : le régime légal des PACS conclus depuis 2007 est la séparation de patrimoines, aucune pièce n'est à fournir. Un PACS conclu avant 2007 relève, sauf convention modificative, de la présomption d'indivision.",
       );
   }
+
+  /* Consentement à l'apport d'un bien commun (art. 1424), y compris en SAS. */
+  const be1424 = consentement1424(dossier, associes);
+  if (be1424.requis) {
+    for (const a of be1424.apporteurs) {
+      add({
+        code: `consentement_conjoint_1424_${a.id}`,
+        libelle: "Consentement du conjoint à l'apport d'un bien commun",
+        pourquoi:
+          "L'apport d'un bien commun soumis à cogestion (fonds de commerce, immeuble) exige le consentement du conjoint, à peine d'annulation (art. 1424 et 1427 du Code civil).",
+        exigences:
+          "Consentement signé par le conjoint AVANT la signature des statuts. Il s'ajoute, le cas échéant, au courrier d'information de l'article 1832-2.",
+        statut: "genere",
+        obligatoire: true,
+        associeId: a.id,
+        personne: nomDe(a),
+      });
+    }
+  }
+  if (be1424.doute)
+    blocages.push({
+      titre: "Nature du bien apporté à qualifier",
+      message:
+        "Vous avez indiqué ne pas savoir si le bien apporté est un bien commun du couple. Un professionnel doit qualifier le bien avant la signature des statuts : le consentement du conjoint peut être exigé à peine d'annulation de l'apport.",
+    });
+
+  for (const a of physiques.filter(regimeEtrangerIndetermine))
+    blocages.push({
+      titre: `${nomDe(a)} — régime matrimonial étranger à qualifier`,
+      message:
+        "De nombreux régimes légaux étrangers comportent une masse commune. Tant que la réponse n'est pas donnée, le dossier est soumis à la revue d'un professionnel.",
+    });
+
+  const successionsOuvertes = physiques.filter(
+    (p) => p.situation_matrimoniale === "veuf" || p.situation_matrimoniale === "divorce",
+  );
+  if (successionsOuvertes.length > 0)
+    riens.push(
+      "Associé veuf ou divorcé : si la communauté ou la succession n'est pas encore liquidée, les fonds peuvent être en indivision et l'accord des co-indivisaires est alors nécessaire pour l'apport. En cas de doute, demandez la revue par l'expert-comptable. Information générale, pas un conseil.",
+    );
+
 
   const conjointsTravail = physiques.filter((a) => a.conjoint_travaille);
   if (conjointsTravail.length > 0 && (ei || forme === "SARL" || forme === "EURL")) {

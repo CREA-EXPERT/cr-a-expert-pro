@@ -1,5 +1,11 @@
 import { PDFDocument, StandardFonts, rgb, degrees, type PDFFont, type PDFPage } from "pdf-lib";
 import { euro, isSas, TVA_OPTIONS, type Forme } from "./domain";
+import { analyserBeneficiaires, MOTIF_BE } from "./beneficiaires";
+import {
+  conjointConcerne,
+  consentement1424,
+  partenaireIndivisConcerne,
+} from "./documents";
 import type { Associe, Dossier } from "./documents";
 
 const MARGE = 56;
@@ -177,6 +183,26 @@ async function statuts(d: Dossier, associes: Associe[]) {
         `— ${nomComplet(a)} : ${a.nb_titres} ${isSas(forme) ? "actions" : "parts sociales"}, apport de ${euro(Number(a.montant_apport))}.`,
       ),
     );
+  const avertis = associes.filter((a) => a.est_associe && conjointConcerne(d, a));
+  if (avertis.length > 0) {
+    espace(ctx, 6);
+    for (const a of avertis) {
+      ecrire(
+        ctx,
+        `${nomComplet(a)} déclare que son conjoint, ${a.conjoint_nom?.trim() || "[prénom et nom du conjoint à compléter]"}, a été averti de l'apport de biens communs réalisé au présent acte, conformément à l'article 1832-2 du Code civil, ainsi qu'il en est justifié par le courrier d'information annexé aux présents statuts.`,
+      );
+    }
+  }
+  const cons = consentement1424(d, associes);
+  if (cons.requis) {
+    espace(ctx, 6);
+    for (const a of cons.apporteurs) {
+      ecrire(
+        ctx,
+        `${nomComplet(a)} déclare que son conjoint, ${a.conjoint_nom?.trim() || "[prénom et nom du conjoint à compléter]"}, a expressément consenti à l'apport du bien commun suivant : ${d.bien_commun_designation?.trim() || "[désignation du bien]"}, conformément à l'article 1424 du Code civil, ainsi qu'il en est justifié par le consentement annexé aux présents statuts.`,
+      );
+    }
+  }
   aValider(ctx, "modalités de libération du solde et de variation du capital");
 
   titre(ctx, isSas(forme) ? "Article 7 — Actions" : "Article 7 — Parts sociales");
@@ -263,15 +289,22 @@ async function listeSouscripteurs(d: Dossier, associes: Associe[]) {
 async function beneficiairesEffectifs(d: Dossier, associes: Associe[]) {
   const capital = Number(d.capital_montant) || 1;
   const ctx = await creerCtx("Déclaration des bénéficiaires effectifs", `${d.denomination || "[dénomination]"}`);
-  ecrire(ctx, "Personnes physiques détenant, directement ou indirectement, plus de 25 % du capital ou des droits de vote, ou exerçant un pouvoir de contrôle :");
+  ecrire(ctx, "Personnes physiques détenant, directement ou indirectement, plus de 25 % du capital ou des droits de vote, ou exerçant un pouvoir de contrôle (art. L. 561-2-2 et R. 561-1 du code monétaire et financier) :");
   espace(ctx, 8);
-  associes
-    .filter((a) => a.type === "personne_physique" && a.est_associe)
-    .forEach((a) => {
-      const pct = ((Number(a.montant_apport) / capital) * 100).toFixed(2);
-      ecrire(ctx, `— ${identite(a)} : ${pct} % du capital.`);
-    });
+  const analyse = analyserBeneficiaires(d, associes);
+  for (const b of analyse.beneficiaires) {
+    const personne = associes.find((a) => a.id === b.associeId);
+    const base = personne && personne.type === "personne_physique" ? identite(personne) : b.nom;
+    ecrire(
+      ctx,
+      `— ${base}${b.pourcentage !== null ? ` : ${b.pourcentage.toFixed(2)} % du capital ou des droits de vote` : ""}. ${MOTIF_BE[b.motif]}`,
+    );
+  }
+  if (analyse.beneficiaires.length === 0)
+    ecrire(ctx, "— Aucun bénéficiaire effectif n'a pu être déterminé à partir des informations saisies.");
   espace(ctx, 8);
+  ecrire(ctx, `Capital social de référence : ${euro(capital)}.`, { color: GRIS });
+  espace(ctx, 4);
   aValider(ctx, "détention indirecte et modalités de contrôle");
   espace(ctx, 20);
   ecrire(ctx, `Fait le ${dateFr(d.date_signature)}.`, { bold: true });
@@ -296,6 +329,8 @@ async function courrierConjoint(d: Dossier, a: Associe | undefined) {
   const ctx = await creerCtx("Information du conjoint", `${d.denomination || "[dénomination]"} — ${d.forme_juridique}`);
   ecrire(ctx, `Je soussigné(e) ${a ? nomComplet(a) : "[associé]"}, marié(e) sous un régime de communauté,`);
   espace(ctx, 8);
+  ecrire(ctx, `à l'attention de mon conjoint, ${a?.conjoint_nom?.trim() || "[prénom et nom du conjoint]"},`);
+  espace(ctx, 8);
   ecrire(ctx, `informe mon conjoint de mon intention d'apporter des fonds communs, à hauteur de ${a ? euro(Number(a.montant_apport)) : "[montant]"}, au capital de la société ${d.denomination || "[dénomination]"}, société ${d.forme_juridique} en cours de constitution.`);
   espace(ctx, 8);
   ecrire(ctx, "Mon conjoint est informé de la possibilité de revendiquer la qualité d'associé pour la moitié des parts souscrites.");
@@ -311,12 +346,51 @@ async function courrierConjoint(d: Dossier, a: Associe | undefined) {
 
 async function renonciationConjoint(d: Dossier, a: Associe | undefined) {
   const ctx = await creerCtx("Renonciation du conjoint à la qualité d'associé", `${d.denomination || "[dénomination]"}`);
-  ecrire(ctx, `Je soussigné(e) [prénom et nom du conjoint], conjoint(e) de ${a ? nomComplet(a) : "[associé]"},`);
+  ecrire(ctx, `Je soussigné(e) ${a?.conjoint_nom?.trim() || "[prénom et nom du conjoint]"}, conjoint(e) de ${a ? nomComplet(a) : "[associé]"},`);
   espace(ctx, 8);
   ecrire(ctx, `déclare renoncer expressément à revendiquer la qualité d'associé pour les parts souscrites au moyen de fonds communs dans la société ${d.denomination || "[dénomination]"}.`);
   aValider(ctx, "portée de la renonciation");
   espace(ctx, 20);
   ecrire(ctx, `Fait le ${dateFr(d.date_signature)}.`, { bold: true });
+  espace(ctx, 18);
+  ecrire(ctx, "Signature du conjoint :", { color: GRIS });
+  return fin(ctx);
+}
+
+
+async function consentementPartenaireIndivis(d: Dossier, a: Associe | undefined) {
+  const ctx = await creerCtx(
+    "Consentement du partenaire co-indivisaire à l'apport de fonds indivis",
+    `${d.denomination || "[dénomination]"} — ${d.forme_juridique}`,
+  );
+  ecrire(
+    ctx,
+    `Je soussigné(e) ${a?.conjoint_nom?.trim() || "[prénom et nom du partenaire]"}, partenaire de ${a ? nomComplet(a) : "[associé]"} lié(e) par un pacte civil de solidarité soumis au régime de l'indivision, consens expressément, en application de l'article 815-3 du Code civil, à l'apport par mon partenaire de fonds indivis à hauteur de ${a ? euro(Number(a.montant_apport)) : "[montant]"} au capital de la société ${d.denomination || "[dénomination]"}, en cours de constitution.`,
+  );
+  espace(ctx, 8);
+  ecrire(ctx, "Ce consentement porte sur l'emploi de fonds indivis. Il n'emporte aucune revendication de la qualité d'associé.");
+  aValider(ctx, "portée du consentement à l'emploi de fonds indivis");
+  espace(ctx, 20);
+  ecrire(ctx, `Fait le ${dateFr(d.date_consentements ?? d.date_signature)}.`, { bold: true });
+  espace(ctx, 18);
+  ecrire(ctx, "Signature du partenaire :", { color: GRIS });
+  return fin(ctx);
+}
+
+async function consentementConjoint1424(d: Dossier, a: Associe | undefined) {
+  const ctx = await creerCtx(
+    "Consentement du conjoint à l'apport d'un bien commun",
+    `${d.denomination || "[dénomination]"} — ${d.forme_juridique}`,
+  );
+  ecrire(
+    ctx,
+    `Je soussigné(e) ${a?.conjoint_nom?.trim() || "[prénom et nom du conjoint]"}, conjoint(e) de ${a ? nomComplet(a) : "[associé]"}, consens expressément, en application de l'article 1424 du Code civil, à l'apport du bien commun suivant : ${d.bien_commun_designation?.trim() || "[désignation du bien]"}, au capital de la société ${d.denomination || "[dénomination]"} en cours de constitution.`,
+  );
+  espace(ctx, 8);
+  ecrire(ctx, "À défaut de ce consentement, l'apport encourt l'annulation dans les conditions de l'article 1427 du Code civil.");
+  aValider(ctx, "désignation exacte du bien commun apporté");
+  espace(ctx, 20);
+  ecrire(ctx, `Fait le ${dateFr(d.date_consentements ?? d.date_signature)}.`, { bold: true });
   espace(ctx, 18);
   ecrire(ctx, "Signature du conjoint :", { color: GRIS });
   return fin(ctx);
@@ -333,6 +407,8 @@ export const TYPES_GENERES = [
   "pouvoir",
   "courrier_conjoint",
   "renonciation_conjoint",
+  "consentement_partenaire_indivis",
+  "consentement_conjoint_1424",
   "declaration_ei",
 ];
 
@@ -582,6 +658,16 @@ export async function genererPdf(
       return courrierConjoint(dossier, cible);
     case "renonciation_conjoint":
       return renonciationConjoint(dossier, cible);
+    case "consentement_partenaire_indivis":
+      return consentementPartenaireIndivis(
+        dossier,
+        cible ?? associes.find((a) => partenaireIndivisConcerne(a)),
+      );
+    case "consentement_conjoint_1424":
+      return consentementConjoint1424(
+        dossier,
+        cible ?? consentement1424(dossier, associes).apporteurs[0],
+      );
     case "confidentialite_adresse":
       return confidentialiteAdresse(dossier, associes);
     case "mandat_guichet_unique":

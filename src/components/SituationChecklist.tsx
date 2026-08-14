@@ -3,14 +3,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CallbackDialog } from "@/components/CallbackDialog";
 import { isEI, isSas } from "@/lib/domain";
-import type { Associe, Dossier } from "@/lib/documents";
+import { apportCogestion, estCommunautaire, type Associe, type Dossier } from "@/lib/documents";
 import { analyserChecklist, estMineur } from "@/lib/checklist";
 import { activitesDuDossier, activitesReglementees, libelleActivite } from "@/lib/activites";
 import { ApercuChecklist } from "@/components/ApercuChecklist";
 
 const champ = "h-10 w-full rounded-md border border-input bg-surface px-3 text-sm";
 
-function Bloc({ titre, aide, children }: { titre: string; aide?: string; children: React.ReactNode }) {
+function Bloc({
+  titre,
+  aide,
+  children,
+}: {
+  titre: string;
+  aide?: string;
+  children: React.ReactNode;
+}) {
   return (
     <section className="space-y-3 rounded-lg border border-border bg-surface p-4">
       <div>
@@ -35,7 +43,12 @@ function Case({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <Checkbox id={id} checked={checked} onCheckedChange={(v) => onChange(v === true)} className="mt-0.5" />
+      <Checkbox
+        id={id}
+        checked={checked}
+        onCheckedChange={(v) => onChange(v === true)}
+        className="mt-0.5"
+      />
       <Label htmlFor={id} className="text-sm font-normal leading-relaxed">
         {label}
       </Label>
@@ -118,7 +131,9 @@ export function SituationChecklist({
             id="immeuble"
             label="Un immeuble est apporté à la société (acte notarié et publicité foncière obligatoires)."
             checked={dossier.apport_immeuble}
-            onChange={(v) => patch({ apport_immeuble: v, routage_cabinet: v || dossier.routage_cabinet })}
+            onChange={(v) =>
+              patch({ apport_immeuble: v, routage_cabinet: v || dossier.routage_cabinet })
+            }
           />
           <div className="space-y-1">
             <Label className="text-xs">Fonds de commerce</Label>
@@ -133,6 +148,41 @@ export function SituationChecklist({
               <option value="location_gerance">Location-gérance d'un fonds</option>
             </select>
           </div>
+          {apportCogestion(dossier) && associes.some(estCommunautaire) && (
+            <div className="space-y-2 rounded-md border border-border bg-muted/50 p-3">
+              <Label className="text-xs">Le bien apporté est-il un bien commun du couple ?</Label>
+              <select
+                className={champ}
+                value={dossier.bien_commun_apport ?? "non"}
+                onChange={(e) =>
+                  patch({
+                    bien_commun_apport: e.target.value,
+                    routage_cabinet:
+                      e.target.value === "je_ne_sais_pas" ? true : dossier.routage_cabinet,
+                  })
+                }
+              >
+                <option value="non">Non, il s'agit d'un bien propre</option>
+                <option value="oui">Oui, il s'agit d'un bien commun</option>
+                <option value="je_ne_sais_pas">Je ne sais pas</option>
+              </select>
+              {dossier.bien_commun_apport === "oui" && (
+                <div className="space-y-1">
+                  <Label className="text-xs">Désignation du bien apporté</Label>
+                  <Input
+                    maxLength={200}
+                    value={dossier.bien_commun_designation ?? ""}
+                    onChange={(e) => patch({ bien_commun_designation: e.target.value })}
+                  />
+                </div>
+              )}
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                L'apport d'un bien commun exige le consentement exprès du conjoint (art. 1424 du
+                Code civil). Si vous ne savez pas, votre dossier est orienté vers la revue d'un
+                professionnel. Information générale, pas un conseil.
+              </p>
+            </div>
+          )}
         </Bloc>
       )}
 
@@ -169,7 +219,6 @@ export function SituationChecklist({
           </div>
         )}
       </Bloc>
-
 
       <Bloc
         titre="Autres entreprises et interdiction de gérer"
@@ -210,7 +259,10 @@ export function SituationChecklist({
         >
           <div className="space-y-4">
             {physiques.map((a) => (
-              <div key={a.id} className="space-y-3 rounded-md border border-border bg-background p-3">
+              <div
+                key={a.id}
+                className="space-y-3 rounded-md border border-border bg-background p-3"
+              >
                 <p className="text-sm font-medium">
                   {`${a.prenom ?? ""} ${a.nom ?? ""}`.trim() || "Associé sans nom"}
                 </p>
@@ -259,7 +311,9 @@ export function SituationChecklist({
                   />
                 )}
 
-                {(ei || dossier.forme_juridique === "SARL" || dossier.forme_juridique === "EURL") && (
+                {(ei ||
+                  dossier.forme_juridique === "SARL" ||
+                  dossier.forme_juridique === "EURL") && (
                   <>
                     <Case
                       id={`conj-${a.id}`}
@@ -273,7 +327,9 @@ export function SituationChecklist({
                         <select
                           className={champ}
                           value={a.conjoint_statut ?? ""}
-                          onChange={(e) => majAssocie(a.id, { conjoint_statut: e.target.value || null })}
+                          onChange={(e) =>
+                            majAssocie(a.id, { conjoint_statut: e.target.value || null })
+                          }
                         >
                           <option value="">Choisir…</option>
                           <option value="collaborateur">Conjoint collaborateur</option>

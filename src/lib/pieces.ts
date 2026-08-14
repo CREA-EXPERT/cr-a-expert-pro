@@ -81,8 +81,12 @@ export function estPdf(chemin: string | null | undefined) {
 }
 
 /** Catégorie de contrôle automatique applicable à une pièce, ou null si le robot ne s'applique pas. */
-export function categorieControle(typeDocument: string): "identite" | "domicile" | null {
+export type CategorieControle = "identite" | "domicile" | "parution" | "depot_fonds";
+
+export function categorieControle(typeDocument: string): CategorieControle | null {
   if (estPieceIdentite(typeDocument)) return "identite";
   if (typeDocument === "justificatif_domicile") return "domicile";
+  if (typeDocument === "parution_annonce") return "parution";
+  if (typeDocument === "depot_fonds") return "depot_fonds";
   return null;
 }
