@@ -96,7 +96,10 @@ export async function relancerPiecesManquantes(
       }
       await supabaseAdmin.from("relances_pieces").insert({
         dossier_id: d.id,
-        pieces_listees: attendues.map((a) => a.libelle).join(" ; ").slice(0, 2000),
+        pieces_listees: attendues
+          .map((a) => a.libelle)
+          .join(" ; ")
+          .slice(0, 2000),
       });
       await supabaseAdmin.from("events_dossier").insert({
         dossier_id: d.id,

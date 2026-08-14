@@ -172,7 +172,9 @@ function VerificationFinale() {
       lien: "/creation",
     });
 
-  const siegeComplet = Boolean(dossier.siege_voie && dossier.siege_code_postal && dossier.siege_ville);
+  const siegeComplet = Boolean(
+    dossier.siege_voie && dossier.siege_code_postal && dossier.siege_ville,
+  );
   const societe: LigneControle[] = [
     {
       cle: "siege",
@@ -209,8 +211,7 @@ function VerificationFinale() {
               .map((a, i) => libelleActivite(a, i))
               .join(" · ")
           : (dossier.objet_social ?? "Aucune activité décrite."),
-      etat:
-        activitesDuDossier(dossier).length > 0 || dossier.objet_social ? "ok" : "manquant",
+      etat: activitesDuDossier(dossier).length > 0 || dossier.objet_social ? "ok" : "manquant",
       lien: "/creation",
     },
   ];
@@ -273,9 +274,9 @@ function VerificationFinale() {
         <header className="space-y-3">
           <h1 className="font-serif text-3xl">Vérification finale de votre dossier</h1>
           <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
-            Contrôlez chaque élément avant transmission. Une coche verte signale un élément
-            complet, un point orange un élément en attente de contrôle, une croix rouge un élément
-            à corriger.
+            Contrôlez chaque élément avant transmission. Une coche verte signale un élément complet,
+            un point orange un élément en attente de contrôle, une croix rouge un élément à
+            corriger.
           </p>
         </header>
 

@@ -261,7 +261,9 @@ function Documents() {
         );
       }
     } catch {
-      toast.info("La vérification automatique n'a pas pu être effectuée. Le cabinet contrôlera la pièce.");
+      toast.info(
+        "La vérification automatique n'a pas pu être effectuée. Le cabinet contrôlera la pièce.",
+      );
     }
     await charger();
   }
