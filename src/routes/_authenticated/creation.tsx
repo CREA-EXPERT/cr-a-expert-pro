@@ -769,7 +769,6 @@ function Creation() {
                 </Label>
               </div>
               <Err nom="denomination_verifiee" />
-              <MentionObligatoire />
             </div>
           )}
 
@@ -853,7 +852,7 @@ function Creation() {
 
               <div className="rounded-md border border-border bg-surface p-4">
                 <Label htmlFor="descr" className="text-sm font-medium">
-                  Ajouter une activité — décrivez-la en quelques mots
+                  Ajouter une activité — décrivez-la en quelques mots<Requis />
                 </Label>
                 <p className="mt-1 text-sm text-muted-foreground text-justify">
                   Votre société peut exercer une seule activité ou plusieurs. La première de la
@@ -2418,6 +2417,8 @@ function Creation() {
               </Button>
             </div>
           )}
+
+          {cle !== "recap" && <MentionObligatoire className="mt-6" />}
 
           <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-border pt-6">
             {cle !== "recap" && <Button onClick={() => continuer(cle)}>Continuer</Button>}
