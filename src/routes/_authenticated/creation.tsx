@@ -1300,6 +1300,75 @@ function Creation() {
                           </select>
                         )}
 
+                        {a.situation_matrimoniale === "marie" && (
+                          <div className="sm:col-span-2 grid gap-3 rounded-md border border-border bg-muted/40 p-3 sm:grid-cols-2">
+                            <div className="space-y-1">
+                              <Label className="text-xs" htmlFor={`dm-${a.id}`}>
+                                Date du mariage
+                              </Label>
+                              <Input
+                                id={`dm-${a.id}`}
+                                type="date"
+                                value={a.date_mariage ?? ""}
+                                onChange={(e) =>
+                                  majAssocie(a.id, { date_mariage: e.target.value || null })
+                                }
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs" htmlFor={`lm-${a.id}`}>
+                                Lieu du mariage (commune)
+                              </Label>
+                              <Input
+                                id={`lm-${a.id}`}
+                                maxLength={120}
+                                value={a.lieu_mariage ?? ""}
+                                onChange={(e) => majAssocie(a.id, { lieu_mariage: e.target.value })}
+                              />
+                            </div>
+                            <p className="sm:col-span-2 text-xs text-muted-foreground">
+                              Ces informations figurent dans la comparution des statuts.
+                            </p>
+                          </div>
+                        )}
+
+                        {(a.situation_matrimoniale === "marie" ||
+                          a.situation_matrimoniale === "pacse") && (
+                          <div className="sm:col-span-2 grid gap-3 sm:grid-cols-2">
+                            <div className="space-y-1">
+                              <Label className="text-xs" htmlFor={`cjc-${a.id}`}>
+                                Civilité {a.situation_matrimoniale === "pacse" ? "du partenaire" : "du conjoint"}
+                              </Label>
+                              <select
+                                id={`cjc-${a.id}`}
+                                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                                value={a.conjoint_civilite ?? ""}
+                                onChange={(e) =>
+                                  majAssocie(a.id, { conjoint_civilite: e.target.value || null })
+                                }
+                              >
+                                <option value="">—</option>
+                                {CIVILITES.map((c) => (
+                                  <option key={c.value} value={c.value}>
+                                    {c.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs" htmlFor={`cjn-${a.id}`}>
+                                Prénom et nom {a.situation_matrimoniale === "pacse" ? "du partenaire" : "du conjoint"}
+                              </Label>
+                              <Input
+                                id={`cjn-${a.id}`}
+                                maxLength={120}
+                                value={a.conjoint_nom ?? ""}
+                                onChange={(e) => majAssocie(a.id, { conjoint_nom: e.target.value })}
+                              />
+                            </div>
+                          </div>
+                        )}
+
                         {(a.situation_matrimoniale === "marie" ||
                           a.situation_matrimoniale === "pacse") && (
                           <div className="sm:col-span-2 space-y-2 rounded-md border border-border bg-muted/40 p-3">
