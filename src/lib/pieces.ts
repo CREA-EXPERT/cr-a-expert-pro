@@ -79,3 +79,10 @@ export function estImage(chemin: string | null | undefined) {
 export function estPdf(chemin: string | null | undefined) {
   return (chemin ?? "").toLowerCase().endsWith(".pdf");
 }
+
+/** Catégorie de contrôle automatique applicable à une pièce, ou null si le robot ne s'applique pas. */
+export function categorieControle(typeDocument: string): "identite" | "domicile" | null {
+  if (estPieceIdentite(typeDocument)) return "identite";
+  if (typeDocument === "justificatif_domicile") return "domicile";
+  return null;
+}

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { categorieControle } from "./pieces";
 
 const Entree = z.object({ documentId: z.string().uuid() });
 
@@ -10,13 +11,6 @@ export type RetourVerification = {
   controles: { type_controle: string; resultat: string; motif: string }[];
   erreur: string | null;
 };
-
-/** Catégorie de contrôle applicable à une pièce, ou null si le robot ne s'applique pas. */
-export function categorieControle(typeDocument: string): "identite" | "domicile" | null {
-  if (typeDocument === "piece_identite" || typeDocument.startsWith("identite_")) return "identite";
-  if (typeDocument === "justificatif_domicile") return "domicile";
-  return null;
-}
 
 /**
  * Vérification automatique d'une pièce déposée. Aide au contrôle : le résultat
