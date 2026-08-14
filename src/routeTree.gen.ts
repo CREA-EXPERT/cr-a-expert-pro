@@ -24,6 +24,7 @@ import { Route as AuthenticatedCreationRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
 import { Route as AuthenticatedMonCompteRouteImport } from './routes/_authenticated/mon-compte'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
+import { Route as AuthenticatedVerificationFinaleRouteImport } from './routes/_authenticated/verification-finale'
 import { Route as DevAssocieDateRouteImport } from './routes/dev.associe-date'
 import { Route as SignerJetonRouteImport } from './routes/signer.$jeton'
 import { Route as AuthenticatedCabinetIndexRouteImport } from './routes/_authenticated/cabinet.index'
@@ -107,6 +108,12 @@ const AuthenticatedTableauDeBordRoute =
     path: '/tableau-de-bord',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedVerificationFinaleRoute =
+  AuthenticatedVerificationFinaleRouteImport.update({
+    id: '/verification-finale',
+    path: '/verification-finale',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const DevAssocieDateRoute = DevAssocieDateRouteImport.update({
   id: '/dev/associe-date',
   path: '/dev/associe-date',
@@ -162,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/documents': typeof AuthenticatedDocumentsRoute
   '/mon-compte': typeof AuthenticatedMonCompteRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/verification-finale': typeof AuthenticatedVerificationFinaleRoute
   '/dev/associe-date': typeof DevAssocieDateRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
@@ -185,6 +193,7 @@ export interface FileRoutesByTo {
   '/documents': typeof AuthenticatedDocumentsRoute
   '/mon-compte': typeof AuthenticatedMonCompteRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/verification-finale': typeof AuthenticatedVerificationFinaleRoute
   '/dev/associe-date': typeof DevAssocieDateRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
@@ -210,6 +219,7 @@ export interface FileRoutesById {
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
   '/_authenticated/mon-compte': typeof AuthenticatedMonCompteRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
+  '/_authenticated/verification-finale': typeof AuthenticatedVerificationFinaleRoute
   '/dev/associe-date': typeof DevAssocieDateRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/_authenticated/cabinet/$id': typeof AuthenticatedCabinetIdRoute
@@ -235,6 +245,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/mon-compte'
     | '/tableau-de-bord'
+    | '/verification-finale'
     | '/dev/associe-date'
     | '/signer/$jeton'
     | '/cabinet/$id'
@@ -258,6 +269,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/mon-compte'
     | '/tableau-de-bord'
+    | '/verification-finale'
     | '/dev/associe-date'
     | '/signer/$jeton'
     | '/cabinet/$id'
@@ -282,6 +294,7 @@ export interface FileRouteTypes {
     | '/_authenticated/documents'
     | '/_authenticated/mon-compte'
     | '/_authenticated/tableau-de-bord'
+    | '/_authenticated/verification-finale'
     | '/dev/associe-date'
     | '/signer/$jeton'
     | '/_authenticated/cabinet/$id'
@@ -415,6 +428,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTableauDeBordRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/verification-finale': {
+      id: '/_authenticated/verification-finale'
+      path: '/verification-finale'
+      fullPath: '/verification-finale'
+      preLoaderRoute: typeof AuthenticatedVerificationFinaleRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/dev/associe-date': {
       id: '/dev/associe-date'
       path: '/dev/associe-date'
@@ -473,6 +493,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
   AuthenticatedMonCompteRoute: typeof AuthenticatedMonCompteRoute
   AuthenticatedTableauDeBordRoute: typeof AuthenticatedTableauDeBordRoute
+  AuthenticatedVerificationFinaleRoute: typeof AuthenticatedVerificationFinaleRoute
   AuthenticatedCabinetIdRoute: typeof AuthenticatedCabinetIdRoute
   AuthenticatedCabinetRappelsRoute: typeof AuthenticatedCabinetRappelsRoute
   AuthenticatedCabinetIndexRoute: typeof AuthenticatedCabinetIndexRoute
@@ -484,6 +505,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
   AuthenticatedMonCompteRoute: AuthenticatedMonCompteRoute,
   AuthenticatedTableauDeBordRoute: AuthenticatedTableauDeBordRoute,
+  AuthenticatedVerificationFinaleRoute: AuthenticatedVerificationFinaleRoute,
   AuthenticatedCabinetIdRoute: AuthenticatedCabinetIdRoute,
   AuthenticatedCabinetRappelsRoute: AuthenticatedCabinetRappelsRoute,
   AuthenticatedCabinetIndexRoute: AuthenticatedCabinetIndexRoute,
