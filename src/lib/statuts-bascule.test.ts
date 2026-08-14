@@ -56,16 +56,16 @@ describe("bascule EURL → SARL sur revendication du conjoint", () => {
       [1, 50],
       [51, 100],
     ]);
-    expect(lignes[lignes.length - 1].fin).toBe(100);
-    expect(effectifs[1].nom).toBe("Martin");
-    expect(effectifs[1].prenom).toBe("Paul");
+    expect(lignes.at(-1)?.fin).toBe(100);
+    expect(effectifs[1]?.nom).toBe("Martin");
+    expect(effectifs[1]?.prenom).toBe("Paul");
   });
 
   it("arrondit au profit du souscripteur sur un nombre impair de parts", () => {
     const impair = { ...base, nb_titres: 101, montant_apport: 1010 } as Associe;
     const lignes = repartitionParts(associesEffectifs(dossier, [impair]));
     expect(lignes.map((l) => l.parts)).toEqual([51, 50]);
-    expect(lignes[1].fin).toBe(101);
+    expect(lignes[1]?.fin).toBe(101);
   });
 
   it("trace la revue obligatoire du cabinet", () => {
