@@ -102,11 +102,16 @@ function CabinetListe() {
               « accompagnement requis » sont à traiter en priorité.
             </p>
           </div>
-          <Button asChild variant="outline">
-            <Link to="/cabinet/rappels">
-              Demandes de rappel{data?.rappels ? ` (${data.rappels})` : ""}
-            </Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline">
+              <Link to="/cabinet/conformite">Suivi de conformité</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/cabinet/rappels">
+                Demandes de rappel{data?.rappels ? ` (${data.rappels})` : ""}
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-[1fr_16rem]">

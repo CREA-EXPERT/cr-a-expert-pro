@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EncadrePliable } from "@/components/EncadrePliable";
+import { GuideCorrection } from "@/components/GuideCorrection";
 import type { Associe, Dossier } from "@/lib/documents";
 import { genererPdf, telechargerPdf } from "@/lib/pdf";
 import {
@@ -174,6 +175,8 @@ export function ApercuStatuts({ dossier, associes }: { dossier: Dossier; associe
           </ul>
         </div>
       )}
+
+      <GuideCorrection dossier={dossier} manquants={manquants} />
 
       {alertes.bloquantes.length > 0 && (
         <div className="rounded-md border border-border bg-background p-4">
