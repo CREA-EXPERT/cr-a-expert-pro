@@ -100,6 +100,10 @@ export function revuesHumaines(dossier: Dossier, associes: Associe[]): string[] 
       `Le régime matrimonial étranger de ${a.prenom ?? ""} ${a.nom ?? ""}`.trim() +
         " n'est pas qualifié : un professionnel doit déterminer s'il comporte une masse commune.",
     );
+  for (const a of associes.filter((p) => conjointConcerne(dossier, p) && p.conjoint_revendique))
+    out.push(
+      `Le conjoint de ${`${a.prenom ?? ""} ${a.nom ?? ""}`.trim()} revendique la qualité d'associé pour la moitié des parts (art. 1832-2 C. civ.) : la répartition du capital et la liste des associés doivent être validées par le cabinet.`,
+    );
   for (const a of associes.filter((p) => p.type === "personne_morale"))
     out.push(
       `Associé personne morale (${a.denomination ?? "dénomination à préciser"}) : la détention indirecte doit être vérifiée pour le registre des bénéficiaires effectifs.`,
