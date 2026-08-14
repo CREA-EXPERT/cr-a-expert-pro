@@ -264,7 +264,7 @@ function VerificationFinale() {
   ].includes(dossier.statut);
 
   async function transmettre() {
-    if (!dossier || bloquants.length > 0) return;
+    if (!dossier || bloquants.length > 0 || chronologie.erreurs.length > 0) return;
     setBusy(true);
     await supabase.from("dossiers").update({ statut: "en_revue_cabinet" }).eq("id", dossier.id);
     await supabase.from("events_dossier").insert({
@@ -373,7 +373,9 @@ function VerificationFinale() {
           ) : (
             <>
               <p className="max-w-prose text-sm leading-relaxed">
-                {bloquants.length === 0
+                {chronologie.erreurs.length > 0
+                  ? "Transmission impossible : la chronologie des actes doit être corrigée."
+                  : bloquants.length === 0
                   ? "Tous les points de contrôle sont au vert : vous pouvez transmettre votre dossier."
                   : `Transmission impossible : ${bloquants.length} élément(s) restent à corriger — ${bloquants
                       .slice(0, 4)
@@ -382,7 +384,7 @@ function VerificationFinale() {
               </p>
               <Button
                 className="mt-4"
-                disabled={bloquants.length > 0 || busy}
+                disabled={bloquants.length > 0 || chronologie.erreurs.length > 0 || busy}
                 onClick={transmettre}
               >
                 {busy ? "Transmission…" : "Transmettre mon dossier"}
