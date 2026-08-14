@@ -3,7 +3,7 @@
  * Une relance par semaine et par dossier, trois au maximum, jamais sur un dossier
  * clos, transmis ou immatriculé. Serveur uniquement.
  */
-import { TEXTE_AVERTISSEMENT_REJET_SERVEUR } from "./relances.texte";
+import { TEXTE_AVERTISSEMENT_REJET_SERVEUR, blocInfoDenominationHtml } from "./relances.texte";
 import { revuesDenomination } from "./denomination";
 
 const STATUTS_ACTIFS = ["brouillon", "dossier_valide_client", "pieces_en_cours"];
@@ -120,12 +120,7 @@ export async function relancerPiecesManquantes(
  * affichés à l'écran. Jamais présentés comme un blocage.
  */
 function infosDenomination(denomination: string | null, risque: string | null) {
-  const revues = revuesDenomination(denomination, risque);
-  if (revues.length === 0) return "";
-  return (
-    `<p>Pour information, sans conséquence sur la suite de votre dossier :</p>` +
-    `<ul>${revues.map((r) => `<li>${echapper(r)}</li>`).join("")}</ul>`
-  );
+  return blocInfoDenominationHtml(revuesDenomination(denomination, risque));
 }
 
 function echapper(texte: string) {
