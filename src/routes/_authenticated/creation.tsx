@@ -243,7 +243,8 @@ function Creation() {
       if (!isEI(d.forme_juridique) && !d.denomination.trim())
         e["denomination"] = "La dénomination sociale est obligatoire.";
       if (!d.denomination_verifiee)
-        e["denomination_verifiee"] = "Confirmez la vérification de disponibilité auprès de l'INPI.";
+        e["denomination_verifiee"] =
+          "Confirmez avoir vérifié l'absence de marque antérieure créant un risque de confusion.";
     }
     if (c === "siege") {
       if (!d.siege_type) e["siege_type"] = "Choisissez le type de siège social.";
