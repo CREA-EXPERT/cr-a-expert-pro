@@ -28,6 +28,7 @@ import { Route as AuthenticatedVerificationFinaleRouteImport } from './routes/_a
 import { Route as DevApercuStatutsRouteImport } from './routes/dev.apercu-statuts'
 import { Route as DevAssocieDateRouteImport } from './routes/dev.associe-date'
 import { Route as DevConformiteRouteImport } from './routes/dev.conformite'
+import { Route as DevDenominationRouteImport } from './routes/dev.denomination'
 import { Route as SignerJetonRouteImport } from './routes/signer.$jeton'
 import { Route as AuthenticatedCabinetIndexRouteImport } from './routes/_authenticated/cabinet.index'
 import { Route as AuthenticatedCabinetIdRouteImport } from './routes/_authenticated/cabinet.$id'
@@ -133,6 +134,11 @@ const DevConformiteRoute = DevConformiteRouteImport.update({
   path: '/dev/conformite',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DevDenominationRoute = DevDenominationRouteImport.update({
+  id: '/dev/denomination',
+  path: '/dev/denomination',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignerJetonRoute = SignerJetonRouteImport.update({
   id: '/signer/$jeton',
   path: '/signer/$jeton',
@@ -199,6 +205,7 @@ export interface FileRoutesByFullPath {
   '/dev/apercu-statuts': typeof DevApercuStatutsRoute
   '/dev/associe-date': typeof DevAssocieDateRoute
   '/dev/conformite': typeof DevConformiteRoute
+  '/dev/denomination': typeof DevDenominationRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/cabinet/conformite': typeof AuthenticatedCabinetConformiteRoute
@@ -227,6 +234,7 @@ export interface FileRoutesByTo {
   '/dev/apercu-statuts': typeof DevApercuStatutsRoute
   '/dev/associe-date': typeof DevAssocieDateRoute
   '/dev/conformite': typeof DevConformiteRoute
+  '/dev/denomination': typeof DevDenominationRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/cabinet/conformite': typeof AuthenticatedCabinetConformiteRoute
@@ -257,6 +265,7 @@ export interface FileRoutesById {
   '/dev/apercu-statuts': typeof DevApercuStatutsRoute
   '/dev/associe-date': typeof DevAssocieDateRoute
   '/dev/conformite': typeof DevConformiteRoute
+  '/dev/denomination': typeof DevDenominationRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/_authenticated/cabinet/$id': typeof AuthenticatedCabinetIdRoute
   '/_authenticated/cabinet/conformite': typeof AuthenticatedCabinetConformiteRoute
@@ -287,6 +296,7 @@ export interface FileRouteTypes {
     | '/dev/apercu-statuts'
     | '/dev/associe-date'
     | '/dev/conformite'
+    | '/dev/denomination'
     | '/signer/$jeton'
     | '/cabinet/$id'
     | '/cabinet/conformite'
@@ -315,6 +325,7 @@ export interface FileRouteTypes {
     | '/dev/apercu-statuts'
     | '/dev/associe-date'
     | '/dev/conformite'
+    | '/dev/denomination'
     | '/signer/$jeton'
     | '/cabinet/$id'
     | '/cabinet/conformite'
@@ -344,6 +355,7 @@ export interface FileRouteTypes {
     | '/dev/apercu-statuts'
     | '/dev/associe-date'
     | '/dev/conformite'
+    | '/dev/denomination'
     | '/signer/$jeton'
     | '/_authenticated/cabinet/$id'
     | '/_authenticated/cabinet/conformite'
@@ -368,6 +380,7 @@ export interface RootRouteChildren {
   DevApercuStatutsRoute: typeof DevApercuStatutsRoute
   DevAssocieDateRoute: typeof DevAssocieDateRoute
   DevConformiteRoute: typeof DevConformiteRoute
+  DevDenominationRoute: typeof DevDenominationRoute
   SignerJetonRoute: typeof SignerJetonRoute
   ApiPublicHooksPurgeDonneesRoute: typeof ApiPublicHooksPurgeDonneesRoute
   ApiPublicHooksRelancePiecesRoute: typeof ApiPublicHooksRelancePiecesRoute
@@ -509,6 +522,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevConformiteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dev/denomination': {
+      id: '/dev/denomination'
+      path: '/dev/denomination'
+      fullPath: '/dev/denomination'
+      preLoaderRoute: typeof DevDenominationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signer/$jeton': {
       id: '/signer/$jeton'
       path: '/signer/$jeton'
@@ -611,6 +631,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevApercuStatutsRoute: DevApercuStatutsRoute,
   DevAssocieDateRoute: DevAssocieDateRoute,
   DevConformiteRoute: DevConformiteRoute,
+  DevDenominationRoute: DevDenominationRoute,
   SignerJetonRoute: SignerJetonRoute,
   ApiPublicHooksPurgeDonneesRoute: ApiPublicHooksPurgeDonneesRoute,
   ApiPublicHooksRelancePiecesRoute: ApiPublicHooksRelancePiecesRoute,

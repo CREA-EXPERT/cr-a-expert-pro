@@ -24,7 +24,7 @@ export function VerifReglementation({
   auto?: boolean;
   onResultat?: (reglementee: boolean, resume: string) => void;
   /** Verdict brut de l'analyse : oui, non ou doute. */
-  onVerdict?: (verdict: "oui" | "non" | "doute") => void;
+  onVerdict?: (verdict: "oui" | "non" | "incertain") => void;
 }) {
   const [texte, setTexte] = useState("");
   const [encours, setEncours] = useState(false);

@@ -33,7 +33,7 @@ export function BlocActivite({
   onDescendre: () => void;
   onSupprimer: () => void;
 }) {
-  const [verdict, setVerdict] = useState<"oui" | "non" | "doute" | null>(null);
+  const [verdict, setVerdict] = useState<"oui" | "non" | "incertain" | null>(null);
   /** L'analyse conclut à une activité non réglementée et le client ne l'a pas contredite. */
   const nonReglementee = verdict === "non" && !activite.reglementee;
 
