@@ -338,6 +338,7 @@ function Creation() {
   }
 
   /** Message d'erreur affiché sous un champ. */
+  // eslint-disable-next-line react/no-unstable-nested-components
   function Err({ nom }: { nom: string }) {
     if (!erreurs[nom]) return null;
     return <p className="text-sm font-medium text-destructive">{erreurs[nom]}</p>;
