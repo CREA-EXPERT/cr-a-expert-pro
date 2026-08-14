@@ -18,9 +18,14 @@ import { LigneDepot, type Face } from "@/components/LigneDepot";
 import { EncadrePliable } from "@/components/EncadrePliable";
 import { HistoriqueConformite } from "@/components/HistoriqueConformite";
 import { GuideCorrection } from "@/components/GuideCorrection";
-import { champsManquantsStatuts } from "@/lib/statuts-controles";
+import { MotifCorrigible } from "@/components/MotifCorrigible";
+import { champsManquantsStatuts, motifsRefusStatuts } from "@/lib/statuts-controles";
+import {
+  historiqueConformite,
+  motifRecurrent,
+  type LigneConformite,
+} from "@/lib/conformite";
 
-import { genererPdf, telechargerPdf } from "@/lib/pdf";
 import {
   controlerChronologie,
   type Associe,
@@ -83,6 +88,7 @@ function Documents() {
   const [refus, setRefus] = useState<{ libelle: string; motifs: string[] } | null>(null);
   const [mentions, setMentions] = useState<Record<string, boolean>>({});
   const [apercus, setApercus] = useState<Record<string, { recto?: string; verso?: string }>>({});
+  const [journalConformite, setJournalConformite] = useState<LigneConformite[]>([]);
 
   async function charger() {
     const { data: ds } = await supabase
@@ -117,6 +123,11 @@ function Documents() {
       setSignataires([]);
     }
     setEvents(ev ?? []);
+    try {
+      setJournalConformite(await historiqueConformite(d.id));
+    } catch {
+      setJournalConformite([]);
+    }
   }
 
   useEffect(() => {
@@ -318,6 +329,7 @@ function Documents() {
     }
     let octets: Uint8Array;
     try {
+      const { genererPdf } = await import("@/lib/pdf");
       octets = await genererPdf(doc.type_document, dossier, associes, doc.associe_id);
     } catch (e) {
       // La garde centrale de génération liste tous les motifs : ils sont tous affichés.
@@ -333,6 +345,7 @@ function Documents() {
       charger();
       return;
     }
+    const { telechargerPdf } = await import("@/lib/pdf");
     telechargerPdf(octets, doc.libelle);
     await journaliser(
       dossier.id,
@@ -353,6 +366,8 @@ function Documents() {
   }
 
   const chronologie = controlerChronologie(dossier, associes);
+  const motifsStatuts = motifsRefusStatuts(dossier, associes);
+  const motifPrioritaire = motifRecurrent(journalConformite);
   const erreursDates = chronologie.erreurs;
   const aFournir = docs.filter((d) => d.origine === "a_fournir");
   const generes = docs.filter((d) => d.origine === "genere");
@@ -593,6 +608,25 @@ function Documents() {
               Ces documents portent le filigrane « PROJET — soumis à la validation du cabinet ».
             </p>
           </div>
+          {motifPrioritaire && (
+            <div
+              data-testid="motif-prioritaire"
+              className="rounded-lg border border-border bg-background p-5"
+            >
+              <p className="text-sm font-medium">Point à corriger en priorité</p>
+              <p className="mt-1 text-sm text-muted-foreground text-justify">
+                Ce point a bloqué la génération à plusieurs reprises. Le traiter débloquera
+                probablement votre dossier.
+              </p>
+              <p className="mt-3 text-sm">
+                <MotifCorrigible
+                  texte={motifPrioritaire}
+                  dossier={dossier}
+                  motifs={motifsStatuts}
+                />
+              </p>
+            </div>
+          )}
           {refus && (
             <div
               role="alert"
@@ -605,7 +639,9 @@ function Documents() {
               </p>
               <ul className="mt-3 space-y-2 text-sm text-justify">
                 {refus.motifs.map((m, i) => (
-                  <li key={i}>{m}</li>
+                  <li key={i}>
+                    <MotifCorrigible texte={m} dossier={dossier} motifs={motifsStatuts} />
+                  </li>
                 ))}
               </ul>
               {dossier && (
@@ -648,7 +684,7 @@ function Documents() {
           </ul>
         </section>
 
-        {dossier && <HistoriqueConformite dossier={dossier} />}
+        {dossier && <HistoriqueConformite dossier={dossier} associes={associes} />}
 
 
 

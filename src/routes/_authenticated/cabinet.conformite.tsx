@@ -1,20 +1,14 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useRoles } from "@/hooks/useAuth";
 import { PageShell } from "@/components/layout/PageShell";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  lignesConformite,
-  TYPE_REUSSIE,
-  TYPES_CONFORMITE,
-  telechargerJournal,
-  type LigneConformite,
-} from "@/lib/conformite";
+import { TableauConformite, dureeFr, type LigneDossier } from "@/components/TableauConformite";
+import { lignesConformite, TYPE_REUSSIE, TYPES_CONFORMITE } from "@/lib/conformite";
 import { libelleVersion } from "@/lib/gabarits";
 import { horodatageFr, type EvenementJournal } from "@/lib/journal";
-import { Download } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/cabinet/conformite")({
   head: () => ({
@@ -37,38 +31,31 @@ export const Route = createFileRoute("/_authenticated/cabinet/conformite")({
   component: SuiviConformite,
 });
 
-type Ligne = {
-  id: string;
-  denomination: string;
-  forme: string;
-  refus: number;
-  reussites: number;
-  motifs: string[];
-  dernier: string | null;
-  premierEssai: string | null;
-  valideLe: string | null;
-  delaiHeures: number | null;
-  journal: LigneConformite[];
-};
+/** Plafond de sécurité sur le volume d'événements chargés. */
+const MAX_EVENEMENTS = 3000;
 
 function heures(depuis: string, jusqu: string) {
   return (new Date(jusqu).getTime() - new Date(depuis).getTime()) / 3_600_000;
 }
 
-function dureeFr(h: number) {
-  if (h < 1) return `${Math.max(1, Math.round(h * 60))} min`;
-  if (h < 48) return `${h.toFixed(1)} h`;
-  return `${Math.round(h / 24)} j`;
+function jourIso(decalageJours = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + decalageJours);
+  return d.toISOString().slice(0, 10);
 }
 
 function SuiviConformite() {
   const { user } = useAuth();
   const { isCabinet, loading } = useRoles(user);
+  const [debut, setDebut] = useState(jourIso(-90));
+  const [fin, setFin] = useState(jourIso());
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["cabinet-conformite"],
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ["cabinet-conformite", debut, fin],
     enabled: isCabinet,
-    queryFn: async (): Promise<Ligne[]> => {
+    queryFn: async (): Promise<LigneDossier[]> => {
+      const depuis = new Date(`${debut}T00:00:00`).toISOString();
+      const jusqu = new Date(`${fin}T23:59:59`).toISOString();
       const { data: dossiers, error } = await supabase
         .from("dossiers")
         .select("id, denomination, forme_juridique, created_at, valide_le, updated_at")
@@ -76,14 +63,18 @@ function SuiviConformite() {
         .limit(200);
       if (error) throw error;
       const ids = (dossiers ?? []).map((d) => d.id);
-      const { data: events } = ids.length
+      const { data: events, error: erreurEvents } = ids.length
         ? await supabase
             .from("events_dossier")
             .select("dossier_id, type_event, message, created_at")
             .in("dossier_id", ids)
             .in("type_event", TYPES_CONFORMITE)
+            .gte("created_at", depuis)
+            .lte("created_at", jusqu)
             .order("created_at", { ascending: false })
-        : { data: [] as (EvenementJournal & { dossier_id: string })[] };
+            .limit(MAX_EVENEMENTS)
+        : { data: [] as (EvenementJournal & { dossier_id: string })[], error: null };
+      if (erreurEvents) throw erreurEvents;
 
       return (dossiers ?? []).map((d) => {
         const propres = (events ?? []).filter((e) => e.dossier_id === d.id);
@@ -91,7 +82,7 @@ function SuiviConformite() {
         const refus = journal.filter((l) => !l.conforme);
         const dates = propres.map((e) => e.created_at).sort();
         const premierEssai = dates[0] ?? null;
-        const fin = d.valide_le ?? null;
+        const finValidation = d.valide_le ?? null;
         return {
           id: d.id,
           denomination: d.denomination || "Dossier sans nom",
@@ -101,11 +92,25 @@ function SuiviConformite() {
           motifs: [...new Set(refus.flatMap((l) => l.motifs))],
           dernier: dates[dates.length - 1] ?? null,
           premierEssai,
-          valideLe: fin,
-          delaiHeures: premierEssai && fin ? heures(premierEssai, fin) : null,
+          valideLe: finValidation,
+          delaiHeures: premierEssai && finValidation ? heures(premierEssai, finValidation) : null,
           journal,
         };
       });
+    },
+  });
+
+  const { data: notifications } = useQuery({
+    queryKey: ["notifications-cabinet"],
+    enabled: isCabinet,
+    queryFn: async () => {
+      const { data: rows, error } = await supabase
+        .from("notifications_cabinet")
+        .select("id, denomination, message, motif_principal, created_at, lu")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return rows ?? [];
     },
   });
 
@@ -148,7 +153,8 @@ function SuiviConformite() {
           <h1 className="font-serif text-3xl">Suivi de conformité</h1>
           <p className="max-w-prose text-sm leading-relaxed text-muted-foreground text-justify">
             Refus de génération des projets de statuts et temps écoulé entre la première tentative
-            et la validation du dossier. Règles appliquées : {libelleVersion(null)}.
+            et la validation du dossier, sur la période retenue (90 derniers jours par défaut).
+            Règles appliquées : {libelleVersion(null)}.
           </p>
         </header>
 
@@ -169,9 +175,35 @@ function SuiviConformite() {
         </section>
 
         <section className="space-y-4">
+          <h2 className="font-serif text-xl">Alertes de conformité</h2>
+          {(notifications ?? []).length === 0 ? (
+            <p className="text-sm text-muted-foreground">Aucune alerte récente.</p>
+          ) : (
+            <ul className="space-y-2">
+              {(notifications ?? []).map((n) => (
+                <li
+                  key={n.id}
+                  className="flex flex-wrap items-start justify-between gap-3 rounded-md border border-border bg-surface p-4"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">{n.denomination || "Dossier sans nom"}</p>
+                    <p className="text-sm text-muted-foreground text-justify">
+                      {n.motif_principal ?? n.message}
+                    </p>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {horodatageFr(n.created_at)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="space-y-4">
           <h2 className="font-serif text-xl">Motifs de refus les plus fréquents</h2>
           {classement.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Aucun refus enregistré.</p>
+            <p className="text-sm text-muted-foreground">Aucun refus enregistré sur la période.</p>
           ) : (
             <ul className="space-y-2">
               {classement.map(([motif, nb]) => (
@@ -191,66 +223,18 @@ function SuiviConformite() {
 
         <section className="space-y-4">
           <h2 className="font-serif text-xl">Dossiers</h2>
-          {isLoading ? (
-            <p className="text-sm text-muted-foreground">Chargement des dossiers…</p>
-          ) : lignes.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Aucun dossier à afficher.</p>
-          ) : (
-            <ul className="space-y-3">
-              {lignes.map((l) => (
-                <li
-                  key={l.id}
-                  className="space-y-3 rounded-lg border border-border bg-surface p-5"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-medium">{l.denomination}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {l.forme} · dernière tentative :{" "}
-                        {l.dernier ? horodatageFr(l.dernier) : "aucune"}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant={l.refus > 0 ? "outline" : "secondary"}>
-                        {l.refus} refus
-                      </Badge>
-                      <Badge variant="secondary">{l.reussites} générés</Badge>
-                      <Badge variant="outline">
-                        {l.delaiHeures === null
-                          ? "Validation en attente"
-                          : `Validé en ${dureeFr(l.delaiHeures)}`}
-                      </Badge>
-                    </div>
-                  </div>
-                  {l.motifs.length > 0 && (
-                    <ul className="space-y-1 text-sm text-muted-foreground">
-                      {l.motifs.slice(0, 4).map((m, i) => (
-                        <li key={i} className="text-justify">
-                          {m}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  <div className="flex flex-wrap gap-2">
-                    <Button asChild size="sm" variant="outline">
-                      <Link to="/cabinet/$id" params={{ id: l.id }}>
-                        Ouvrir le dossier
-                      </Link>
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={l.journal.length === 0}
-                      onClick={() => telechargerJournal(l.denomination, l.journal)}
-                    >
-                      <Download aria-hidden strokeWidth={1.5} />
-                      Journal
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+          <TableauConformite
+            lignes={lignes}
+            isLoading={isLoading}
+            isError={isError}
+            onReessayer={() => void refetch()}
+            debut={debut}
+            fin={fin}
+            onPeriode={(d, f) => {
+              setDebut(d);
+              setFin(f);
+            }}
+          />
         </section>
       </div>
     </PageShell>

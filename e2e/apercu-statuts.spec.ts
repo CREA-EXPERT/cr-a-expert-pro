@@ -15,8 +15,8 @@ test("blocage détaillé, reprise automatique et journal de conformité", async 
   // Dossier incomplet : génération impossible et motifs affichés avec l'étape.
   await expect(page.getByRole("button", { name: "Afficher l'aperçu" })).toBeDisabled();
   await expect(apercu.getByText("Informations juridiques manquantes")).toBeVisible();
-  await expect(apercu.getByText("Dénomination sociale")).toBeVisible();
-  await expect(apercu.getByText("étape « Dénomination »")).toBeVisible();
+  await expect(apercu.getByText("Dénomination sociale").first()).toBeVisible();
+  await expect(apercu.getByText("étape « Dénomination »").first()).toBeVisible();
   await expect(
     apercu.getByText("L'aperçu sera disponible dès que les points ci-dessus seront traités."),
   ).toBeVisible();
