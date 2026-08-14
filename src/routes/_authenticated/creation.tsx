@@ -728,6 +728,7 @@ function Creation() {
               <div className="space-y-2">
                 <Label htmlFor="denom">
                   {ei ? "Nom commercial (facultatif)" : "Dénomination sociale"}
+                  {!ei && <Requis />}
                 </Label>
                 <Input
                   id="denom"
@@ -737,6 +738,39 @@ function Creation() {
                 />
                 <Err nom="denomination" />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="sigle">{ei ? "Enseigne (facultatif)" : "Sigle (facultatif)"}</Label>
+                <Input
+                  id="sigle"
+                  maxLength={40}
+                  value={dossier.sigle ?? ""}
+                  onChange={(e) => patch({ sigle: e.target.value })}
+                />
+              </div>
+              <VerifDenomination
+                denomination={dossier.denomination ?? ""}
+                codesNaf={activites.map((a) => a.naf_code)}
+                onRisque={(niveau) => patch({ denomination_risque: niveau })}
+              />
+
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="verif"
+                  checked={dossier.denomination_verifiee}
+                  onCheckedChange={(v) => patch({ denomination_verifiee: v === true })}
+                  className="mt-0.5"
+                />
+                <Label htmlFor="verif" className="text-sm font-normal">
+                  J'ai pris connaissance de ces informations et vérifié, dans la base des marques de
+                  l'INPI, qu'aucune marque antérieure ne crée de risque de confusion avec ce nom.
+                  J'en assume la responsabilité.
+                  <Requis />
+                </Label>
+              </div>
+              <Err nom="denomination_verifiee" />
+              <MentionObligatoire />
+            </div>
+          )}
               <div className="space-y-2">
                 <Label htmlFor="sigle">{ei ? "Enseigne (facultatif)" : "Sigle (facultatif)"}</Label>
                 <Input
