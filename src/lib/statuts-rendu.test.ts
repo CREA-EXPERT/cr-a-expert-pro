@@ -10,6 +10,7 @@ import type { Associe, Dossier } from "./documents";
 import { genererPdf, MENTION_ART_22, renduPour } from "./pdf";
 import { clausesManquantes, type Gabarit } from "./statuts-clauses";
 import { gabaritApplique } from "./statuts-controles";
+import { DATE_REGLES_CONFORMITE, VERSIONS_GABARIT } from "./gabarits";
 
 /** Extrait le texte de toutes les pages d'un PDF généré. */
 async function lirePdf(octets: Uint8Array) {
@@ -109,6 +110,19 @@ const CAS: { nom: string; gabarit: Gabarit; dossier: Dossier; associes: Associe[
     ],
   },
 ];
+
+describe("métadonnées de traçabilité", () => {
+  for (const cas of CAS) {
+    it(`${cas.nom} : inscrit la version du gabarit et la date des règles`, async () => {
+      const octets = await genererPdf("statuts", cas.dossier, cas.associes, null);
+      const { PDFDocument } = await import("pdf-lib");
+      const pdf = await PDFDocument.load(octets);
+      expect(pdf.getSubject()).toContain(VERSIONS_GABARIT[cas.gabarit]);
+      expect(pdf.getSubject()).toContain(DATE_REGLES_CONFORMITE);
+      expect(pdf.getKeywords()).toContain(`regles_conformite=${DATE_REGLES_CONFORMITE}`);
+    });
+  }
+});
 
 describe("génération des statuts, tous gabarits", () => {
   for (const cas of CAS) {
