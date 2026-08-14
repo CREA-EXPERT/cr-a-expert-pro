@@ -1,6 +1,6 @@
 import type { Tables } from "@/integrations/supabase/types";
 import { isEI } from "./domain";
-import { conjointConcerne, consentement1424, partenaireIndivisConcerne } from "./documents";
+import { consentement1424, partenaireIndivisConcerne } from "./documents";
 import type { Associe, Dossier } from "./documents";
 
 export type SignatureRow = Tables<"signatures_electroniques">;
