@@ -48,6 +48,8 @@ import {
   isSciForme,
 } from "./statuts-sci";
 import { gabaritApplique, messageRefusStatuts, motifsRefusStatuts } from "./statuts-controles";
+import { termesReglementesDetectes } from "./denomination";
+import { etatRevue } from "./denomination-journal";
 
 
 
