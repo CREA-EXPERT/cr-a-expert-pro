@@ -26,7 +26,11 @@ export const verifierPiece = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => Entree.parse(input))
   .handler(async ({ data, context }): Promise<RetourVerification> => {
-    const vide = { lance: false, synthese: null, controles: [] } as const;
+    const vide: Omit<RetourVerification, "erreur"> = {
+      lance: false,
+      synthese: null,
+      controles: [],
+    };
 
     // Lecture sous RLS : garantit que l'appelant a bien accès à cette pièce.
     const { data: doc } = await context.supabase
