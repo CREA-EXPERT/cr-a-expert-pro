@@ -4,7 +4,7 @@
  * cabinet qui en découle. Purement informatif, jamais bloquant.
  */
 
-import { journaliser, lireEvenements, type EvenementJournal } from "./journal";
+import { horodatageFr, journaliser, lireEvenements, type EvenementJournal } from "./journal";
 import { revueSystematique, type NiveauRisqueDenomination } from "./denomination";
 
 export const TYPE_VERIF_DENOMINATION = "denomination_verifiee";
@@ -85,4 +85,57 @@ export function lignesDenomination(evenements: EvenementJournal[]): LigneDenomin
 /** Historique des vérifications, du plus récent au plus ancien. */
 export async function historiqueDenomination(dossierId: string, limite = 50) {
   return lignesDenomination(await lireEvenements(dossierId, [TYPE_VERIF_DENOMINATION], limite));
+}
+
+/** Échappement CSV : guillemets doublés, champ toujours encadré. */
+function cellule(valeur: string) {
+  return `"${valeur.replace(/"/g, '""')}"`;
+}
+
+/**
+ * Journal des vérifications de dénomination au format CSV (séparateur
+ * point-virgule, BOM UTF-8 pour une ouverture correcte dans un tableur français).
+ */
+export function journalDenominationCsv(titre: string, lignes: LigneDenomination[]) {
+  const entete = [
+    "Horodatage",
+    "Horodatage ISO",
+    "Dossier",
+    "Dénomination testée",
+    "Niveau de risque",
+    "Termes réglementés",
+    "État de revue cabinet",
+  ];
+  const corps = lignes.map((l) =>
+    [
+      horodatageFr(l.date),
+      l.date,
+      titre,
+      l.denomination,
+      LIBELLE_RISQUE[l.risque],
+      l.termes.join(" | "),
+      LIBELLE_REVUE[l.revue],
+    ]
+      .map(cellule)
+      .join(";"),
+  );
+  const enTete = [
+    cellule(`Vérifications de dénomination — ${titre || "dossier"}`),
+    cellule(`Export du ${horodatageFr(new Date().toISOString())}`),
+    cellule("Information de risque — une homonymie n'empêche jamais l'immatriculation."),
+  ].join(";");
+  return `\uFEFF${enTete}\n${entete.map(cellule).join(";")}\n${corps.join("\n")}\n`;
+}
+
+/** Déclenche le téléchargement du journal des vérifications de dénomination. */
+export function telechargerJournalDenomination(titre: string, lignes: LigneDenomination[]) {
+  const blob = new Blob([journalDenominationCsv(titre, lignes)], {
+    type: "text/csv;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Vérifications de dénomination — ${titre || "dossier"}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
