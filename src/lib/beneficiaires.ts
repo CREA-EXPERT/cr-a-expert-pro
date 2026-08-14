@@ -38,7 +38,10 @@ export function pourcentageDetention(a: Associe, associes: Associe[]): number | 
   return null;
 }
 
-export function analyserBeneficiaires(_dossier: Dossier, associes: Associe[]): AnalyseBe {
+export function analyserBeneficiaires(dossier: Dossier, associesBruts: Associe[]): AnalyseBe {
+  // Un conjoint revendiquant la qualité d'associé (art. 1832-2) détient la
+  // moitié des parts souscrites : il compte dans le calcul du seuil de 25 %.
+  const associes = associesEffectifs(dossier, associesBruts);
   const titulaires = associes.filter((a) => a.est_associe);
   const beneficiaires: Beneficiaire[] = [];
 
