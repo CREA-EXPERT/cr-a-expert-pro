@@ -14,6 +14,7 @@ export const Route = createFileRoute("/mentions-legales")({
       { property: "og:title", content: "Mentions légales — CREA EXPERT" },
       { property: "og:description", content: "Informations légales de la plateforme CREA EXPERT." },
     ],
+    links: [{ rel: "canonical", href: "https://crea-expert.fr/mentions-legales" }],
   }),
   component: MentionsLegales,
 });

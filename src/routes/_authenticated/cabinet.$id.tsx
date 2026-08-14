@@ -37,6 +37,7 @@ export const Route = createFileRoute("/_authenticated/cabinet/$id")({
   head: () => ({
     meta: [
       { title: "Revue de dossier — CREA EXPERT" },
+      { name: "robots", content: "noindex, nofollow" },
       {
         name: "description",
         content:

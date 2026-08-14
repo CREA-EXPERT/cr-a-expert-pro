@@ -22,6 +22,7 @@ export const Route = createFileRoute("/_authenticated/verification-finale")({
   head: () => ({
     meta: [
       { title: "Vérification finale de votre dossier — CREA EXPERT" },
+      { name: "robots", content: "noindex, nofollow" },
       {
         name: "description",
         content:

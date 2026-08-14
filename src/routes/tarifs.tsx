@@ -20,6 +20,7 @@ export const Route = createFileRoute("/tarifs")({
           "Annonce légale, greffe, bénéficiaires effectifs : le coût réel d'une création de société, sans honoraires.",
       },
     ],
+    links: [{ rel: "canonical", href: "https://crea-expert.fr/tarifs" }],
   }),
   component: Tarifs,
 });

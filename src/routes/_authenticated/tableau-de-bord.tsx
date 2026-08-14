@@ -12,6 +12,7 @@ export const Route = createFileRoute("/_authenticated/tableau-de-bord")({
   head: () => ({
     meta: [
       { title: "Tableau de bord — CREA EXPERT" },
+      { name: "robots", content: "noindex, nofollow" },
       { name: "description", content: "Suivez l'avancement de votre dossier de création de société." },
       { property: "og:title", content: "Tableau de bord — CREA EXPERT" },
       { property: "og:description", content: "L'avancement de votre dossier de création." },

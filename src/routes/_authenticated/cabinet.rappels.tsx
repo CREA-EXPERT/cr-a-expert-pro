@@ -11,6 +11,7 @@ export const Route = createFileRoute("/_authenticated/cabinet/rappels")({
   head: () => ({
     meta: [
       { title: "Demandes de rappel — CREA EXPERT" },
+      { name: "robots", content: "noindex, nofollow" },
       {
         name: "description",
         content: "Suivi des demandes de rappel téléphonique adressées au cabinet partenaire.",

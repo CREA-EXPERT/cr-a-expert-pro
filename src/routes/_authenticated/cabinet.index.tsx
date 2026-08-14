@@ -15,6 +15,7 @@ export const Route = createFileRoute("/_authenticated/cabinet/")({
   head: () => ({
     meta: [
       { title: "Espace cabinet — CREA EXPERT" },
+      { name: "robots", content: "noindex, nofollow" },
       { name: "description", content: "Liste des dossiers de création à revoir par le cabinet d'expertise comptable." },
       { property: "og:title", content: "Espace cabinet — CREA EXPERT" },
       { property: "og:description", content: "Suivi et revue des dossiers clients." },
