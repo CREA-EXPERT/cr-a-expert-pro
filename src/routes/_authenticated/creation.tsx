@@ -1348,9 +1348,9 @@ function Creation() {
                                 }
                               >
                                 <option value="">—</option>
-                                {CIVILITES.map((c) => (
-                                  <option key={c.value} value={c.value}>
-                                    {c.label}
+                                {["Monsieur", "Madame"].map((c) => (
+                                  <option key={c} value={c}>
+                                    {c}
                                   </option>
                                 ))}
                               </select>
