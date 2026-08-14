@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PanneauQualite } from "@/components/PanneauQualite";
 import {
   Select,
   SelectContent,
@@ -101,6 +102,7 @@ function Admin() {
             <TabsTrigger value="roles">Rôles</TabsTrigger>
             <TabsTrigger value="signatures">Signatures</TabsTrigger>
             <TabsTrigger value="conservation">Conservation</TabsTrigger>
+            <TabsTrigger value="qualite">Qualité / Rejets</TabsTrigger>
           </TabsList>
 
           <TabsContent value="offres" className="mt-6">
@@ -123,6 +125,9 @@ function Admin() {
           </TabsContent>
           <TabsContent value="conservation" className="mt-6">
             <PanneauConservation />
+          </TabsContent>
+          <TabsContent value="qualite" className="mt-6">
+            <PanneauQualite />
           </TabsContent>
         </Tabs>
       </div>
