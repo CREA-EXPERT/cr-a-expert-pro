@@ -114,6 +114,19 @@ function aValider(ctx: Ctx, sujet: string) {
   ecrire(ctx, `[CLAUSE À VALIDER PAR LE CABINET — ${sujet}]`, { size: 10, color: GRIS });
 }
 
+/** Intitulé d'article reproduit tel quel (sans passage en capitales). */
+function article(ctx: Ctx, texte: string) {
+  espace(ctx, 10);
+  ecrire(ctx, texte, { size: 11, bold: true });
+  espace(ctx, 2);
+}
+
+function puce(ctx: Ctx, texte: string) {
+  ecrire(ctx, `• ${texte}`);
+  espace(ctx, 2);
+}
+
+
 async function creerCtx(titreDoc: string, sousTitre: string): Promise<Ctx> {
   const pdf = await PDFDocument.create();
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
