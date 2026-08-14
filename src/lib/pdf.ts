@@ -30,6 +30,22 @@ import {
   isSarl,
   repartitionParts,
 } from "./statuts-sarl";
+import {
+  associeUnique,
+  basculeSarlRequise,
+  champsManquantsStatutsEurl,
+  dureePremierExercice,
+  gerantTiers,
+  isEurl,
+  MESSAGE_BASCULE_SARL,
+  varianteArticle9,
+} from "./statuts-eurl";
+import {
+  champsManquantsStatutsSci,
+  conjointInforme as conjointInformeSci,
+  isSciForme,
+} from "./statuts-sci";
+
 
 const MARGE = 56;
 const LARGEUR = 595.28;
