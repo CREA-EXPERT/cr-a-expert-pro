@@ -752,6 +752,7 @@ function Creation() {
               <VerifDenomination
                 denomination={dossier.denomination ?? ""}
                 codesNaf={activites.map((a) => a.naf_code)}
+                dossierId={dossier.id}
                 onRisque={(niveau) => patch({ denomination_risque: niveau })}
               />
 

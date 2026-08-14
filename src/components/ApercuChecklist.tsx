@@ -1,3 +1,4 @@
+import { Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { analyserChecklist, LIBELLE_STATUT_PIECE, REGLES_ANTI_REJET, type StatutPiece } from "@/lib/checklist";
 import type { Associe, Dossier } from "@/lib/documents";
@@ -68,6 +69,12 @@ export function ApercuChecklist({ dossier, associes }: { dossier: Dossier; assoc
           </ul>
         </div>
       )}
+
+      <p className="flex items-start gap-2 text-sm leading-relaxed text-muted-foreground">
+        <Info className="mt-0.5 size-4 shrink-0" strokeWidth={1.5} aria-hidden />
+        Le dépôt de vos pièces s'ouvrira dans « Mes documents » une fois votre dossier validé à la
+        dernière étape.
+      </p>
 
       <div className="space-y-1 rounded-md border border-border bg-background p-3">
         <p className="text-sm font-medium">Les règles qui évitent un rejet</p>
