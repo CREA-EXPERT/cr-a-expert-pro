@@ -25,6 +25,10 @@ type Ctx = {
 /** Mode de rendu courant : filigrane « PROJET » et/ou mention de pied de page. */
 let RENDU: { filigrane: boolean; pied: string | null } = { filigrane: true, pied: null };
 
+/** Mention légale obligatoire sur chaque page de chaque acte généré. */
+export const MENTION_ART_22 =
+  "Acte établi à titre accessoire à la mission comptable, sous la responsabilité du cabinet d'expertise comptable en charge du dossier, conformément à l'article 22 de l'ordonnance n° 45-2138 du 19 septembre 1945.";
+
 function filigrane(page: PDFPage, font: PDFFont) {
   if (RENDU.filigrane) {
     page.drawText("PROJET — soumis à la validation du cabinet", {
@@ -37,9 +41,18 @@ function filigrane(page: PDFPage, font: PDFFont) {
     });
   }
   if (RENDU.pied) {
-    page.drawText(RENDU.pied, { x: MARGE, y: 30, size: 8, font, color: GRIS });
+    page.drawText(RENDU.pied, { x: MARGE, y: 34, size: 8, font, color: GRIS });
+  }
+  // Mention art. 22 de l'ordonnance de 1945 : 8 pt, gris, centrée, sur toutes les pages.
+  const lignesMention = lignes(MENTION_ART_22, font, 8, LARGEUR - MARGE * 2);
+  let yMention = 12 + (lignesMention.length - 1) * 9;
+  for (const l of lignesMention) {
+    const largeur = font.widthOfTextAtSize(l, 8);
+    page.drawText(l, { x: (LARGEUR - largeur) / 2, y: yMention, size: 8, font, color: GRIS });
+    yMention -= 9;
   }
 }
+
 
 /** Détermine le rendu à partir de l'état du dossier (validation cabinet ou auto-validation). */
 export function renduPour(d: Dossier): { filigrane: boolean; pied: string | null } {
