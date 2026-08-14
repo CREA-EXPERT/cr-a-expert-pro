@@ -91,6 +91,13 @@ export function consentement1424(dossier: Dossier, associes: Associe[]) {
 /** Points qui imposent la revue d'un professionnel avant dépôt. */
 export function revuesHumaines(dossier: Dossier, associes: Associe[]): string[] {
   const out: string[] = [];
+  // Dénomination : information de risque uniquement, jamais bloquante.
+  out.push(
+    ...revuesDenomination(
+      dossier.denomination,
+      (dossier as unknown as { denomination_risque?: string | null }).denomination_risque ?? null,
+    ),
+  );
   if (consentement1424(dossier, associes).doute)
     out.push(
       "La nature commune ou propre du bien apporté n'est pas déterminée : un professionnel doit qualifier le bien avant la signature des statuts.",
