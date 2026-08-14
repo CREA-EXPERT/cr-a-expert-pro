@@ -10,6 +10,9 @@ export default defineConfig({
   testDir: "./e2e",
   timeout: 60_000,
   fullyParallel: true,
+  // Le serveur de développement compile à la demande : au-delà de trois pages
+  // simultanées, l'hydratation dépasse les délais d'attente.
+  workers: 3,
   reporter: [["list"]],
   use: { baseURL: "http://localhost:8080", trace: "off" },
   projects: [

@@ -911,6 +911,53 @@ export type Database = {
           },
         ]
       }
+      notifications_cabinet: {
+        Row: {
+          created_at: string
+          denomination: string
+          dossier_id: string
+          email_envoye_le: string | null
+          id: string
+          lu: boolean
+          message: string
+          motif_principal: string | null
+          type_event: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          denomination?: string
+          dossier_id: string
+          email_envoye_le?: string | null
+          id?: string
+          lu?: boolean
+          message: string
+          motif_principal?: string | null
+          type_event: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          denomination?: string
+          dossier_id?: string
+          email_envoye_le?: string | null
+          id?: string
+          lu?: boolean
+          message?: string
+          motif_principal?: string | null
+          type_event?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_cabinet_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offres_creation: {
         Row: {
           actif: boolean

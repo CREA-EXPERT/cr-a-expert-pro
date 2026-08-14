@@ -1,6 +1,5 @@
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { genererGabaritIdentite, telechargerPdf } from "@/lib/pdf";
 import type { Associe, Dossier } from "@/lib/documents";
 import { Download } from "lucide-react";
 
@@ -11,6 +10,7 @@ import { Download } from "lucide-react";
 export function GuideIdentite({ dossier, associes }: { dossier: Dossier; associes: Associe[] }) {
   async function telecharger() {
     try {
+      const { genererGabaritIdentite, telechargerPdf } = await import("@/lib/pdf");
       const octets = await genererGabaritIdentite(dossier, associes);
       telechargerPdf(octets, "Gabarit - copie de piece d'identite certifiee conforme");
     } catch {

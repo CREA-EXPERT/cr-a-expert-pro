@@ -4,13 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { EncadrePliable } from "@/components/EncadrePliable";
 import { GuideCorrection } from "@/components/GuideCorrection";
 import type { Associe, Dossier } from "@/lib/documents";
-import { genererPdf, telechargerPdf } from "@/lib/pdf";
-import {
-  horodatageFr,
-  journaliser,
-  lireEvenements,
-  type EvenementJournal,
-} from "@/lib/journal";
+import { horodatageFr, lireEvenements, type EvenementJournal } from "@/lib/journal";
+import { extraireMeta, journaliserConformite, TYPE_BLOQUEE, TYPE_REUSSIE } from "@/lib/conformite";
+import { notifierConformite } from "@/lib/notifications.functions";
 import {
   alertesStatuts,
   champsManquantsStatuts,
@@ -25,7 +21,7 @@ const LIBELLE_GABARIT: Record<string, string> = {
   SCI: "Société civile immobilière",
 };
 
-const TYPES_JOURNAL = ["statuts_generation_bloquee", "statuts_generation_reussie"];
+const TYPES_JOURNAL = [TYPE_BLOQUEE, TYPE_REUSSIE];
 /** Anti-spam : un blocage strictement identique n'est pas rejournalisé sous 5 minutes. */
 const DELAI_ANTI_DOUBLON = 5 * 60 * 1000;
 /** Anti-rafale : délai d'inactivité avant régénération automatique. */
@@ -69,12 +65,19 @@ export function ApercuStatuts({ dossier, associes }: { dossier: Dossier; associe
 
   /** Ajoute l'événement au journal affiché et le persiste au journal du dossier. */
   const consigner = useCallback(
-    (type: string, message: string) => {
+    (type: string, message: string, motifPrincipal: string | null = null) => {
       const evenement = { type_event: type, message, created_at: new Date().toISOString() };
       setJournal((liste) => [evenement, ...liste].slice(0, 10));
-      void journaliser(dossier.id, type, message);
+      void journaliserConformite(dossier.id, type, message, gabarit);
+      // Notification interne : refus, ou réussite faisant suite à un refus.
+      const suiteARefus = journal.some((e) => e.type_event === TYPE_BLOQUEE);
+      if (type === TYPE_BLOQUEE || (type === TYPE_REUSSIE && suiteARefus)) {
+        void notifierConformite({
+          data: { dossierId: dossier.id, typeEvent: type, motifPrincipal, message },
+        }).catch(() => undefined);
+      }
     },
-    [dossier.id],
+    [dossier.id, gabarit, journal],
   );
 
   const consignerBlocage = useCallback(() => {
@@ -86,10 +89,11 @@ export function ApercuStatuts({ dossier, associes }: { dossier: Dossier; associe
       return;
     dernierBlocage.current = { cle: detail, le: Date.now() };
     consigner(
-      "statuts_generation_bloquee",
+      TYPE_BLOQUEE,
       `Génération des statuts bloquée — ${motifs.length} point${
         motifs.length > 1 ? "s" : ""
       } à traiter : ${detail}.`,
+      motifs[0]?.texte ?? null,
     );
   }, [motifs, consigner]);
 
@@ -104,6 +108,7 @@ export function ApercuStatuts({ dossier, associes }: { dossier: Dossier; associe
     setEnCours(true);
     setErreur(null);
     try {
+      const { genererPdf } = await import("@/lib/pdf");
       const bytes = await genererPdf("statuts", dossier, associes, null);
       octets.current = bytes;
       const blob = new Blob([bytes as unknown as BlobPart], { type: "application/pdf" });
@@ -112,7 +117,7 @@ export function ApercuStatuts({ dossier, associes }: { dossier: Dossier; associe
       urlCourante.current = nouvelle;
       setUrl(nouvelle);
       consigner(
-        "statuts_generation_reussie",
+        TYPE_REUSSIE,
         `Projet de statuts généré — gabarit ${LIBELLE_GABARIT[gabarit ?? ""] ?? gabarit}.`,
       );
     } catch (e) {
@@ -215,7 +220,7 @@ export function ApercuStatuts({ dossier, associes }: { dossier: Dossier; associe
             {journal.slice(0, 10).map((e, i) => (
               <li key={`${e.created_at}-${i}`} className="space-y-1">
                 <p className="text-xs text-muted-foreground">{horodatageFr(e.created_at)}</p>
-                <p className="text-justify">{e.message}</p>
+                <p className="text-justify">{extraireMeta(e.message).message}</p>
               </li>
             ))}
           </ul>
@@ -231,8 +236,11 @@ export function ApercuStatuts({ dossier, associes }: { dossier: Dossier; associe
           variant="outline"
           disabled={!url}
           onClick={() =>
-            octets.current &&
-            telechargerPdf(octets.current, `Statuts ${dossier.denomination ?? "projet"}`)
+            void (async () => {
+              if (!octets.current) return;
+              const { telechargerPdf } = await import("@/lib/pdf");
+              telechargerPdf(octets.current, `Statuts ${dossier.denomination ?? "projet"}`);
+            })()
           }
         >
           Télécharger le projet
@@ -249,7 +257,10 @@ export function ApercuStatuts({ dossier, associes }: { dossier: Dossier; associe
       )}
 
       {erreur && (
-        <p role="alert" className="rounded-md border border-border bg-background p-4 text-sm text-justify">
+        <p
+          role="alert"
+          className="rounded-md border border-border bg-background p-4 text-sm text-justify"
+        >
           {erreur}
         </p>
       )}
