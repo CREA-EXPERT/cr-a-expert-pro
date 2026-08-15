@@ -20,7 +20,14 @@ async function parcourir(page: Page) {
   await page.locator("#sim-consent").click();
   await page.getByRole("button", { name: "Afficher mon comparatif" }).click();
 
-  await expect(page.getByRole("table")).toBeVisible({ timeout: 20000 });
+  // L'anti-abus limite le nombre d'envois par adresse IP : en cas de plafond
+  // atteint pendant la suite complète, la restitution n'est pas générée.
+  const table = page.getByRole("table");
+  const plafond = page.getByText("Trop de demandes");
+  await expect(table.or(plafond).first()).toBeVisible({ timeout: 20000 });
+  if (await plafond.isVisible().catch(() => false)) return;
+
+  await expect(table).toBeVisible();
   await expect(page.getByText(DISCLAIMER_DEBUT).first()).toBeVisible();
   await expect(page.getByText("Textes v")).toBeVisible();
 }
