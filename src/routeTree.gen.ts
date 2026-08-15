@@ -42,6 +42,7 @@ import { Route as AuthenticatedCabinetDenominationsRouteImport } from './routes/
 import { Route as AuthenticatedCabinetDonneesTestRouteImport } from './routes/_authenticated/cabinet.donnees-test'
 import { Route as AuthenticatedCabinetRappelsRouteImport } from './routes/_authenticated/cabinet.rappels'
 import { Route as ApiPublicEmailsTestRouteImport } from './routes/api/public/emails-test'
+import { Route as ApiPublicEmailsTestConfirmerRouteImport } from './routes/api/public/emails-test.confirmer'
 import { Route as ApiPublicHooksPurgeDonneesRouteImport } from './routes/api/public/hooks/purge-donnees'
 import { Route as ApiPublicHooksRelancePiecesRouteImport } from './routes/api/public/hooks/relance-pieces'
 import { Route as ApiPublicHooksRelanceSignaturesRouteImport } from './routes/api/public/hooks/relance-signatures'
@@ -219,6 +220,12 @@ const ApiPublicEmailsTestRoute = ApiPublicEmailsTestRouteImport.update({
   path: '/api/public/emails-test',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicEmailsTestConfirmerRoute =
+  ApiPublicEmailsTestConfirmerRouteImport.update({
+    id: '/confirmer',
+    path: '/confirmer',
+    getParentRoute: () => ApiPublicEmailsTestRoute,
+  } as any)
 const ApiPublicHooksPurgeDonneesRoute =
   ApiPublicHooksPurgeDonneesRouteImport.update({
     id: '/api/public/hooks/purge-donnees',
@@ -269,8 +276,9 @@ export interface FileRoutesByFullPath {
   '/cabinet/denominations': typeof AuthenticatedCabinetDenominationsRoute
   '/cabinet/donnees-test': typeof AuthenticatedCabinetDonneesTestRoute
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
-  '/api/public/emails-test': typeof ApiPublicEmailsTestRoute
+  '/api/public/emails-test': typeof ApiPublicEmailsTestRouteWithChildren
   '/cabinet/': typeof AuthenticatedCabinetIndexRoute
+  '/api/public/emails-test/confirmer': typeof ApiPublicEmailsTestConfirmerRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
   '/api/public/hooks/relance-pieces': typeof ApiPublicHooksRelancePiecesRoute
   '/api/public/hooks/relance-signatures': typeof ApiPublicHooksRelanceSignaturesRoute
@@ -306,8 +314,9 @@ export interface FileRoutesByTo {
   '/cabinet/denominations': typeof AuthenticatedCabinetDenominationsRoute
   '/cabinet/donnees-test': typeof AuthenticatedCabinetDonneesTestRoute
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
-  '/api/public/emails-test': typeof ApiPublicEmailsTestRoute
+  '/api/public/emails-test': typeof ApiPublicEmailsTestRouteWithChildren
   '/cabinet': typeof AuthenticatedCabinetIndexRoute
+  '/api/public/emails-test/confirmer': typeof ApiPublicEmailsTestConfirmerRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
   '/api/public/hooks/relance-pieces': typeof ApiPublicHooksRelancePiecesRoute
   '/api/public/hooks/relance-signatures': typeof ApiPublicHooksRelanceSignaturesRoute
@@ -345,8 +354,9 @@ export interface FileRoutesById {
   '/_authenticated/cabinet/denominations': typeof AuthenticatedCabinetDenominationsRoute
   '/_authenticated/cabinet/donnees-test': typeof AuthenticatedCabinetDonneesTestRoute
   '/_authenticated/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
-  '/api/public/emails-test': typeof ApiPublicEmailsTestRoute
+  '/api/public/emails-test': typeof ApiPublicEmailsTestRouteWithChildren
   '/_authenticated/cabinet/': typeof AuthenticatedCabinetIndexRoute
+  '/api/public/emails-test/confirmer': typeof ApiPublicEmailsTestConfirmerRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
   '/api/public/hooks/relance-pieces': typeof ApiPublicHooksRelancePiecesRoute
   '/api/public/hooks/relance-signatures': typeof ApiPublicHooksRelanceSignaturesRoute
@@ -386,6 +396,7 @@ export interface FileRouteTypes {
     | '/cabinet/rappels'
     | '/api/public/emails-test'
     | '/cabinet/'
+    | '/api/public/emails-test/confirmer'
     | '/api/public/hooks/purge-donnees'
     | '/api/public/hooks/relance-pieces'
     | '/api/public/hooks/relance-signatures'
@@ -423,6 +434,7 @@ export interface FileRouteTypes {
     | '/cabinet/rappels'
     | '/api/public/emails-test'
     | '/cabinet'
+    | '/api/public/emails-test/confirmer'
     | '/api/public/hooks/purge-donnees'
     | '/api/public/hooks/relance-pieces'
     | '/api/public/hooks/relance-signatures'
@@ -461,6 +473,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cabinet/rappels'
     | '/api/public/emails-test'
     | '/_authenticated/cabinet/'
+    | '/api/public/emails-test/confirmer'
     | '/api/public/hooks/purge-donnees'
     | '/api/public/hooks/relance-pieces'
     | '/api/public/hooks/relance-signatures'
@@ -485,7 +498,7 @@ export interface RootRouteChildren {
   DevDenominationRoute: typeof DevDenominationRoute
   DevWordingDenominationRoute: typeof DevWordingDenominationRoute
   SignerJetonRoute: typeof SignerJetonRoute
-  ApiPublicEmailsTestRoute: typeof ApiPublicEmailsTestRoute
+  ApiPublicEmailsTestRoute: typeof ApiPublicEmailsTestRouteWithChildren
   ApiPublicHooksPurgeDonneesRoute: typeof ApiPublicHooksPurgeDonneesRoute
   ApiPublicHooksRelancePiecesRoute: typeof ApiPublicHooksRelancePiecesRoute
   ApiPublicHooksRelanceSignaturesRoute: typeof ApiPublicHooksRelanceSignaturesRoute
@@ -724,6 +737,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicEmailsTestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/emails-test/confirmer': {
+      id: '/api/public/emails-test/confirmer'
+      path: '/confirmer'
+      fullPath: '/api/public/emails-test/confirmer'
+      preLoaderRoute: typeof ApiPublicEmailsTestConfirmerRouteImport
+      parentRoute: typeof ApiPublicEmailsTestRoute
+    }
     '/api/public/hooks/purge-donnees': {
       id: '/api/public/hooks/purge-donnees'
       path: '/api/public/hooks/purge-donnees'
@@ -786,6 +806,17 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface ApiPublicEmailsTestRouteChildren {
+  ApiPublicEmailsTestConfirmerRoute: typeof ApiPublicEmailsTestConfirmerRoute
+}
+
+const ApiPublicEmailsTestRouteChildren: ApiPublicEmailsTestRouteChildren = {
+  ApiPublicEmailsTestConfirmerRoute: ApiPublicEmailsTestConfirmerRoute,
+}
+
+const ApiPublicEmailsTestRouteWithChildren =
+  ApiPublicEmailsTestRoute._addFileChildren(ApiPublicEmailsTestRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -805,7 +836,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevDenominationRoute: DevDenominationRoute,
   DevWordingDenominationRoute: DevWordingDenominationRoute,
   SignerJetonRoute: SignerJetonRoute,
-  ApiPublicEmailsTestRoute: ApiPublicEmailsTestRoute,
+  ApiPublicEmailsTestRoute: ApiPublicEmailsTestRouteWithChildren,
   ApiPublicHooksPurgeDonneesRoute: ApiPublicHooksPurgeDonneesRoute,
   ApiPublicHooksRelancePiecesRoute: ApiPublicHooksRelancePiecesRoute,
   ApiPublicHooksRelanceSignaturesRoute: ApiPublicHooksRelanceSignaturesRoute,
