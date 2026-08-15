@@ -87,6 +87,7 @@ export async function envoyerEmail({
   expediteur,
   dossierId,
   pourCabinet,
+  tag,
 }: {
   destinataire: string;
   sujet: string;
@@ -97,6 +98,8 @@ export async function envoyerEmail({
   dossierId?: string | null;
   /** Vrai lorsque le message est une copie destinée au cabinet. */
   pourCabinet?: boolean;
+  /** Étiquette de message, utilisée par la boîte de réception de test. */
+  tag?: string;
 }): Promise<ResultatEnvoi> {
   let sujetFinal = sujet;
   let destinataireFinal = destinataire;
@@ -126,6 +129,34 @@ export async function envoyerEmail({
     sujetFinal = prepare.sujet;
     destinataireFinal = prepare.destinataire;
   }
+
+  if (interceptionTestActive()) {
+    try {
+      await ecrireBoiteTest({
+        dossier_id: dossierId ?? null,
+        destinataire: destinataireFinal,
+        sujet: sujetFinal,
+        corps: html,
+        tag: tag ?? "generique",
+        pour_cabinet: pourCabinet === true,
+      });
+    } catch (e) {
+      const detail = e instanceof Error ? e.message : String(e);
+      return { envoye: false, raison: "erreur", detail };
+    }
+    if (dossierId)
+      await journaliser({
+        dossier_id: dossierId,
+        destinataire: destinataireFinal,
+        sujet: sujetFinal,
+        statut: "intercepte_test",
+        detail: tag ?? "generique",
+        test: true,
+      });
+    return { envoye: true };
+  }
+
+
 
   const cleConnexion = process.env["RESEND_API_KEY"];
   const cleLovable = process.env["LOVABLE_API_KEY"];
