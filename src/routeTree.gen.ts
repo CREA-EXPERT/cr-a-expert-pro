@@ -17,6 +17,7 @@ import { Route as CgvRouteImport } from './routes/cgv'
 import { Route as CommencerRouteImport } from './routes/commencer'
 import { Route as ConfidentialiteRouteImport } from './routes/confidentialite'
 import { Route as MentionsLegalesRouteImport } from './routes/mentions-legales'
+import { Route as RendezVousRouteImport } from './routes/rendez-vous'
 import { Route as SimulateurRouteImport } from './routes/simulateur'
 import { Route as TarifsRouteImport } from './routes/tarifs'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -77,6 +78,11 @@ const ConfidentialiteRoute = ConfidentialiteRouteImport.update({
 const MentionsLegalesRoute = MentionsLegalesRouteImport.update({
   id: '/mentions-legales',
   path: '/mentions-legales',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RendezVousRoute = RendezVousRouteImport.update({
+  id: '/rendez-vous',
+  path: '/rendez-vous',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SimulateurRoute = SimulateurRouteImport.update({
@@ -207,6 +213,7 @@ export interface FileRoutesByFullPath {
   '/commencer': typeof CommencerRoute
   '/confidentialite': typeof ConfidentialiteRoute
   '/mentions-legales': typeof MentionsLegalesRoute
+  '/rendez-vous': typeof RendezVousRoute
   '/simulateur': typeof SimulateurRoute
   '/tarifs': typeof TarifsRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -238,6 +245,7 @@ export interface FileRoutesByTo {
   '/commencer': typeof CommencerRoute
   '/confidentialite': typeof ConfidentialiteRoute
   '/mentions-legales': typeof MentionsLegalesRoute
+  '/rendez-vous': typeof RendezVousRoute
   '/simulateur': typeof SimulateurRoute
   '/tarifs': typeof TarifsRoute
   '/admin': typeof AuthenticatedAdminRoute
@@ -271,6 +279,7 @@ export interface FileRoutesById {
   '/commencer': typeof CommencerRoute
   '/confidentialite': typeof ConfidentialiteRoute
   '/mentions-legales': typeof MentionsLegalesRoute
+  '/rendez-vous': typeof RendezVousRoute
   '/simulateur': typeof SimulateurRoute
   '/tarifs': typeof TarifsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
@@ -304,6 +313,7 @@ export interface FileRouteTypes {
     | '/commencer'
     | '/confidentialite'
     | '/mentions-legales'
+    | '/rendez-vous'
     | '/simulateur'
     | '/tarifs'
     | '/admin'
@@ -335,6 +345,7 @@ export interface FileRouteTypes {
     | '/commencer'
     | '/confidentialite'
     | '/mentions-legales'
+    | '/rendez-vous'
     | '/simulateur'
     | '/tarifs'
     | '/admin'
@@ -367,6 +378,7 @@ export interface FileRouteTypes {
     | '/commencer'
     | '/confidentialite'
     | '/mentions-legales'
+    | '/rendez-vous'
     | '/simulateur'
     | '/tarifs'
     | '/_authenticated/admin'
@@ -400,6 +412,7 @@ export interface RootRouteChildren {
   CommencerRoute: typeof CommencerRoute
   ConfidentialiteRoute: typeof ConfidentialiteRoute
   MentionsLegalesRoute: typeof MentionsLegalesRoute
+  RendezVousRoute: typeof RendezVousRoute
   SimulateurRoute: typeof SimulateurRoute
   TarifsRoute: typeof TarifsRoute
   DevApercuStatutsRoute: typeof DevApercuStatutsRoute
@@ -469,6 +482,13 @@ declare module '@tanstack/react-router' {
       path: '/mentions-legales'
       fullPath: '/mentions-legales'
       preLoaderRoute: typeof MentionsLegalesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rendez-vous': {
+      id: '/rendez-vous'
+      path: '/rendez-vous'
+      fullPath: '/rendez-vous'
+      preLoaderRoute: typeof RendezVousRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/simulateur': {
@@ -669,6 +689,7 @@ const rootRouteChildren: RootRouteChildren = {
   CommencerRoute: CommencerRoute,
   ConfidentialiteRoute: ConfidentialiteRoute,
   MentionsLegalesRoute: MentionsLegalesRoute,
+  RendezVousRoute: RendezVousRoute,
   SimulateurRoute: SimulateurRoute,
   TarifsRoute: TarifsRoute,
   DevApercuStatutsRoute: DevApercuStatutsRoute,
