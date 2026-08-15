@@ -5,6 +5,7 @@
  */
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { envoyerEmail } from "@/lib/email.server";
+import { EMAIL_CABINET } from "@/lib/config";
 
 const EXPEDITEUR = "CREA EXPERT <contact@crea-expert.fr>";
 
