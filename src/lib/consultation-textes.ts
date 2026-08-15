@@ -18,7 +18,7 @@ export const CONSULTATION_DUREE =
 
 /** Texte affiché sous le bouton de réservation, quand le libellé est placé sous le bouton. */
 export const CONSULTATION_SOUS_BOUTON =
-  `Consultation d' 1h avec un expert-comptable (durée indicative). ${PRIX_CONSULTATION.ttc} TTC (${PRIX_CONSULTATION.tva}). La durée est indicative, on traite le problème jusqu'au bout.`;
+  `Consultation d' 1h avec un expert-comptable (durée indicative). ${PRIX_CONSULTATION.ttc} TTC ( ${PRIX_CONSULTATION.tva}). La durée est indicative, on traite le problème jusqu'au bout.`;
 
 
 
