@@ -483,7 +483,7 @@ export function analyserChecklist(dossier: Dossier, associes: Associe[]): Analys
         blocages.push({
           titre: `${nomDe(a)} — mineur non émancipé désigné dirigeant`,
           message:
-            "Un mineur non émancipé ne peut être ni commerçant ni dirigeant. Retirez-lui le mandat social, ou demandez à être rappelé pour étudier une autre solution.",
+            "Un mineur non émancipé ne peut être ni commerçant ni dirigeant. Retirez-lui le mandat social, ou réservez une consultation avec un expert-comptable pour étudier une autre solution.",
         });
       } else {
         add({
@@ -504,7 +504,7 @@ export function analyserChecklist(dossier: Dossier, associes: Associe[]): Analys
       blocages.push({
         titre: `${nomDe(a)} — majeur sous tutelle`,
         message:
-          "Une personne sous tutelle ne peut être ni commerçante ni dirigeante. Ce dossier sort du parcours standard : demandez à être rappelé.",
+          "Une personne sous tutelle ne peut être ni commerçante ni dirigeante. Ce dossier sort du parcours standard : réservez une consultation avec un expert-comptable.",
       });
     }
     if (a.mesure_protection === "curatelle") {

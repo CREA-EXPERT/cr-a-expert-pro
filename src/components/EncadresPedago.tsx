@@ -1,4 +1,4 @@
-import { CallbackDialog } from "@/components/CallbackDialog";
+import { ConsultationExpertCard } from "@/components/ConsultationExpertCard";
 import { CABINET, RELECTURE_LIMITES } from "@/lib/domain";
 import { EncadrePliable } from "@/components/EncadrePliable";
 
@@ -73,7 +73,7 @@ export function EncadreMineur({ signale = false }: { signale?: boolean }) {
         {CABINET.mention}.
       </p>
       <div className="mt-3">
-        <CallbackDialog label="Être rappelé par un expert-comptable" size="sm" />
+        <ConsultationExpertCard variante="inline" />
       </div>
     </div>
   );
@@ -213,7 +213,7 @@ export function EncadreCompositionForme({ forme }: { forme: string }) {
 export function EncadreDemembrement() {
   return (
     <div className="rounded-md border border-warning/50 bg-warning/10 p-4 text-sm leading-relaxed text-justify">
-      <p className="font-medium">Usufruit, nue-propriété, transmission : demandez à être rappelé</p>
+      <p className="font-medium">Usufruit, nue-propriété, transmission : faites le point avec un expert-comptable</p>
       <p className="mt-2">
         Répartir les titres entre usufruitier et nu-propriétaire, faire entrer des enfants au
         capital, préparer une donation ou une transmission familiale sont des schémas parfaitement
@@ -224,11 +224,11 @@ export function EncadreDemembrement() {
       </p>
       <p className="mt-2">
         Ce parcours en ligne traite les répartitions simples, en pleine propriété. Si vous envisagez
-        un démembrement ou si vous vous posez des questions de transmission, demandez à être rappelé
-        par un expert-comptable avant de poursuivre.
+        un démembrement ou si vous vous posez des questions de transmission, réservez une
+        consultation avec un expert-comptable avant de poursuivre.
       </p>
       <div className="mt-3">
-        <CallbackDialog label="Être rappelé par un expert-comptable" size="sm" />
+        <ConsultationExpertCard variante="inline" />
       </div>
     </div>
   );

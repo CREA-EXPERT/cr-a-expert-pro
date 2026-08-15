@@ -124,7 +124,7 @@ Comment lire ce résultat selon vos priorités :
 - Vous raisonnez patrimoine et transmission → les deux formes protègent votre patrimoine personnel ; la SASU (actions) se cède et s'ouvre plus facilement à des associés ou investisseurs.
 - Vous raisonnez impôt → à l'IS (les deux formes le permettent), la société paie l'impôt sur ses bénéfices (15 % jusqu'à 42 500 € de bénéfice, 25 % au-delà) et vous choisissez ce que vous vous versez ; à l'IR, le bénéfice est imposé directement entre vos mains, ce qui peut être favorable en début d'activité déficitaire ou à faible bénéfice.
 
-Ces éléments sont une information générale : ils ne remplacent pas un échange sur votre situation précise. Si vous le souhaitez, un expert-comptable inscrit à l'Ordre peut en discuter avec vous — demandez simplement à être rappelé.
+Ces éléments sont une information générale : ils ne remplacent pas un échange sur votre situation précise. Si vous le souhaitez, un expert-comptable inscrit à l'Ordre peut en discuter avec vous lors d'une consultation d'une heure, à réserver depuis le site.
 
 Prêt(e) à vous lancer ? Votre création est à honoraires offerts : [bouton « Créer ma société »]
 

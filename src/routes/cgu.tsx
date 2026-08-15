@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageShell } from "@/components/layout/PageShell";
 import { EDITEUR } from "@/lib/editeur";
+import { PRIX_CONSULTATION } from "@/lib/contact";
 
 export const Route = createFileRoute("/cgu")({
   head: () => ({
@@ -69,7 +70,20 @@ function Cgu() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-serif text-2xl">4. Obligations de l'utilisateur</h2>
+          <h2 className="font-serif text-2xl">4. Consultation avec un expert-comptable</h2>
+          <p>
+            La consultation d'une heure est une prestation fournie par le cabinet d'expertise
+            comptable partenaire, {EDITEUR.cabinetPartenaire.nom}. Elle se réserve et se règle sur
+            la page de réservation en ligne, au prix de {PRIX_CONSULTATION.ttc} TTC (
+            {PRIX_CONSULTATION.ht} HT, {PRIX_CONSULTATION.tva}). Le rendez-vous peut être reporté
+            jusqu'à 24 heures avant l'horaire retenu. Le droit de rétractation applicable aux
+            contrats conclus à distance est traité au moment de la réservation, l'utilisateur étant
+            invité à se prononcer sur l'exécution de la prestation avant l'expiration du délai.
+          </p>
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="font-serif text-2xl">5. Obligations de l'utilisateur</h2>
           <p>
             L'utilisateur garantit l'exactitude et la complétude des informations et des pièces
             qu'il transmet. Il s'engage à ne déposer que des documents dont il est légitimement
@@ -78,7 +92,7 @@ function Cgu() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-serif text-2xl">5. Compte et sécurité</h2>
+          <h2 className="font-serif text-2xl">6. Compte et sécurité</h2>
           <p>
             L'accès à l'espace personnel est protégé par des identifiants strictement personnels et
             confidentiels. L'utilisateur est responsable de leur conservation et doit signaler sans
@@ -89,7 +103,7 @@ function Cgu() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="font-serif text-2xl">6. Responsabilité</h2>
+          <h2 className="font-serif text-2xl">7. Responsabilité</h2>
           <p>
             L'éditeur met en œuvre les moyens raisonnables pour assurer la disponibilité et
             l'exactitude des contenus du site, sans garantie de résultat. La responsabilité de
