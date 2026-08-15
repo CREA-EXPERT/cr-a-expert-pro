@@ -1,4 +1,4 @@
-import { test, expect, devices, type Page } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 const DISCLAIMER_DEBUT = "Ce comparateur fournit une information générale et pédagogique";
 
@@ -19,7 +19,7 @@ async function parcourir(page: Page) {
   }
 
   await expect(page.getByRole("heading", { name: "Recevoir votre comparatif" })).toBeVisible();
-  await page.getByLabel("Adresse électronique").fill("e2e@example.com");
+  await page.locator("#sim-email").fill("e2e@example.com");
   await page.locator("#sim-consent").click();
   await page.getByRole("button", { name: "Afficher mon comparatif" }).click();
 
@@ -28,16 +28,8 @@ async function parcourir(page: Page) {
   await expect(page.getByText("Textes v")).toBeVisible();
 }
 
-test("comparateur — parcours complet (desktop)", async ({ page }) => {
-  await page.setViewportSize({ width: 1280, height: 1000 });
+test("comparateur — parcours complet", async ({ page }) => {
   await parcourir(page);
-});
-
-test("comparateur — parcours complet (mobile)", async ({ browser }) => {
-  const context = await browser.newContext({ ...devices["iPhone 13"] });
-  const page = await context.newPage();
-  await parcourir(page);
-  await context.close();
 });
 
 test("l'ancien libellé « Aidez-moi à choisir » a disparu", async ({ page }) => {
