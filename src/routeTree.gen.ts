@@ -32,6 +32,7 @@ import { Route as DevApercuStatutsRouteImport } from './routes/dev.apercu-statut
 import { Route as DevAssocieDateRouteImport } from './routes/dev.associe-date'
 import { Route as DevConformiteRouteImport } from './routes/dev.conformite'
 import { Route as DevDenominationRouteImport } from './routes/dev.denomination'
+import { Route as DevEncadresRouteImport } from './routes/dev.encadres'
 import { Route as DevWordingDenominationRouteImport } from './routes/dev.wording-denomination'
 import { Route as SignerJetonRouteImport } from './routes/signer.$jeton'
 import { Route as AuthenticatedCabinetIndexRouteImport } from './routes/_authenticated/cabinet.index'
@@ -165,6 +166,11 @@ const DevDenominationRoute = DevDenominationRouteImport.update({
   path: '/dev/denomination',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DevEncadresRoute = DevEncadresRouteImport.update({
+  id: '/dev/encadres',
+  path: '/dev/encadres',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DevWordingDenominationRoute = DevWordingDenominationRouteImport.update({
   id: '/dev/wording-denomination',
   path: '/dev/wording-denomination',
@@ -275,6 +281,7 @@ export interface FileRoutesByFullPath {
   '/dev/associe-date': typeof DevAssocieDateRoute
   '/dev/conformite': typeof DevConformiteRoute
   '/dev/denomination': typeof DevDenominationRoute
+  '/dev/encadres': typeof DevEncadresRoute
   '/dev/wording-denomination': typeof DevWordingDenominationRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
@@ -314,6 +321,7 @@ export interface FileRoutesByTo {
   '/dev/associe-date': typeof DevAssocieDateRoute
   '/dev/conformite': typeof DevConformiteRoute
   '/dev/denomination': typeof DevDenominationRoute
+  '/dev/encadres': typeof DevEncadresRoute
   '/dev/wording-denomination': typeof DevWordingDenominationRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/cabinet/$id': typeof AuthenticatedCabinetIdRoute
@@ -355,6 +363,7 @@ export interface FileRoutesById {
   '/dev/associe-date': typeof DevAssocieDateRoute
   '/dev/conformite': typeof DevConformiteRoute
   '/dev/denomination': typeof DevDenominationRoute
+  '/dev/encadres': typeof DevEncadresRoute
   '/dev/wording-denomination': typeof DevWordingDenominationRoute
   '/signer/$jeton': typeof SignerJetonRoute
   '/_authenticated/cabinet/$id': typeof AuthenticatedCabinetIdRoute
@@ -396,6 +405,7 @@ export interface FileRouteTypes {
     | '/dev/associe-date'
     | '/dev/conformite'
     | '/dev/denomination'
+    | '/dev/encadres'
     | '/dev/wording-denomination'
     | '/signer/$jeton'
     | '/cabinet/$id'
@@ -435,6 +445,7 @@ export interface FileRouteTypes {
     | '/dev/associe-date'
     | '/dev/conformite'
     | '/dev/denomination'
+    | '/dev/encadres'
     | '/dev/wording-denomination'
     | '/signer/$jeton'
     | '/cabinet/$id'
@@ -475,6 +486,7 @@ export interface FileRouteTypes {
     | '/dev/associe-date'
     | '/dev/conformite'
     | '/dev/denomination'
+    | '/dev/encadres'
     | '/dev/wording-denomination'
     | '/signer/$jeton'
     | '/_authenticated/cabinet/$id'
@@ -509,6 +521,7 @@ export interface RootRouteChildren {
   DevAssocieDateRoute: typeof DevAssocieDateRoute
   DevConformiteRoute: typeof DevConformiteRoute
   DevDenominationRoute: typeof DevDenominationRoute
+  DevEncadresRoute: typeof DevEncadresRoute
   DevWordingDenominationRoute: typeof DevWordingDenominationRoute
   SignerJetonRoute: typeof SignerJetonRoute
   ApiPublicEmailsTestRoute: typeof ApiPublicEmailsTestRouteWithChildren
@@ -678,6 +691,13 @@ declare module '@tanstack/react-router' {
       path: '/dev/denomination'
       fullPath: '/dev/denomination'
       preLoaderRoute: typeof DevDenominationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dev/encadres': {
+      id: '/dev/encadres'
+      path: '/dev/encadres'
+      fullPath: '/dev/encadres'
+      preLoaderRoute: typeof DevEncadresRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dev/wording-denomination': {
@@ -856,6 +876,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevAssocieDateRoute: DevAssocieDateRoute,
   DevConformiteRoute: DevConformiteRoute,
   DevDenominationRoute: DevDenominationRoute,
+  DevEncadresRoute: DevEncadresRoute,
   DevWordingDenominationRoute: DevWordingDenominationRoute,
   SignerJetonRoute: SignerJetonRoute,
   ApiPublicEmailsTestRoute: ApiPublicEmailsTestRouteWithChildren,
