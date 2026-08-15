@@ -31,7 +31,15 @@ import {
 import { construireJournalSimulation } from "@/lib/simulateur-journal";
 import { NOTE_REMBOURSEMENT } from "@/lib/restitution";
 import { enregistrerSimulation } from "@/lib/public-forms.functions";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download, Eye } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { genererPdfComparatif, telechargerBlob } from "@/lib/simulateur-pdf";
 
 export const Route = createFileRoute("/simulateur")({
   head: () => ({
@@ -81,6 +89,8 @@ function Simulateur() {
   const [affiche, setAffiche] = useState(false);
   const [emailEnvoye, setEmailEnvoye] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [apercuOuvert, setApercuOuvert] = useState(false);
+  const [pdfEnCours, setPdfEnCours] = useState(false);
 
   const visibles = useMemo(
     () => QUESTIONS.filter((q) => (q.visibleSi ? q.visibleSi(reponses) : true)),
@@ -94,6 +104,51 @@ function Simulateur() {
   const section = question ? SECTIONS.find((s) => s.id === question.section) : undefined;
   const premiereDeSection =
     question && visibles.findIndex((q) => q.section === question.section) === index;
+
+  const htmlRestitution = useMemo(
+    () =>
+      emailRestitutionHtml({
+        prenom: prenom.trim(),
+        lignes: lignesPourEmail(restit),
+        synthese: restit.synthese,
+      }),
+    [prenom, restit],
+  );
+
+  async function exporterPdf() {
+    setPdfEnCours(true);
+    try {
+      const blob = await genererPdfComparatif({
+        restitution: restit,
+        colonnes: col,
+        prenom: prenom.trim() || undefined,
+      });
+      telechargerBlob(blob, "comparatif-formes-juridiques.pdf");
+    } catch {
+      toast.error("Le PDF n'a pas pu être généré.");
+    } finally {
+      setPdfEnCours(false);
+    }
+  }
+
+  /** Navigation au clavier entre les options (flèches, Début, Fin). */
+  function naviguerOptions(e: React.KeyboardEvent<HTMLDivElement>) {
+    const touches = ["ArrowDown", "ArrowRight", "ArrowUp", "ArrowLeft", "Home", "End"];
+    if (!touches.includes(e.key)) return;
+    const boutons = Array.from(
+      e.currentTarget.querySelectorAll<HTMLButtonElement>("[data-testid='option-simulateur']"),
+    );
+    if (boutons.length === 0) return;
+    e.preventDefault();
+    const courant = boutons.indexOf(document.activeElement as HTMLButtonElement);
+    let cible = 0;
+    if (e.key === "End") cible = boutons.length - 1;
+    else if (e.key === "Home") cible = 0;
+    else if (e.key === "ArrowDown" || e.key === "ArrowRight")
+      cible = courant < 0 ? 0 : (courant + 1) % boutons.length;
+    else cible = courant <= 0 ? boutons.length - 1 : courant - 1;
+    boutons[cible]?.focus();
+  }
 
   function repondre(id: string, v: string) {
     setReponses((r) => ({ ...r, [id]: v }));
@@ -112,11 +167,7 @@ function Simulateur() {
       return;
     }
     setBusy(true);
-    const html = emailRestitutionHtml({
-      prenom: prenom.trim(),
-      lignes: lignesPourEmail(restit),
-      synthese: restit.synthese,
-    });
+    const html = htmlRestitution;
     const journal = construireJournalSimulation({
       email: parsed.data,
       reponses,
@@ -158,6 +209,7 @@ function Simulateur() {
       <div className="container-page max-w-4xl py-10">
         <div className="mb-6">
           <Progress
+            aria-label="Progression du comparateur"
             value={((affiche ? total : Math.min(index, visibles.length)) / total) * 100}
           />
           <p className="mt-2 text-sm text-muted-foreground">
@@ -200,24 +252,36 @@ function Simulateur() {
               </p>
             )}
 
-            <h2 className="font-serif text-2xl leading-snug">{question.intitule}</h2>
+            <h2 id={`q-${question.id}`} className="font-serif text-2xl leading-snug">
+              {question.intitule}
+            </h2>
 
-            <div className="mt-5 grid gap-3">
-              {question.options.map((o) => (
-                <button
-                  key={o.v}
-                  type="button"
-                  data-testid="option-simulateur"
-                  onClick={() => repondre(question.id, o.v)}
-                  className={`rounded-lg border px-5 py-4 text-left text-base transition-colors hover:border-accent hover:bg-accent/5 ${
-                    reponses[question.id] === o.v
-                      ? "border-accent bg-accent/5"
-                      : "border-border bg-surface"
-                  }`}
-                >
-                  {o.l}
-                </button>
-              ))}
+            <div
+              role="radiogroup"
+              aria-labelledby={`q-${question.id}`}
+              aria-required={question.obligatoire ? true : undefined}
+              onKeyDown={naviguerOptions}
+              className="mt-5 grid gap-3"
+            >
+              {question.options.map((o) => {
+                const choisi = reponses[question.id] === o.v;
+                return (
+                  <button
+                    key={o.v}
+                    type="button"
+                    role="radio"
+                    aria-checked={choisi}
+                    aria-label={`${o.l} — réponse à : ${question.intitule}`}
+                    data-testid="option-simulateur"
+                    onClick={() => repondre(question.id, o.v)}
+                    className={`rounded-lg border px-5 py-4 text-left text-base transition-colors hover:border-accent hover:bg-accent/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                      choisi ? "border-accent bg-accent/5" : "border-border bg-surface"
+                    }`}
+                  >
+                    {o.l}
+                  </button>
+                );
+              })}
             </div>
 
             {!question.obligatoire && (
@@ -304,9 +368,19 @@ function Simulateur() {
                 .
               </Label>
             </div>
-            <Button type="submit" size="lg" disabled={busy}>
-              {busy ? "Enregistrement…" : "Afficher mon comparatif"}
-            </Button>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button type="submit" size="lg" disabled={busy}>
+                {busy ? "Enregistrement…" : "Afficher mon comparatif"}
+              </Button>
+              <Button
+                type="button"
+                size="lg"
+                variant="outline"
+                onClick={() => setApercuOuvert(true)}
+              >
+                <Eye strokeWidth={1.5} aria-hidden /> Prévisualiser l'email
+              </Button>
+            </div>
           </form>
         )}
 
@@ -374,9 +448,22 @@ function Simulateur() {
               {restit.synthese}
             </p>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Button asChild size="lg">
                 <Link to="/tarifs">{LIBELLE_BOUTON_RELECTURE}</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link to="/rendez-vous">Faire appel à un expert-comptable</Link>
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={exporterPdf}
+                disabled={pdfEnCours}
+                aria-label="Télécharger le comparatif et le détail par critère au format PDF"
+              >
+                <Download strokeWidth={1.5} aria-hidden />
+                {pdfEnCours ? "Préparation du PDF…" : "Télécharger le comparatif en PDF"}
               </Button>
               <CallbackDialog size="lg" />
             </div>
@@ -399,6 +486,24 @@ function Simulateur() {
           </div>
         )}
       </div>
+
+      <Dialog open={apercuOuvert} onOpenChange={setApercuOuvert}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Aperçu de l'email de restitution</DialogTitle>
+            <DialogDescription>
+              Voici exactement le contenu qui sera envoyé à votre adresse électronique après
+              validation. Aucun envoi n'a encore eu lieu.
+            </DialogDescription>
+          </DialogHeader>
+          <iframe
+            title="Aperçu de l'email de restitution"
+            srcDoc={htmlRestitution}
+            sandbox=""
+            className="h-[60vh] w-full rounded-md border border-border bg-white"
+          />
+        </DialogContent>
+      </Dialog>
     </PageShell>
   );
 }

@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 import { PageShell } from "@/components/layout/PageShell";
 import { TableauFraisLegaux } from "@/components/TableauFraisLegaux";
 import { euro } from "@/lib/domain";
@@ -40,6 +41,12 @@ function Tarifs() {
           sont incompressibles, à tarif réglementé, taxes comprises, et vous sont refacturés à l'euro
           près.
         </p>
+
+        <div className="mt-6">
+          <Button asChild size="lg">
+            <Link to="/rendez-vous">Faire appel à un expert-comptable</Link>
+          </Button>
+        </div>
 
         <div className="mt-8">
           <TableauFraisLegaux />

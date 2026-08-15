@@ -91,6 +91,18 @@ function Commencer() {
           </section>
         </div>
 
+        <div className="mt-8 rounded-lg border border-border bg-surface p-6">
+          <h2 className="font-serif text-2xl">Vous préférez en parler ?</h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground text-justify">
+            Réservez un entretien avec un expert-comptable du cabinet partenaire : il examine votre
+            situation et répond à vos questions. C'est le seul cadre dans lequel un avis
+            personnalisé peut vous être donné.
+          </p>
+          <Button asChild size="lg" className="mt-5">
+            <Link to="/rendez-vous">Faire appel à un expert-comptable</Link>
+          </Button>
+        </div>
+
         <div className="mt-8">
           <Disclaimer />
         </div>

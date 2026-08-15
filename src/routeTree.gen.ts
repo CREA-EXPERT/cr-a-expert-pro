@@ -17,12 +17,14 @@ import { Route as CgvRouteImport } from './routes/cgv'
 import { Route as CommencerRouteImport } from './routes/commencer'
 import { Route as ConfidentialiteRouteImport } from './routes/confidentialite'
 import { Route as MentionsLegalesRouteImport } from './routes/mentions-legales'
+import { Route as RendezVousRouteImport } from './routes/rendez-vous'
 import { Route as SimulateurRouteImport } from './routes/simulateur'
 import { Route as TarifsRouteImport } from './routes/tarifs'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedCreationRouteImport } from './routes/_authenticated/creation'
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
 import { Route as AuthenticatedMonCompteRouteImport } from './routes/_authenticated/mon-compte'
+import { Route as AuthenticatedSimulationsRouteImport } from './routes/_authenticated/simulations'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
 import { Route as AuthenticatedVerificationFinaleRouteImport } from './routes/_authenticated/verification-finale'
 import { Route as DevApercuStatutsRouteImport } from './routes/dev.apercu-statuts'
@@ -79,6 +81,11 @@ const MentionsLegalesRoute = MentionsLegalesRouteImport.update({
   path: '/mentions-legales',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RendezVousRoute = RendezVousRouteImport.update({
+  id: '/rendez-vous',
+  path: '/rendez-vous',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SimulateurRoute = SimulateurRouteImport.update({
   id: '/simulateur',
   path: '/simulateur',
@@ -109,6 +116,12 @@ const AuthenticatedMonCompteRoute = AuthenticatedMonCompteRouteImport.update({
   path: '/mon-compte',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSimulationsRoute =
+  AuthenticatedSimulationsRouteImport.update({
+    id: '/simulations',
+    path: '/simulations',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTableauDeBordRoute =
   AuthenticatedTableauDeBordRouteImport.update({
     id: '/tableau-de-bord',
@@ -207,12 +220,14 @@ export interface FileRoutesByFullPath {
   '/commencer': typeof CommencerRoute
   '/confidentialite': typeof ConfidentialiteRoute
   '/mentions-legales': typeof MentionsLegalesRoute
+  '/rendez-vous': typeof RendezVousRoute
   '/simulateur': typeof SimulateurRoute
   '/tarifs': typeof TarifsRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/creation': typeof AuthenticatedCreationRoute
   '/documents': typeof AuthenticatedDocumentsRoute
   '/mon-compte': typeof AuthenticatedMonCompteRoute
+  '/simulations': typeof AuthenticatedSimulationsRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/verification-finale': typeof AuthenticatedVerificationFinaleRoute
   '/dev/apercu-statuts': typeof DevApercuStatutsRoute
@@ -238,12 +253,14 @@ export interface FileRoutesByTo {
   '/commencer': typeof CommencerRoute
   '/confidentialite': typeof ConfidentialiteRoute
   '/mentions-legales': typeof MentionsLegalesRoute
+  '/rendez-vous': typeof RendezVousRoute
   '/simulateur': typeof SimulateurRoute
   '/tarifs': typeof TarifsRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/creation': typeof AuthenticatedCreationRoute
   '/documents': typeof AuthenticatedDocumentsRoute
   '/mon-compte': typeof AuthenticatedMonCompteRoute
+  '/simulations': typeof AuthenticatedSimulationsRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/verification-finale': typeof AuthenticatedVerificationFinaleRoute
   '/dev/apercu-statuts': typeof DevApercuStatutsRoute
@@ -271,12 +288,14 @@ export interface FileRoutesById {
   '/commencer': typeof CommencerRoute
   '/confidentialite': typeof ConfidentialiteRoute
   '/mentions-legales': typeof MentionsLegalesRoute
+  '/rendez-vous': typeof RendezVousRoute
   '/simulateur': typeof SimulateurRoute
   '/tarifs': typeof TarifsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/creation': typeof AuthenticatedCreationRoute
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
   '/_authenticated/mon-compte': typeof AuthenticatedMonCompteRoute
+  '/_authenticated/simulations': typeof AuthenticatedSimulationsRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/_authenticated/verification-finale': typeof AuthenticatedVerificationFinaleRoute
   '/dev/apercu-statuts': typeof DevApercuStatutsRoute
@@ -304,12 +323,14 @@ export interface FileRouteTypes {
     | '/commencer'
     | '/confidentialite'
     | '/mentions-legales'
+    | '/rendez-vous'
     | '/simulateur'
     | '/tarifs'
     | '/admin'
     | '/creation'
     | '/documents'
     | '/mon-compte'
+    | '/simulations'
     | '/tableau-de-bord'
     | '/verification-finale'
     | '/dev/apercu-statuts'
@@ -335,12 +356,14 @@ export interface FileRouteTypes {
     | '/commencer'
     | '/confidentialite'
     | '/mentions-legales'
+    | '/rendez-vous'
     | '/simulateur'
     | '/tarifs'
     | '/admin'
     | '/creation'
     | '/documents'
     | '/mon-compte'
+    | '/simulations'
     | '/tableau-de-bord'
     | '/verification-finale'
     | '/dev/apercu-statuts'
@@ -367,12 +390,14 @@ export interface FileRouteTypes {
     | '/commencer'
     | '/confidentialite'
     | '/mentions-legales'
+    | '/rendez-vous'
     | '/simulateur'
     | '/tarifs'
     | '/_authenticated/admin'
     | '/_authenticated/creation'
     | '/_authenticated/documents'
     | '/_authenticated/mon-compte'
+    | '/_authenticated/simulations'
     | '/_authenticated/tableau-de-bord'
     | '/_authenticated/verification-finale'
     | '/dev/apercu-statuts'
@@ -400,6 +425,7 @@ export interface RootRouteChildren {
   CommencerRoute: typeof CommencerRoute
   ConfidentialiteRoute: typeof ConfidentialiteRoute
   MentionsLegalesRoute: typeof MentionsLegalesRoute
+  RendezVousRoute: typeof RendezVousRoute
   SimulateurRoute: typeof SimulateurRoute
   TarifsRoute: typeof TarifsRoute
   DevApercuStatutsRoute: typeof DevApercuStatutsRoute
@@ -471,6 +497,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MentionsLegalesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rendez-vous': {
+      id: '/rendez-vous'
+      path: '/rendez-vous'
+      fullPath: '/rendez-vous'
+      preLoaderRoute: typeof RendezVousRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/simulateur': {
       id: '/simulateur'
       path: '/simulateur'
@@ -511,6 +544,13 @@ declare module '@tanstack/react-router' {
       path: '/mon-compte'
       fullPath: '/mon-compte'
       preLoaderRoute: typeof AuthenticatedMonCompteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/simulations': {
+      id: '/_authenticated/simulations'
+      path: '/simulations'
+      fullPath: '/simulations'
+      preLoaderRoute: typeof AuthenticatedSimulationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/tableau-de-bord': {
@@ -633,6 +673,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCreationRoute: typeof AuthenticatedCreationRoute
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
   AuthenticatedMonCompteRoute: typeof AuthenticatedMonCompteRoute
+  AuthenticatedSimulationsRoute: typeof AuthenticatedSimulationsRoute
   AuthenticatedTableauDeBordRoute: typeof AuthenticatedTableauDeBordRoute
   AuthenticatedVerificationFinaleRoute: typeof AuthenticatedVerificationFinaleRoute
   AuthenticatedCabinetIdRoute: typeof AuthenticatedCabinetIdRoute
@@ -647,6 +688,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCreationRoute: AuthenticatedCreationRoute,
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
   AuthenticatedMonCompteRoute: AuthenticatedMonCompteRoute,
+  AuthenticatedSimulationsRoute: AuthenticatedSimulationsRoute,
   AuthenticatedTableauDeBordRoute: AuthenticatedTableauDeBordRoute,
   AuthenticatedVerificationFinaleRoute: AuthenticatedVerificationFinaleRoute,
   AuthenticatedCabinetIdRoute: AuthenticatedCabinetIdRoute,
@@ -669,6 +711,7 @@ const rootRouteChildren: RootRouteChildren = {
   CommencerRoute: CommencerRoute,
   ConfidentialiteRoute: ConfidentialiteRoute,
   MentionsLegalesRoute: MentionsLegalesRoute,
+  RendezVousRoute: RendezVousRoute,
   SimulateurRoute: SimulateurRoute,
   TarifsRoute: TarifsRoute,
   DevApercuStatutsRoute: DevApercuStatutsRoute,
