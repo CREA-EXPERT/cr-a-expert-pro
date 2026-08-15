@@ -245,7 +245,7 @@ function Accueil() {
             {FAQ.map((f, i) => (
               <AccordionItem key={f.q} value={`q${i}`}>
                 <AccordionTrigger className="text-left text-base">{f.q}</AccordionTrigger>
-                <AccordionContent className="text-base leading-relaxed text-foreground">
+                <AccordionContent className="text-justify text-base leading-relaxed text-foreground">
                   {f.r}
                 </AccordionContent>
               </AccordionItem>
