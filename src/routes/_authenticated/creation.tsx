@@ -50,6 +50,7 @@ import {
   type Dossier,
 } from "@/lib/documents";
 import { EncadrePliable } from "@/components/EncadrePliable";
+import { ContratMariageChamps } from "@/components/ContratMariageChamps";
 import { VerifDenomination } from "@/components/VerifDenomination";
 import { MentionObligatoire, Requis } from "@/components/Obligatoire";
 import { analyserChecklist, estMineur, piecesEnDrafts } from "@/lib/checklist";
