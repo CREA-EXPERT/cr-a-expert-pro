@@ -9,8 +9,11 @@ export const URL_CALENDLY_CONSULTATION = "https://calendly.com/d/d3vt-kj8-pqf";
 /** Adresse de contact de la plateforme (support, demandes entrantes). */
 export const EMAIL_CONTACT = "contact@crea-expert.fr";
 
-/** Adresse du cabinet d'expertise comptable partenaire (recommandations). */
-export const EMAIL_CABINET = "contact@odeon-expertise.fr";
+/**
+ * Adresse publique du cabinet d'expertise comptable partenaire, affichée aux
+ * visiteurs. Les envois internes utilisent EMAIL_CABINET de `@/lib/config`.
+ */
+export const EMAIL_CABINET_PARTENAIRE = "contact@odeon-expertise.fr";
 
 /** Prix de la consultation d'une heure, source unique d'affichage. */
 export const PRIX_CONSULTATION = {

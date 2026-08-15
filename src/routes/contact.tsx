@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { envoyerMessageContact } from "@/lib/contact.functions";
 import {
   CATEGORIES_CONTACT,
-  EMAIL_CABINET,
+  EMAIL_CABINET_PARTENAIRE,
   EMAIL_CONTACT,
   declencheEnvoi,
   type CategorieContact,
@@ -306,7 +306,7 @@ function Contact() {
           </p>
           <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
             Les travaux de conseil et de création sont réalisés par le cabinet d'expertise comptable
-            partenaire ({EMAIL_CABINET}), à qui vos demandes sont transmises. Le cabinet ne répond
+            partenaire ({EMAIL_CABINET_PARTENAIRE}), à qui vos demandes sont transmises. Le cabinet ne répond
             pas aux sollicitations directes : l'assistance d'un expert-comptable se réserve et se
             règle via la consultation ci-dessus.
           </p>

@@ -51,6 +51,7 @@ import {
 } from "@/lib/documents";
 import { EncadrePliable } from "@/components/EncadrePliable";
 import { ContratMariageChamps } from "@/components/ContratMariageChamps";
+import { validerContratMariage } from "@/lib/contrat-mariage";
 import { VerifDenomination } from "@/components/VerifDenomination";
 import { MentionObligatoire, Requis } from "@/components/Obligatoire";
 import { analyserChecklist, estMineur, piecesEnDrafts } from "@/lib/checklist";
@@ -318,6 +319,16 @@ function Creation() {
       if (incomplet)
         e["identites"] =
           "Complétez, pour chaque personne physique, les nom, prénom, date et lieu de naissance, nationalité et adresse.";
+      const contrats = associes
+        .map((a) => ({ a, err: validerContratMariage(a) }))
+        .filter((x) => Object.keys(x.err).length > 0);
+      if (contrats.length > 0)
+        e["contrat_mariage"] = `Contrat de mariage ou convention de PACS : ${contrats
+          .map(
+            ({ a, err }) =>
+              `${`${a.prenom ?? ""} ${a.nom ?? ""}`.trim() || "associé sans nom"} — ${Object.values(err).join(" ")}`,
+          )
+          .join(" ; ")}`;
     }
     if (c === "mission") {
       if (!d.lettre_mission_acceptee_le)
