@@ -278,13 +278,16 @@ function VerificationFinale() {
   async function transmettre() {
     if (!dossier || bloquants.length > 0 || chronologie.erreurs.length > 0) return;
     setBusy(true);
-    await supabase.from("dossiers").update({ statut: "en_revue_cabinet" }).eq("id", dossier.id);
-    await supabase.from("events_dossier").insert({
-      dossier_id: dossier.id,
-      type_event: "pieces_transmises",
-      message:
-        "Dossier transmis au cabinet après vérification finale par le client : identités, siège, capital, objet social et pièces contrôlés.",
-    });
+    // Le contrôle final est refait côté serveur : une soumission contournée est refusée.
+    const res = await transmettreDossierFn({ data: { dossierId: dossier.id } });
+    if (!res.ok) {
+      setBusy(false);
+      setErreursServeur(res.erreurs);
+      toast.error("Transmission refusée : certaines informations sont incohérentes.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    setErreursServeur([]);
     try {
       await envoyerEmailEtape({ data: { dossierId: dossier.id, etape: "transmis" } });
     } catch {
