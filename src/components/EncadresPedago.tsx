@@ -32,16 +32,9 @@ export function EncadreResponsabilite({ compact = false }: { compact?: boolean }
 
 /** Associé mineur : hors périmètre, orientation vers le cabinet. */
 export function EncadreMineur({ signale = false }: { signale?: boolean }) {
-  return (
-    <div
-      className={`rounded-md border p-4 text-sm leading-relaxed text-justify ${signale ? "border-destructive/50 bg-destructive/10" : "border-border bg-muted/50"}`}
-    >
-      <p className="font-medium">
-        {signale
-          ? "Un associé mineur a été détecté : ce parcours ne peut pas aboutir en ligne"
-          : "Associé mineur : des obligations particulières s'appliquent"}
-      </p>
-      <p className="mt-2">
+  const corps = (
+    <>
+      <p>
         Un mineur peut détenir des parts ou des actions, mais il ne peut pas les souscrire seul :
       </p>
       <ul className="mt-2 space-y-1 pl-5 [&>li]:list-disc">
@@ -75,9 +68,27 @@ export function EncadreMineur({ signale = false }: { signale?: boolean }) {
       <div className="mt-3">
         <ConsultationExpertCard variante="inline" />
       </div>
+    </>
+  );
+
+  if (!signale) {
+    return (
+      <EncadrePliable titre="Associé mineur : des obligations particulières s'appliquent">
+        {corps}
+      </EncadrePliable>
+    );
+  }
+
+  return (
+    <div className="rounded-md border border-destructive/50 bg-destructive/10 p-4 text-sm leading-relaxed text-justify">
+      <p className="font-medium">
+        Un associé mineur a été détecté : ce parcours ne peut pas aboutir en ligne
+      </p>
+      <div className="mt-2">{corps}</div>
     </div>
   );
 }
+
 
 /** Régimes matrimoniaux et PACS : contrat ou non, conséquences sur les apports. */
 export function EncadreRegimes() {
