@@ -2,6 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageShell } from "@/components/layout/PageShell";
 import { EDITEUR } from "@/lib/editeur";
 import { PRIX_CONSULTATION } from "@/lib/contact";
+import {
+  CONSULTATION_DUREE,
+  CONSULTATION_ENGAGEMENT,
+  CONSULTATION_GARANTIE,
+} from "@/lib/consultation-textes";
 
 export const Route = createFileRoute("/cgu")({
   head: () => ({
