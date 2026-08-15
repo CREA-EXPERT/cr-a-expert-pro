@@ -2,6 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageShell } from "@/components/layout/PageShell";
 import { EDITEUR } from "@/lib/editeur";
 import { PRIX_CONSULTATION } from "@/lib/contact";
+import {
+  CONSULTATION_DUREE,
+  CONSULTATION_ENGAGEMENT,
+  CONSULTATION_GARANTIE,
+} from "@/lib/consultation-textes";
 
 export const Route = createFileRoute("/cgu")({
   head: () => ({
@@ -72,13 +77,22 @@ function Cgu() {
         <section className="space-y-2">
           <h2 className="font-serif text-2xl">4. Consultation avec un expert-comptable</h2>
           <p>
-            La consultation d'une heure est une prestation fournie par le cabinet d'expertise
-            comptable partenaire, {EDITEUR.cabinetPartenaire.nom}. Elle se réserve et se règle sur
-            la page de réservation en ligne, au prix de {PRIX_CONSULTATION.ttc} TTC (
-            {PRIX_CONSULTATION.ht} HT, {PRIX_CONSULTATION.tva}). Le rendez-vous peut être reporté
-            jusqu'à 24 heures avant l'horaire retenu. Le droit de rétractation applicable aux
-            contrats conclus à distance est traité au moment de la réservation, l'utilisateur étant
-            invité à se prononcer sur l'exécution de la prestation avant l'expiration du délai.
+            La consultation est une prestation fournie par le cabinet d'expertise comptable
+            partenaire, {EDITEUR.cabinetPartenaire.nom}, inscrit au tableau de l'Ordre des
+            experts-comptables. Elle se réserve et se règle sur la page de réservation en ligne, au
+            prix de {PRIX_CONSULTATION.ttc} TTC ({PRIX_CONSULTATION.ht} HT, {PRIX_CONSULTATION.tva}
+            ). {CONSULTATION_DUREE}
+          </p>
+          <p>{CONSULTATION_ENGAGEMENT}</p>
+          <p>
+            {CONSULTATION_GARANTIE} Le remboursement est effectué sur le moyen de paiement d'origine,
+            dans un délai maximal de 14 jours à compter de la demande.
+          </p>
+          <p>
+            Le rendez-vous peut être reporté jusqu'à 24 heures avant l'horaire retenu. La
+            renonciation au droit de rétractation applicable aux contrats conclus à distance est
+            recueillie lors de la réservation en ligne, l'utilisateur demandant expressément
+            l'exécution de la prestation avant l'expiration du délai.
           </p>
         </section>
 
