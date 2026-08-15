@@ -70,17 +70,26 @@ function EmailsTest() {
     }
   }
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <PageShell>
+        <div className="container-page py-14 text-muted-foreground">Chargement…</div>
+      </PageShell>
+    );
+  }
+
   if (!isAdmin) {
     return (
-      <PageShell titre="Accès réservé">
-        <p className="text-muted-foreground">
-          Cette page est réservée à l'administrateur.{" "}
-          <Link to="/tableau-de-bord" className="underline">
-            Retour au tableau de bord
-          </Link>
-          .
-        </p>
+      <PageShell>
+        <div className="container-page max-w-xl py-14">
+          <h1 className="font-serif text-3xl">Accès réservé</h1>
+          <p className="mt-3 text-base text-muted-foreground">
+            La boîte de réception de test est réservée à l'administrateur.
+          </p>
+          <Button asChild className="mt-6">
+            <Link to="/tableau-de-bord">Retour à mon espace</Link>
+          </Button>
+        </div>
       </PageShell>
     );
   }
@@ -88,10 +97,15 @@ function EmailsTest() {
   const emails = data?.emails ?? [];
 
   return (
-    <PageShell
-      titre="Boîte de réception de test"
-      sousTitre="Emails interceptés en environnement de test automatisé (aucun envoi réel n'a eu lieu)."
-    >
+    <PageShell>
+      <div className="container-page max-w-4xl space-y-6 py-10">
+        <header>
+          <h1 className="font-serif text-3xl">Boîte de réception de test</h1>
+          <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">
+            Emails interceptés en environnement de test automatisé : aucun envoi réel n'a eu lieu.
+            Le renvoi force un envoi réel du message sélectionné.
+          </p>
+        </header>
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-1.5">
           <Label htmlFor="filtre-dossier">Dossier (identifiant)</Label>
@@ -126,7 +140,7 @@ function EmailsTest() {
         {isLoading ? "Chargement…" : `${emails.length} message(s).`}
       </p>
 
-      <ul className="mt-3 space-y-3">
+        <ul className="mt-3 space-y-3">
         {emails.map((email) => (
           <li key={email.id} className="rounded-lg border border-border p-4">
             <div className="flex flex-wrap items-center gap-2">
@@ -159,7 +173,8 @@ function EmailsTest() {
             ) : null}
           </li>
         ))}
-      </ul>
+        </ul>
+      </div>
     </PageShell>
   );
 }
