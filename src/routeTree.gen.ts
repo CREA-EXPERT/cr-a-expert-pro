@@ -39,6 +39,7 @@ import { Route as AuthenticatedCabinetIdRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCabinetConformiteRouteImport } from './routes/_authenticated/cabinet.conformite'
 import { Route as AuthenticatedCabinetContactsRouteImport } from './routes/_authenticated/cabinet.contacts'
 import { Route as AuthenticatedCabinetDenominationsRouteImport } from './routes/_authenticated/cabinet.denominations'
+import { Route as AuthenticatedCabinetDonneesTestRouteImport } from './routes/_authenticated/cabinet.donnees-test'
 import { Route as AuthenticatedCabinetRappelsRouteImport } from './routes/_authenticated/cabinet.rappels'
 import { Route as ApiPublicHooksPurgeDonneesRouteImport } from './routes/api/public/hooks/purge-donnees'
 import { Route as ApiPublicHooksRelancePiecesRouteImport } from './routes/api/public/hooks/relance-pieces'
@@ -200,6 +201,12 @@ const AuthenticatedCabinetDenominationsRoute =
     path: '/cabinet/denominations',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCabinetDonneesTestRoute =
+  AuthenticatedCabinetDonneesTestRouteImport.update({
+    id: '/cabinet/donnees-test',
+    path: '/cabinet/donnees-test',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCabinetRappelsRoute =
   AuthenticatedCabinetRappelsRouteImport.update({
     id: '/cabinet/rappels',
@@ -254,6 +261,7 @@ export interface FileRoutesByFullPath {
   '/cabinet/conformite': typeof AuthenticatedCabinetConformiteRoute
   '/cabinet/contacts': typeof AuthenticatedCabinetContactsRoute
   '/cabinet/denominations': typeof AuthenticatedCabinetDenominationsRoute
+  '/cabinet/donnees-test': typeof AuthenticatedCabinetDonneesTestRoute
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/cabinet/': typeof AuthenticatedCabinetIndexRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
@@ -289,6 +297,7 @@ export interface FileRoutesByTo {
   '/cabinet/conformite': typeof AuthenticatedCabinetConformiteRoute
   '/cabinet/contacts': typeof AuthenticatedCabinetContactsRoute
   '/cabinet/denominations': typeof AuthenticatedCabinetDenominationsRoute
+  '/cabinet/donnees-test': typeof AuthenticatedCabinetDonneesTestRoute
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/cabinet': typeof AuthenticatedCabinetIndexRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
@@ -326,6 +335,7 @@ export interface FileRoutesById {
   '/_authenticated/cabinet/conformite': typeof AuthenticatedCabinetConformiteRoute
   '/_authenticated/cabinet/contacts': typeof AuthenticatedCabinetContactsRoute
   '/_authenticated/cabinet/denominations': typeof AuthenticatedCabinetDenominationsRoute
+  '/_authenticated/cabinet/donnees-test': typeof AuthenticatedCabinetDonneesTestRoute
   '/_authenticated/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
   '/_authenticated/cabinet/': typeof AuthenticatedCabinetIndexRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
@@ -363,6 +373,7 @@ export interface FileRouteTypes {
     | '/cabinet/conformite'
     | '/cabinet/contacts'
     | '/cabinet/denominations'
+    | '/cabinet/donnees-test'
     | '/cabinet/rappels'
     | '/cabinet/'
     | '/api/public/hooks/purge-donnees'
@@ -398,6 +409,7 @@ export interface FileRouteTypes {
     | '/cabinet/conformite'
     | '/cabinet/contacts'
     | '/cabinet/denominations'
+    | '/cabinet/donnees-test'
     | '/cabinet/rappels'
     | '/cabinet'
     | '/api/public/hooks/purge-donnees'
@@ -434,6 +446,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cabinet/conformite'
     | '/_authenticated/cabinet/contacts'
     | '/_authenticated/cabinet/denominations'
+    | '/_authenticated/cabinet/donnees-test'
     | '/_authenticated/cabinet/rappels'
     | '/_authenticated/cabinet/'
     | '/api/public/hooks/purge-donnees'
@@ -677,6 +690,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCabinetDenominationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cabinet/donnees-test': {
+      id: '/_authenticated/cabinet/donnees-test'
+      path: '/cabinet/donnees-test'
+      fullPath: '/cabinet/donnees-test'
+      preLoaderRoute: typeof AuthenticatedCabinetDonneesTestRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/cabinet/rappels': {
       id: '/_authenticated/cabinet/rappels'
       path: '/cabinet/rappels'
@@ -720,6 +740,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCabinetConformiteRoute: typeof AuthenticatedCabinetConformiteRoute
   AuthenticatedCabinetContactsRoute: typeof AuthenticatedCabinetContactsRoute
   AuthenticatedCabinetDenominationsRoute: typeof AuthenticatedCabinetDenominationsRoute
+  AuthenticatedCabinetDonneesTestRoute: typeof AuthenticatedCabinetDonneesTestRoute
   AuthenticatedCabinetRappelsRoute: typeof AuthenticatedCabinetRappelsRoute
   AuthenticatedCabinetIndexRoute: typeof AuthenticatedCabinetIndexRoute
 }
@@ -737,6 +758,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCabinetContactsRoute: AuthenticatedCabinetContactsRoute,
   AuthenticatedCabinetDenominationsRoute:
     AuthenticatedCabinetDenominationsRoute,
+  AuthenticatedCabinetDonneesTestRoute: AuthenticatedCabinetDonneesTestRoute,
   AuthenticatedCabinetRappelsRoute: AuthenticatedCabinetRappelsRoute,
   AuthenticatedCabinetIndexRoute: AuthenticatedCabinetIndexRoute,
 }

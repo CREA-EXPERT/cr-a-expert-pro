@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PageShell } from "@/components/layout/PageShell";
 import { BanniereTest } from "@/components/BanniereTest";
-import { CoulissesTest } from "@/components/CoulissesTest";
 import { estEmailTest } from "@/lib/test-mode";
 import { envoyerEmailEtape } from "@/lib/emails-etape.functions";
 import { Button } from "@/components/ui/button";
