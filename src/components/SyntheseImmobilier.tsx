@@ -120,7 +120,7 @@ export function SyntheseImmobilier() {
 
         <div className="mt-6 rounded-lg border border-border bg-surface p-5">
           <h3 className="text-base font-semibold">* LMNP et LMP : les grandes différences</h3>
-          <p className="mt-2 text-base leading-relaxed">
+          <p className="mt-2 text-base leading-relaxed text-justify">
             Le loueur en meublé est dit professionnel (LMP) lorsque deux conditions sont réunies
             simultanément : les recettes annuelles de location meublée du foyer fiscal dépassent
             23 000 €, et elles excèdent les autres revenus d'activité du foyer (salaires, autres
@@ -138,14 +138,14 @@ export function SyntheseImmobilier() {
 
         <div className="mt-4 rounded-lg border border-accent/40 bg-background p-5">
           <h3 className="text-base font-semibold">IS ou IR : comment ça se calcule, qui paie quoi</h3>
-          <p className="mt-2 text-base leading-relaxed">
+          <p className="mt-2 text-base leading-relaxed text-justify">
             <strong>À l'impôt sur le revenu (IR)</strong>, la société est « transparente » : elle ne
             paie pas d'impôt elle-même. Le résultat est réparti entre les associés au prorata de
             leurs parts, et chacun l'ajoute à sa déclaration personnelle — imposé au barème
             progressif (0 à 45 %) auquel s'ajoutent les prélèvements sociaux de 17,2 % sur les
             revenus fonciers. Vous payez l'impôt même si aucune somme n'est sortie de la société.
           </p>
-          <p className="mt-3 text-base leading-relaxed">
+          <p className="mt-3 text-base leading-relaxed text-justify">
             <strong>À l'impôt sur les sociétés (IS)</strong>, la société paie son propre impôt :
             15 % jusqu'à 42 500 € de bénéfice, 25 % au-delà. En contrepartie, elle déduit
             l'amortissement du bien et les intérêts d'emprunt, ce qui réduit fortement le bénéfice
@@ -153,7 +153,7 @@ export function SyntheseImmobilier() {
             dividendes : 30 % de prélèvement forfaitaire unique (12,8 % d'impôt + 17,2 % de
             prélèvements sociaux), ou barème progressif sur option.
           </p>
-          <p className="mt-3 text-base leading-relaxed">
+          <p className="mt-3 text-base leading-relaxed text-justify">
             <strong>Exemple chiffré, à titre purement illustratif.</strong> Un bien loué 12 000 € par
             an, 3 000 € de charges et intérêts, 7 000 € d'amortissement possible. À l'IR : base
             imposable 9 000 € ; pour un associé à 30 % de tranche, 2 700 € d'impôt + 1 548 € de

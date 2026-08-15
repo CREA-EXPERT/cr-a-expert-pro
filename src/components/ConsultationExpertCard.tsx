@@ -79,13 +79,11 @@ export function ConsultationExpertCard({ variante = "card", className, taille, d
   if (variante === "inline") {
     return (
       <div className={className} data-textes-version={CONSULTATION_TEXTES_VERSION}>
-        <p className="text-sm leading-relaxed text-muted-foreground">
+        <BoutonReserver taille={taille ?? "sm"} />
+        <p className="mt-3 text-sm leading-relaxed text-justify text-muted-foreground">
           {CONSULTATION_DUREE} {CONSULTATION_PRIX}.
         </p>
         <Reassurance className="mt-2" />
-        <div className="mt-3">
-          <BoutonReserver taille={taille ?? "sm"} />
-        </div>
       </div>
     );
   }
@@ -97,7 +95,10 @@ export function ConsultationExpertCard({ variante = "card", className, taille, d
       className={`rounded-lg border border-border bg-surface p-6 ${className ?? ""}`}
     >
       <h2 className="font-serif text-xl">{CONSULTATION_TITRE}</h2>
-      <p className="mt-3 text-base leading-relaxed text-justify">
+      <div className="mt-4">
+        <BoutonReserver taille={taille ?? "lg"} />
+      </div>
+      <p className="mt-4 text-base leading-relaxed text-justify">
         {CONSULTATION_INTRO} {CONSULTATION_DUREE} {CONSULTATION_CANAL}
       </p>
       <p className="mt-3 text-base leading-relaxed text-justify">{CONSULTATION_ENGAGEMENT}</p>
@@ -106,9 +107,6 @@ export function ConsultationExpertCard({ variante = "card", className, taille, d
         {CONSULTATION_PRIX}
       </p>
       <Reassurance className="mt-4" />
-      <div className="mt-5">
-        <BoutonReserver taille={taille ?? "lg"} />
-      </div>
       <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{CONSULTATION_MENTION}</p>
     </section>
   );

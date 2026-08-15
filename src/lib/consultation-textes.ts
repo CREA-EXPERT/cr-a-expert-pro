@@ -44,7 +44,7 @@ export const CONSULTATION_REASSURANCE = [
   },
   {
     cle: "traitement",
-    texte: "On traite votre question jusqu'au bout, sans supplément.",
+    texte: "Nous traitons vos questions jusqu'au bout, sans supplément.",
   },
 ] as const;
 
