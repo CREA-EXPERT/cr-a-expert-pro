@@ -243,7 +243,8 @@ export const REGIMES_AVEC_CONTRAT = [
 
 /** Cabinet d'expertise comptable partenaire. */
 export const CABINET = {
-  nom: "ODEON",
+  nom: "ODEON (SAS)",
+  adresse: "138 Avenue Victor Hugo, 75016 Paris",
   mention: "ODEON, cabinet en cours d'inscription au tableau de l'Ordre des experts-comptables de Paris",
 };
 

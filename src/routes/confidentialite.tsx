@@ -47,8 +47,8 @@ function Confidentialite() {
           </p>
           <p>
             La prestation de création de société est réalisée sous la responsabilité du cabinet
-            d'expertise comptable partenaire ODEON [SIREN, adresse À COMPLÉTER], inscrit à l'Ordre des
-            experts-comptables : pour cette prestation, ODEON est responsable de traitement et CREA
+            d'expertise comptable partenaire ODEON (SAS), 138 Avenue Victor Hugo, 75016 Paris, dont l'inscription au
+            tableau de l'Ordre des experts-comptables de Paris est en cours : pour cette prestation, ODEON est responsable de traitement et CREA
             EXPERT agit comme sous-traitant, sur ses instructions et dans le respect du secret
             professionnel.
           </p>

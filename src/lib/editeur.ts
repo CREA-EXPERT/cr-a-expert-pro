@@ -11,13 +11,13 @@
 const A_COMPLETER = "[À COMPLÉTER PAR L'ÉDITEUR]";
 
 export const EDITEUR = {
-  denomination: A_COMPLETER,
-  formeJuridique: A_COMPLETER,
+  denomination: "CREA EXPERT",
+  formeJuridique: "SASU",
   capital: A_COMPLETER,
   siren: A_COMPLETER,
   rcs: A_COMPLETER,
   tvaIntracommunautaire: A_COMPLETER,
-  siegeAdresse: A_COMPLETER,
+  siegeAdresse: "138 Avenue Victor Hugo, 75016 Paris",
   directeurPublication: A_COMPLETER,
   emailContact: A_COMPLETER,
   telephone: A_COMPLETER,
@@ -26,9 +26,10 @@ export const EDITEUR = {
     adresse: A_COMPLETER,
   },
   cabinetPartenaire: {
-    nom: A_COMPLETER,
-    inscriptionOrdre: A_COMPLETER,
-    adresse: A_COMPLETER,
+    nom: "ODEON (SAS)",
+    inscriptionOrdre:
+      "Inscription en cours au tableau de l'Ordre des experts-comptables de Paris",
+    adresse: "138 Avenue Victor Hugo, 75016 Paris",
     assuranceRcp: A_COMPLETER,
   },
   delegueProtectionDonnees: {
