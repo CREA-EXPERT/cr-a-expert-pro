@@ -44,7 +44,7 @@ export const envoyerMessageContact = createServerFn({ method: "POST" })
     const autorise = await verifierLimite("contact", ipAppelant());
     if (!autorise) return { ok: false as const, raison: "trop_de_demandes" as const };
 
-    const { EMAIL_CONTACT } = await import("./contact");
+    const { EMAIL_CABINET } = await import("./config");
     const { envoyerEmail } = await import("./email.server");
 
     const reference = referenceDemande();
