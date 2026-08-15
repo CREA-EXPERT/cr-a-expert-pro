@@ -9,7 +9,6 @@ import { BUCKETS_COULISSES, listerFichiers } from "./coulisses.server";
 const TABLES_LIEES = [
   "verifications_pieces",
   "journal_emails_signature",
-  "signatures_signataires",
   "signatures_electroniques",
   "dossier_kyc",
   "traces_verification_identite",
