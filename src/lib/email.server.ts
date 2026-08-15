@@ -53,7 +53,34 @@ async function journaliser(entree: {
   }
 }
 
+/**
+ * Interception d'envoi en environnement de test automatisé.
+ *
+ * Quand `EMAILS_TEST_INTERCEPT` vaut « 1 », aucun appel n'est fait à Resend :
+ * le message est écrit dans la table `emails_test` (boîte de réception de
+ * test), lisible par les suites Vitest et Playwright par étiquette et par
+ * dossier. Le mode test manuel (alias `+test`) n'est pas concerné : hors de
+ * cet indicateur d'environnement, les envois réels préfixés `[TEST]`
+ * continuent normalement.
+ */
+export function interceptionTestActive(): boolean {
+  return process.env["EMAILS_TEST_INTERCEPT"] === "1";
+}
+
+async function ecrireBoiteTest(entree: {
+  dossier_id: string | null;
+  destinataire: string;
+  sujet: string;
+  corps: string;
+  tag: string;
+  pour_cabinet: boolean;
+}) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  await supabaseAdmin.from("emails_test").insert(entree);
+}
+
 export async function envoyerEmail({
+
   destinataire,
   sujet,
   html,
