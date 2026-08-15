@@ -32,7 +32,12 @@ test.describe("Parcours du mode test", () => {
     await page.getByLabel("Nom", { exact: true }).fill("Automatisée");
     await page.getByLabel("Adresse électronique").first().fill(email);
     await page.getByLabel("Mot de passe").first().fill(MOT_DE_PASSE);
-    await page.getByRole("checkbox").first().check();
+    // La case n'est cliquable qu'une fois la page hydratée.
+    const rgpd = page.locator("#rgpd");
+    await expect(async () => {
+      await rgpd.click();
+      await expect(rgpd).toHaveAttribute("data-state", "checked");
+    }).toPass({ timeout: 30_000 });
     await page.getByRole("button", { name: "Créer mon compte" }).click();
     await page.waitForTimeout(2000);
 
