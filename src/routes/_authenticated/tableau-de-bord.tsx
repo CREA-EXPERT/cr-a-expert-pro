@@ -78,7 +78,6 @@ function Dashboard() {
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="font-serif text-3xl">{dossier.denomination || "Dossier en cours"}</h1>
               <Badge variant="secondary">{dossier.forme_juridique}</Badge>
-              {dossier.routage_cabinet && <Badge>Accompagnement cabinet requis</Badge>}
             </div>
             <p className="mt-4 text-sm text-muted-foreground">Statut</p>
             <p className="text-lg font-semibold">{STATUT_LABEL[dossier.statut] ?? dossier.statut}</p>

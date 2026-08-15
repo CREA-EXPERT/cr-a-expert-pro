@@ -2469,7 +2469,6 @@ function Creation() {
         {/* PANNEAU RECAP */}
         <aside className="h-fit rounded-lg border border-border bg-surface p-5 lg:sticky lg:top-24">
           <h2 className="font-serif text-xl">Votre dossier</h2>
-          {dossier.routage_cabinet && <Badge className="mt-3">Accompagnement cabinet requis</Badge>}
           <dl className="mt-4 space-y-2.5 text-sm">
             {[
               ["Forme", forme],

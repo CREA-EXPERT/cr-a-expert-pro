@@ -21,7 +21,7 @@ export function RecommandationDialog({
   variant = "outline",
   size = "sm",
   className,
-  label = "Laisser une recommandation",
+  label = "Proposer une amélioration",
 }: {
   variant?: "default" | "outline" | "secondary" | "ghost" | "link";
   size?: "default" | "sm" | "lg";

@@ -34,7 +34,7 @@ function RendezVous() {
     <PageShell>
       <div className="container-page max-w-4xl py-12">
         <h1 className="font-serif text-4xl">Faire appel à un expert-comptable</h1>
-        <p className="mt-4 max-w-2xl text-base leading-relaxed text-justify">
+        <p className="mt-4 text-base leading-relaxed text-justify">
           Choisissez un créneau et réglez votre entretien en ligne. L'échange est mené par un
           expert-comptable du cabinet partenaire : il examine votre situation, répond à vos
           questions et vous indique les points à instruire avant la création. Les informations
