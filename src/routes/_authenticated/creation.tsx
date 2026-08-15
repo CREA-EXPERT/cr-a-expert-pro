@@ -1389,17 +1389,9 @@ function Creation() {
                               </Label>
                             </div>
                             {a.contrat_mariage && (
-                              <Input
-                                maxLength={200}
-                                placeholder={
-                                  a.situation_matrimoniale === "pacse"
-                                    ? "Date de la convention et, le cas échéant, notaire"
-                                    : "Date du contrat et nom du notaire"
-                                }
-                                value={a.contrat_mariage_detail ?? ""}
-                                onChange={(e) =>
-                                  majAssocie(a.id, { contrat_mariage_detail: e.target.value })
-                                }
+                              <ContratMariageChamps
+                                associe={a}
+                                maj={(v) => majAssocie(a.id, v)}
                               />
                             )}
                             <p className="text-sm text-muted-foreground text-justify">
