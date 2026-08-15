@@ -190,7 +190,7 @@ function Accueil() {
                   {String(e.n).padStart(2, "0")}
                 </span>
                 <h3 className="mt-1 text-base font-semibold">{e.t}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{e.d}</p>
+                <p className="mt-1.5 text-left text-sm leading-relaxed text-muted-foreground">{e.d}</p>
               </li>
             ))}
           </ol>
