@@ -11,6 +11,7 @@ import { FriseCouts } from "@/components/FriseCouts";
 import { FormesDetail } from "@/components/FormesDetail";
 import { SyntheseImmobilier } from "@/components/SyntheseImmobilier";
 import { Disclaimer } from "@/components/Disclaimer";
+import { BoutonApercuImprimable } from "@/components/BoutonApercuImprimable";
 import { ConsultationExpertCard } from "@/components/ConsultationExpertCard";
 import { BandeauAutorite } from "@/components/BandeauAutorite";
 import { RecommandationDialog } from "@/components/RecommandationDialog";
@@ -176,6 +177,10 @@ function Accueil() {
             <ConsultationExpertCard variante="inline" taille="lg" className="max-w-md" />
             <RecommandationDialog variant="outline" size="lg" />
           </div>
+
+          <div className="mt-4">
+            <BoutonApercuImprimable className="-ml-2" />
+          </div>
         </div>
       </section>
 
@@ -258,6 +263,10 @@ function Accueil() {
             </Button>
             <ConsultationExpertCard variante="inline" taille="lg" className="max-w-md" />
             <RecommandationDialog variant="outline" size="lg" />
+          </div>
+
+          <div className="mt-4">
+            <BoutonApercuImprimable className="-ml-2" />
           </div>
         </div>
       </section>
