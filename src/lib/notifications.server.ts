@@ -96,6 +96,8 @@ export async function notifierCabinet(evenement: EvenementConformite) {
       sujet: `Conformité — ${evenement.denomination || "dossier"}`,
       html,
       expediteur: EXPEDITEUR,
+      dossierId: evenement.dossierId,
+      pourCabinet: true,
     });
     envoye = envoye || resultat.envoye;
   }

@@ -4,7 +4,7 @@
  */
 
 /** Page de réservation et de paiement de la consultation (hors application). */
-export const URL_CALENDLY_CONSULTATION = "[URL_CALENDLY]";
+export const URL_CALENDLY_CONSULTATION = "https://calendly.com/d/d3vt-kj8-pqf";
 
 /** Adresse de contact de la plateforme (support, demandes entrantes). */
 export const EMAIL_CONTACT = "contact@crea-expert.fr";
@@ -36,6 +36,13 @@ export const DIFFERENCE_RELECTURE_CONSULTATION =
   "La relecture porte sur vos statuts rédigés ; la consultation répond à toutes vos questions avant de vous lancer.";
 
 export const BOUTON_CONSULTATION_HEURE = "Réserver une consultation d'une heure";
+
+/** Numéro de demande lisible, communiqué au client à l'écran. */
+export function referenceDemande(date = new Date()) {
+  const jour = date.toISOString().slice(0, 10).replace(/-/g, "");
+  const alea = Math.random().toString(36).slice(2, 7).toUpperCase();
+  return `CTC-${jour}-${alea}`;
+}
 
 export type CategorieContact = "amelioration" | "bug" | "dossier" | "paiement" | "autre";
 

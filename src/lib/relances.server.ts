@@ -91,6 +91,7 @@ export async function relancerPiecesManquantes(
           `<p>${TEXTE_AVERTISSEMENT_REJET_SERVEUR}</p>` +
           `<p><a href="${origine}/documents">Déposer mes pièces</a></p>` +
           `<p>CREA EXPERT</p>`,
+        dossierId: d.id,
       });
       if (!resultat.envoye) {
         ignores += 1;

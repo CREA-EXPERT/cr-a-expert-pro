@@ -247,6 +247,56 @@ export type Database = {
         }
         Relationships: []
       }
+      demandes_contact: {
+        Row: {
+          categorie: string
+          created_at: string
+          dossier_id: string | null
+          email: string
+          envoye: boolean
+          id: string
+          message: string
+          objet: string | null
+          reference: string
+          test: boolean
+          user_id: string | null
+        }
+        Insert: {
+          categorie: string
+          created_at?: string
+          dossier_id?: string | null
+          email: string
+          envoye?: boolean
+          id?: string
+          message: string
+          objet?: string | null
+          reference: string
+          test?: boolean
+          user_id?: string | null
+        }
+        Update: {
+          categorie?: string
+          created_at?: string
+          dossier_id?: string | null
+          email?: string
+          envoye?: boolean
+          id?: string
+          message?: string
+          objet?: string | null
+          reference?: string
+          test?: boolean
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "demandes_contact_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       document_rules: {
         Row: {
           aide_client: string | null
@@ -463,10 +513,12 @@ export type Database = {
           dirigeant_deja_immatricule: boolean
           dirigeant_nomme_statuts: boolean
           dispense_commissaire_apports: boolean
+          documents_plus_tard: boolean
           domiciliataire_agrement: string | null
           domiciliataire_nom: string | null
           duree_annees: number
           entite_contractante: string
+          est_test: boolean
           etape_courante: number
           exercice_etendu: boolean
           fonds_commerce: string
@@ -561,10 +613,12 @@ export type Database = {
           dirigeant_deja_immatricule?: boolean
           dirigeant_nomme_statuts?: boolean
           dispense_commissaire_apports?: boolean
+          documents_plus_tard?: boolean
           domiciliataire_agrement?: string | null
           domiciliataire_nom?: string | null
           duree_annees?: number
           entite_contractante?: string
+          est_test?: boolean
           etape_courante?: number
           exercice_etendu?: boolean
           fonds_commerce?: string
@@ -659,10 +713,12 @@ export type Database = {
           dirigeant_deja_immatricule?: boolean
           dirigeant_nomme_statuts?: boolean
           dispense_commissaire_apports?: boolean
+          documents_plus_tard?: boolean
           domiciliataire_agrement?: string | null
           domiciliataire_nom?: string | null
           duree_annees?: number
           entite_contractante?: string
+          est_test?: boolean
           etape_courante?: number
           exercice_etendu?: boolean
           fonds_commerce?: string
@@ -748,6 +804,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "events_dossier_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_emails: {
+        Row: {
+          created_at: string
+          destinataire: string
+          detail: string | null
+          dossier_id: string | null
+          id: string
+          statut: string
+          sujet: string
+          test: boolean
+        }
+        Insert: {
+          created_at?: string
+          destinataire: string
+          detail?: string | null
+          dossier_id?: string | null
+          id?: string
+          statut?: string
+          sujet: string
+          test?: boolean
+        }
+        Update: {
+          created_at?: string
+          destinataire?: string
+          detail?: string | null
+          dossier_id?: string | null
+          id?: string
+          statut?: string
+          sujet?: string
+          test?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_emails_dossier_id_fkey"
             columns: ["dossier_id"]
             isOneToOne: false
             referencedRelation: "dossiers"
