@@ -1,38 +1,15 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Associe } from "@/lib/documents";
-
-/** La date existe-t-elle réellement (calendrier), sans être future ni absurde ? */
-export function verifierDateContrat(valeur: string): string | null {
-  if (!valeur) return null;
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(valeur);
-  if (!m) return "Date incomplète ou mal formée (jour, mois et année attendus).";
-  const [annee, mois, jour] = [Number(m[1]), Number(m[2]), Number(m[3])];
-  const d = new Date(Date.UTC(annee, mois - 1, jour));
-  const existe =
-    d.getUTCFullYear() === annee && d.getUTCMonth() === mois - 1 && d.getUTCDate() === jour;
-  if (!existe) return "Cette date n'existe pas au calendrier.";
-  if (annee < 1900) return "Date antérieure à 1900 : vérifiez l'année saisie.";
-  const aujourdhui = new Date();
-  if (d.getTime() > Date.UTC(aujourdhui.getUTCFullYear(), aujourdhui.getUTCMonth(), aujourdhui.getUTCDate()))
-    return "La date ne peut pas être postérieure à aujourd'hui.";
-  return null;
-}
-
-/** Résumé texte conservé pour les documents générés. */
-function composer(etude: string, notaire: string, date: string) {
-  return [
-    date ? `Acte du ${date.split("-").reverse().join("/")}` : "",
-    notaire ? `Notaire : ${notaire}` : "",
-    etude ? `Étude : ${etude}` : "",
-  ]
-    .filter(Boolean)
-    .join(" — ");
-}
+import {
+  aujourdhuiISO,
+  resumeContratMariage,
+  validerContratMariage,
+} from "@/lib/contrat-mariage";
 
 /**
- * Étude notariale, nom du notaire et date de l'acte, avec contrôle de cohérence
- * de la date (existence réelle, pas de date future).
+ * Étude notariale, nom du notaire et date de l'acte, avec contrôles de
+ * cohérence explicites (formats, date réelle et non future).
  */
 export function ContratMariageChamps({
   associe,
@@ -45,18 +22,11 @@ export function ContratMariageChamps({
   const etude = associe.contrat_mariage_etude ?? "";
   const notaire = associe.contrat_mariage_notaire ?? "";
   const date = associe.contrat_mariage_date ?? "";
-  const erreurDate = verifierDateContrat(date);
+  const erreurs = validerContratMariage(associe);
 
   const patch = (v: Partial<Associe>) => {
-    const suivant = {
-      etude: v.contrat_mariage_etude ?? etude,
-      notaire: v.contrat_mariage_notaire ?? notaire,
-      date: v.contrat_mariage_date ?? date,
-    };
-    maj({
-      ...v,
-      contrat_mariage_detail: composer(suivant.etude, suivant.notaire, suivant.date),
-    });
+    const suivant = { ...associe, ...v };
+    maj({ ...v, contrat_mariage_detail: resumeContratMariage(suivant) });
   };
 
   return (
@@ -75,8 +45,15 @@ export function ContratMariageChamps({
               maxLength={150}
               placeholder="Ex. SCP Martin & Associés, Nancy"
               value={etude}
+              aria-invalid={erreurs.etude ? true : undefined}
+              aria-describedby={erreurs.etude ? `etude-err-${associe.id}` : undefined}
               onChange={(e) => patch({ contrat_mariage_etude: e.target.value })}
             />
+            {erreurs.etude && (
+              <p id={`etude-err-${associe.id}`} className="text-sm text-destructive">
+                {erreurs.etude}
+              </p>
+            )}
           </div>
           <div className="space-y-1">
             <Label className="text-xs" htmlFor={`notaire-${associe.id}`}>
@@ -87,8 +64,15 @@ export function ContratMariageChamps({
               maxLength={120}
               placeholder="Ex. Maître Claire Martin"
               value={notaire}
+              aria-invalid={erreurs.notaire ? true : undefined}
+              aria-describedby={erreurs.notaire ? `notaire-err-${associe.id}` : undefined}
               onChange={(e) => patch({ contrat_mariage_notaire: e.target.value })}
             />
+            {erreurs.notaire && (
+              <p id={`notaire-err-${associe.id}`} className="text-sm text-destructive">
+                {erreurs.notaire}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -100,16 +84,16 @@ export function ContratMariageChamps({
         <Input
           id={`datectr-${associe.id}`}
           type="date"
-          max={new Date().toISOString().slice(0, 10)}
+          max={aujourdhuiISO()}
           min="1900-01-01"
           value={date}
-          aria-invalid={erreurDate ? true : undefined}
-          aria-describedby={erreurDate ? `datectr-err-${associe.id}` : undefined}
+          aria-invalid={erreurs.date ? true : undefined}
+          aria-describedby={erreurs.date ? `datectr-err-${associe.id}` : undefined}
           onChange={(e) => patch({ contrat_mariage_date: e.target.value })}
         />
-        {erreurDate ? (
+        {erreurs.date ? (
           <p id={`datectr-err-${associe.id}`} className="text-sm text-destructive">
-            {erreurDate}
+            {erreurs.date}
           </p>
         ) : (
           <p className="text-xs text-muted-foreground">
