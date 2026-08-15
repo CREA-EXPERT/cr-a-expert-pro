@@ -972,9 +972,8 @@ function Creation() {
           {/* 5 — CAPITAL */}
           {cle === "capital" && (
             <div className="mt-6 space-y-5">
-              <div className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed">
-                <p className="font-medium">À quoi sert le capital social ?</p>
-                <p className="mt-2">
+              <EncadrePliable titre="À quoi sert le capital social ?">
+                <p>
                   Le capital social correspond à la somme des apports des associés. Il constitue les
                   premières ressources de la société, détermine la répartition des droits de vote et
                   des dividendes, et sert de repère aux banques, aux bailleurs et aux clients. La
@@ -985,7 +984,7 @@ function Creation() {
                   elles sont libérées sur le compte de la société dès l'immatriculation et servent à
                   financer l'activité.
                 </p>
-              </div>
+              </EncadrePliable>
               <div className="space-y-2">
                 <Label htmlFor="cap">
                   Montant du capital social (minimum 1 €)
