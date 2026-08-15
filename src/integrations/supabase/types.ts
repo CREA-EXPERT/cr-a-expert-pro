@@ -1249,6 +1249,33 @@ export type Database = {
         }
         Relationships: []
       }
+      preferences_encadres: {
+        Row: {
+          cle: string
+          created_at: string
+          id: string
+          ouvert: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cle: string
+          created_at?: string
+          id?: string
+          ouvert?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cle?: string
+          created_at?: string
+          id?: string
+          ouvert?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           consent_marketing: boolean
