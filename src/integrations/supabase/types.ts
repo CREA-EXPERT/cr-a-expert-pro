@@ -779,6 +779,50 @@ export type Database = {
         }
         Relationships: []
       }
+      emails_test: {
+        Row: {
+          corps: string
+          created_at: string
+          destinataire: string
+          dossier_id: string | null
+          id: string
+          ordre: number
+          pour_cabinet: boolean
+          sujet: string
+          tag: string
+        }
+        Insert: {
+          corps?: string
+          created_at?: string
+          destinataire: string
+          dossier_id?: string | null
+          id?: string
+          ordre?: number
+          pour_cabinet?: boolean
+          sujet: string
+          tag?: string
+        }
+        Update: {
+          corps?: string
+          created_at?: string
+          destinataire?: string
+          dossier_id?: string | null
+          id?: string
+          ordre?: number
+          pour_cabinet?: boolean
+          sujet?: string
+          tag?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emails_test_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events_dossier: {
         Row: {
           created_at: string
