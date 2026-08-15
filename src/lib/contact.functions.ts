@@ -61,7 +61,14 @@ export const envoyerMessageContact = createServerFn({ method: "POST" })
   <p>${echapper(data.message).replace(/\n/g, "<br />")}</p>
 </div>`;
 
-    const resultat = await envoyerEmail({ destinataire: EMAIL_CONTACT, sujet: objet, html });
+    const resultat = await envoyerEmail({
+      destinataire: EMAIL_CABINET,
+      sujet: objet,
+      html,
+      dossierId: data.dossier_id ?? null,
+      pourCabinet: true,
+      tag: "contact",
+    });
 
     const { supabaseAdmin: sbJournal } = await import("@/integrations/supabase/client.server");
     await sbJournal.from("demandes_contact").insert({
