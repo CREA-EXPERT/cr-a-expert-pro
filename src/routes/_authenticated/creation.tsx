@@ -1045,9 +1045,8 @@ function Creation() {
                       ? "en SCI, la libération des apports est fixée librement par les statuts ; le solde reste dû selon les modalités qu'ils prévoient."
                       : "en SARL et EURL, au moins 20 % des apports en numéraire doivent être libérés à la constitution, le solde dans les 5 ans suivant l'immatriculation."}
                 </p>
-                <div className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
-                  <p className="font-medium">Ce qu'implique une libération partielle</p>
-                  <ul className="mt-2 space-y-1 pl-5 [&>li]:list-disc">
+                <EncadrePliable titre="Ce qu'implique une libération partielle">
+                  <ul className="space-y-1 pl-5 [&>li]:list-disc">
                     <li>
                       Le solde non libéré reste une dette exigible : le dirigeant peut l'appeler à
                       tout moment, et un liquidateur ou un créancier le réclamera en cas de
@@ -1066,7 +1065,7 @@ function Creation() {
                       crédibilité financière de la société.
                     </li>
                   </ul>
-                </div>
+                </EncadrePliable>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="banque">
@@ -1086,11 +1085,10 @@ function Creation() {
                   Martin). Cette mention figure dans les statuts.
                 </p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="mention-depot">
-                  En cas de dépôt du capital en ligne, veuillez coller ici la mention à ajouter au
-                  statut relative au dépôt du capital social
-                </Label>
+              <EncadrePliable
+                badge={null}
+                titre="En cas de dépôt du capital en ligne, veuillez coller ici la mention à ajouter au statut relative au dépôt du capital social"
+              >
                 <Textarea
                   id="mention-depot"
                   rows={4}
@@ -1103,11 +1101,9 @@ function Creation() {
                   Les plateformes de dépôt en ligne fournissent une formulation précise à reprendre
                   dans les statuts. Recopiez-la telle quelle : elle sera insérée sans modification.
                 </p>
-              </div>
-              <div className="rounded-md border border-border bg-surface p-4 text-sm leading-relaxed">
-
-                <p className="font-medium">Apports en nature et apports en industrie</p>
-                <p className="mt-2">
+              </EncadrePliable>
+              <EncadrePliable titre="Apports en nature et apports en industrie">
+                <p>
                   Le parcours en ligne traite les apports en numéraire (sommes d'argent). Un apport
                   en nature (bien, matériel, fonds de commerce, titres) suppose une évaluation et,
                   au-delà de certains seuils, l'intervention d'un commissaire aux apports. Un apport
@@ -1118,7 +1114,7 @@ function Creation() {
                 <div className="mt-3">
                   <ConsultationExpertCard variante="inline" />
                 </div>
-              </div>
+              </EncadrePliable>
               <div className="flex items-start gap-3">
                 <Checkbox
                   id="nature"
