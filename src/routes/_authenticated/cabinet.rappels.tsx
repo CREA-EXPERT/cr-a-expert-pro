@@ -104,6 +104,10 @@ function CabinetRappels() {
           ← Tous les dossiers
         </Link>
         <h1 className="mt-2 font-serif text-3xl">Demandes de rappel</h1>
+        <p className="mt-3 rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
+          Canal remplacé le 15/08/2026 par la consultation payante avec un expert-comptable. Aucune
+          nouvelle demande n'arrive ici.
+        </p>
         <p className="mt-2 text-sm text-muted-foreground">
           {rappels.filter((r) => r.statut === "a_traiter").length} demande(s) à traiter sur {rappels.length}.
         </p>

@@ -9,10 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { EncadrePliable } from "@/components/EncadrePliable";
-import { CallbackDialog } from "@/components/CallbackDialog";
+import { ConsultationExpertCard } from "@/components/ConsultationExpertCard";
+import { DIFFERENCE_RELECTURE_CONSULTATION } from "@/lib/contact";
 import {
   DISCLAIMER_SIMULATEUR,
-  LIBELLE_BOUTON_RELECTURE,
   MENTION_LEGITIMITE,
   QUESTIONS,
   SECTIONS,
@@ -450,11 +450,9 @@ function Simulateur() {
 
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Button asChild size="lg">
-                <Link to="/tarifs">{LIBELLE_BOUTON_RELECTURE}</Link>
+                <Link to="/tarifs">Faire relire mes statuts par un expert-comptable</Link>
               </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link to="/rendez-vous">Faire appel à un expert-comptable</Link>
-              </Button>
+              <ConsultationExpertCard variante="inline" taille="lg" />
               <Button
                 size="lg"
                 variant="outline"
@@ -465,8 +463,11 @@ function Simulateur() {
                 <Download strokeWidth={1.5} aria-hidden />
                 {pdfEnCours ? "Préparation du PDF…" : "Télécharger le comparatif en PDF"}
               </Button>
-              <CallbackDialog size="lg" />
             </div>
+
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              {DIFFERENCE_RELECTURE_CONSULTATION}
+            </p>
 
             <BlocDisclaimer />
 

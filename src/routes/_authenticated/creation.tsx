@@ -12,7 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Disclaimer } from "@/components/Disclaimer";
-import { CallbackDialog } from "@/components/CallbackDialog";
+import { ConsultationExpertCard } from "@/components/ConsultationExpertCard";
 import {
   CABINET,
   FORMES,
@@ -1109,7 +1109,7 @@ function Creation() {
                   accompagné directement par le cabinet.
                 </p>
                 <div className="mt-3">
-                  <CallbackDialog label="Être rappelé à ce sujet" size="sm" />
+                  <ConsultationExpertCard variante="inline" />
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -2425,7 +2425,7 @@ function Creation() {
 
           <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-border pt-6">
             {cle !== "recap" && <Button onClick={() => continuer(cle)}>Continuer</Button>}
-            <CallbackDialog variant="ghost" />
+            <ConsultationExpertCard variante="inline" />
             <RecommandationDialog variant="ghost" />
           </div>
 

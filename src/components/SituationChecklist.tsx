@@ -1,7 +1,7 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CallbackDialog } from "@/components/CallbackDialog";
+import { ConsultationExpertCard } from "@/components/ConsultationExpertCard";
 import { isEI, isSas } from "@/lib/domain";
 import { apportCogestion, estCommunautaire, type Associe, type Dossier } from "@/lib/documents";
 import { analyserChecklist, estMineur } from "@/lib/checklist";
@@ -361,7 +361,7 @@ export function SituationChecklist({
               <p className="text-sm leading-relaxed text-muted-foreground">{b.message}</p>
             </div>
           ))}
-          <CallbackDialog label="Être rappelé par le cabinet" size="sm" />
+          <ConsultationExpertCard variante="inline" />
         </div>
       )}
 

@@ -43,6 +43,11 @@ export function SiteFooter() {
                 CGV
               </Link>
             </li>
+            <li>
+              <Link to="/contact" className="hover:text-foreground">
+                Contact
+              </Link>
+            </li>
 
           </ul>
         </nav>

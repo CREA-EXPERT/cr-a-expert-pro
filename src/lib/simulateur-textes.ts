@@ -7,7 +7,7 @@
  * l'email de restitution (valeur probatoire).
  */
 
-export const SIMULATEUR_TEXTES_VERSION = "2.0.0";
+export const SIMULATEUR_TEXTES_VERSION = "2.1.0";
 
 export const SIMULATEUR_TITRE = "Comparer les formes juridiques";
 
@@ -25,7 +25,14 @@ export const MENTION_LEGITIMITE =
 export const OBJET_EMAIL_SIMULATEUR =
   "Votre comparatif des formes juridiques — information pédagogique";
 
-export const LIBELLE_BOUTON_RELECTURE = "Faire relire mon projet par un expert-comptable";
+import {
+  BOUTON_CONSULTATION_HEURE,
+  DIFFERENCE_RELECTURE_CONSULTATION,
+  LIBELLE_PRIX_CONSULTATION,
+  URL_CALENDLY_CONSULTATION,
+} from "./contact";
+
+export const LIBELLE_BOUTON_RELECTURE = "Faire relire mes statuts par un expert-comptable";
 
 /* ------------------------------------------------------------------ */
 /* Questionnaire                                                       */
@@ -535,7 +542,10 @@ ${corpsTable}
 
   <p style="margin:20px 0">
     <a href="${URL_SITE}/tarifs" style="display:inline-block;background:#2b2a27;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-size:14px">${esc(LIBELLE_BOUTON_RELECTURE)}</a>
+    &nbsp;
+    <a href="${URL_CALENDLY_CONSULTATION}" style="display:inline-block;border:1px solid #2b2a27;color:#2b2a27;text-decoration:none;padding:12px 18px;border-radius:8px;font-size:14px">${esc(BOUTON_CONSULTATION_HEURE)}</a>
   </p>
+  <p style="font-size:13px;color:#5c5952;margin:0 0 18px">${esc(DIFFERENCE_RELECTURE_CONSULTATION)} ${esc(LIBELLE_PRIX_CONSULTATION)}.</p>
 
   ${bandeauDisclaimer()}
 

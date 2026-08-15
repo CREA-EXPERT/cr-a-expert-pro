@@ -22,12 +22,6 @@ const EntreeSimulation = z.object({
   piege: z.string().max(200).optional(),
 });
 
-const EntreeRappel = z.object({
-  telephone: z.string().trim().min(6).max(30),
-  creneau_souhaite: z.string().max(120).optional(),
-  user_id: z.string().uuid().optional(),
-  piege: z.string().max(200).optional(),
-});
 
 function ipAppelant() {
   return getRequestHeader("x-forwarded-for")?.split(",")[0]?.trim() || "inconnu";
@@ -79,35 +73,4 @@ export const enregistrerSimulation = createServerFn({ method: "POST" })
     }
 
     return { ok: true as const, id: ligne.id as string, emailEnvoye };
-  });
-
-/**
- * Enregistre une demande de rappel soumise depuis un formulaire public,
- * protégée par un honeypot et une limitation de fréquence.
- */
-export const enregistrerRappel = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => EntreeRappel.parse(input))
-  .handler(async ({ data }) => {
-    if (data.piege) return { ok: true, id: null };
-
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { verifierLimite } = await import("./antiabus.server");
-
-    const ip = ipAppelant();
-    const autorise = await verifierLimite("callback", ip);
-    if (!autorise) return { ok: false as const, raison: "trop_de_demandes" as const };
-
-    const { data: ligne, error } = await supabaseAdmin
-      .from("callbacks")
-      .insert({
-        telephone: data.telephone.slice(0, 30),
-        creneau_souhaite: data.creneau_souhaite || null,
-        user_id: data.user_id || null,
-      })
-      .select("id")
-      .single();
-
-    if (error || !ligne) return { ok: false as const, raison: "trop_de_demandes" as const };
-
-    return { ok: true as const, id: ligne.id as string };
   });

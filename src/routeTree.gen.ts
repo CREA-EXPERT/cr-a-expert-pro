@@ -16,6 +16,7 @@ import { Route as CguRouteImport } from './routes/cgu'
 import { Route as CgvRouteImport } from './routes/cgv'
 import { Route as CommencerRouteImport } from './routes/commencer'
 import { Route as ConfidentialiteRouteImport } from './routes/confidentialite'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as MentionsLegalesRouteImport } from './routes/mentions-legales'
 import { Route as RendezVousRouteImport } from './routes/rendez-vous'
 import { Route as SimulateurRouteImport } from './routes/simulateur'
@@ -74,6 +75,11 @@ const CommencerRoute = CommencerRouteImport.update({
 const ConfidentialiteRoute = ConfidentialiteRouteImport.update({
   id: '/confidentialite',
   path: '/confidentialite',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MentionsLegalesRoute = MentionsLegalesRouteImport.update({
@@ -219,6 +225,7 @@ export interface FileRoutesByFullPath {
   '/cgv': typeof CgvRoute
   '/commencer': typeof CommencerRoute
   '/confidentialite': typeof ConfidentialiteRoute
+  '/contact': typeof ContactRoute
   '/mentions-legales': typeof MentionsLegalesRoute
   '/rendez-vous': typeof RendezVousRoute
   '/simulateur': typeof SimulateurRoute
@@ -252,6 +259,7 @@ export interface FileRoutesByTo {
   '/cgv': typeof CgvRoute
   '/commencer': typeof CommencerRoute
   '/confidentialite': typeof ConfidentialiteRoute
+  '/contact': typeof ContactRoute
   '/mentions-legales': typeof MentionsLegalesRoute
   '/rendez-vous': typeof RendezVousRoute
   '/simulateur': typeof SimulateurRoute
@@ -287,6 +295,7 @@ export interface FileRoutesById {
   '/cgv': typeof CgvRoute
   '/commencer': typeof CommencerRoute
   '/confidentialite': typeof ConfidentialiteRoute
+  '/contact': typeof ContactRoute
   '/mentions-legales': typeof MentionsLegalesRoute
   '/rendez-vous': typeof RendezVousRoute
   '/simulateur': typeof SimulateurRoute
@@ -322,6 +331,7 @@ export interface FileRouteTypes {
     | '/cgv'
     | '/commencer'
     | '/confidentialite'
+    | '/contact'
     | '/mentions-legales'
     | '/rendez-vous'
     | '/simulateur'
@@ -355,6 +365,7 @@ export interface FileRouteTypes {
     | '/cgv'
     | '/commencer'
     | '/confidentialite'
+    | '/contact'
     | '/mentions-legales'
     | '/rendez-vous'
     | '/simulateur'
@@ -389,6 +400,7 @@ export interface FileRouteTypes {
     | '/cgv'
     | '/commencer'
     | '/confidentialite'
+    | '/contact'
     | '/mentions-legales'
     | '/rendez-vous'
     | '/simulateur'
@@ -424,6 +436,7 @@ export interface RootRouteChildren {
   CgvRoute: typeof CgvRoute
   CommencerRoute: typeof CommencerRoute
   ConfidentialiteRoute: typeof ConfidentialiteRoute
+  ContactRoute: typeof ContactRoute
   MentionsLegalesRoute: typeof MentionsLegalesRoute
   RendezVousRoute: typeof RendezVousRoute
   SimulateurRoute: typeof SimulateurRoute
@@ -488,6 +501,13 @@ declare module '@tanstack/react-router' {
       path: '/confidentialite'
       fullPath: '/confidentialite'
       preLoaderRoute: typeof ConfidentialiteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mentions-legales': {
@@ -710,6 +730,7 @@ const rootRouteChildren: RootRouteChildren = {
   CgvRoute: CgvRoute,
   CommencerRoute: CommencerRoute,
   ConfidentialiteRoute: ConfidentialiteRoute,
+  ContactRoute: ContactRoute,
   MentionsLegalesRoute: MentionsLegalesRoute,
   RendezVousRoute: RendezVousRoute,
   SimulateurRoute: SimulateurRoute,

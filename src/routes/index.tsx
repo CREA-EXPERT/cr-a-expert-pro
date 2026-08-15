@@ -11,7 +11,7 @@ import { FriseCouts } from "@/components/FriseCouts";
 import { FormesDetail } from "@/components/FormesDetail";
 import { SyntheseImmobilier } from "@/components/SyntheseImmobilier";
 import { Disclaimer } from "@/components/Disclaimer";
-import { CallbackDialog } from "@/components/CallbackDialog";
+import { ConsultationExpertCard } from "@/components/ConsultationExpertCard";
 import { BandeauAutorite } from "@/components/BandeauAutorite";
 import { LIBELLE_DIPLOMES } from "@/lib/editeur";
 
@@ -86,7 +86,7 @@ const FAQ = [
     r: "Vos documents sont générés à partir de vos réponses. Vous pouvez les valider vous-même, ou demander leur relecture par un expert-comptable (option payante, avec engagement de sa responsabilité).",
   },
   {
-    q: "Puis-je créer sans engagement comptable ?",
+    q: "Puis-je créer sans souscrire à la mission comptable ?",
     r: "Non. Notre modèle est simple et assumé : la création est offerte parce que le cabinet vous accompagne ensuite en comptabilité pendant au moins 3 mois. Si vous ne souhaitez pas d'accompagnement comptable, notre offre n'est pas adaptée à votre situation.",
   },
   {
@@ -172,7 +172,7 @@ function Accueil() {
             <Button asChild size="lg">
               <Link to="/commencer">Créer ma société</Link>
             </Button>
-            <CallbackDialog size="lg" />
+            <ConsultationExpertCard variante="inline" taille="lg" />
           </div>
         </div>
       </section>
@@ -254,7 +254,7 @@ function Accueil() {
             <Button asChild size="lg">
               <Link to="/commencer">Créer ma société</Link>
             </Button>
-            <CallbackDialog size="lg" />
+            <ConsultationExpertCard variante="inline" taille="lg" />
           </div>
         </div>
       </section>

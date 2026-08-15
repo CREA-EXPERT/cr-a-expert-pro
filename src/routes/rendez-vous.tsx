@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageShell } from "@/components/layout/PageShell";
-import { CalendlyRdv } from "@/components/CalendlyRdv";
+import { ConsultationExpertCard } from "@/components/ConsultationExpertCard";
 import { Disclaimer } from "@/components/Disclaimer";
 
 export const Route = createFileRoute("/rendez-vous")({
@@ -43,7 +43,7 @@ function RendezVous() {
         </p>
 
         <div className="mt-8">
-          <CalendlyRdv />
+          <ConsultationExpertCard />
         </div>
 
         <div className="mt-8">

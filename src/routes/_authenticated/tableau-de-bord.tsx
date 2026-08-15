@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PageShell } from "@/components/layout/PageShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CallbackDialog } from "@/components/CallbackDialog";
+import { ConsultationExpertCard } from "@/components/ConsultationExpertCard";
 import { PROCHAINE_ACTION, STATUTS, STATUT_LABEL } from "@/lib/domain";
 import { CheckCircle2, Circle, CreditCard, FileSignature } from "lucide-react";
 
@@ -95,7 +95,7 @@ function Dashboard() {
               <Button asChild variant="outline">
                 <Link to="/documents">Mes documents</Link>
               </Button>
-              <CallbackDialog />
+              <ConsultationExpertCard variante="inline" />
             </div>
 
             <div className="mt-5 flex flex-wrap gap-3 border-t border-border pt-5">
