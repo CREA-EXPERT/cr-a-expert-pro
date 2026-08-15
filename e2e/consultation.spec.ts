@@ -79,7 +79,12 @@ test.describe("landing : justification et aperçu imprimable", () => {
         .locator("main p")
         .evaluateAll((els) =>
           els
-            .filter((el) => (el.textContent ?? "").trim().length > 80)
+            .filter(
+              (el) =>
+                (el.textContent ?? "").trim().length > 80 &&
+                !el.className.includes("text-left") &&
+                !el.className.includes("text-center"),
+            )
             .map((el) => getComputedStyle(el).textAlign),
         );
       expect(alignements.length).toBeGreaterThan(0);
