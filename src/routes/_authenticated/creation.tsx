@@ -848,9 +848,8 @@ function Creation() {
           {/* 4 — OBJET */}
           {cle === "objet" && (
             <div className="mt-6 space-y-5">
-              <div className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed">
-                <p className="font-medium">Qu'est-ce que l'objet social ?</p>
-                <p className="mt-2">
+              <EncadrePliable titre="Qu'est-ce que l'objet social ?">
+                <p>
                   L'objet social décrit l'ensemble des activités que votre structure est autorisée à
                   exercer. Il est inscrit dans les statuts et publié : tout ce qui n'y figure pas
                   sort du cadre autorisé et suppose une modification statutaire, avec les frais
@@ -860,7 +859,7 @@ function Creation() {
                   également votre code d'activité (APE) et, dans une large mesure, votre convention
                   collective.
                 </p>
-              </div>
+              </EncadrePliable>
 
               <div className="rounded-md border border-border bg-surface p-4">
                 <Label htmlFor="descr" className="text-sm font-medium">
