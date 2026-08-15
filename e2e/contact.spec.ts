@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-const URL_CALENDLY = "[URL_CALENDLY]";
+import { URL_CALENDLY_CONSULTATION as URL_CALENDLY } from "../src/lib/contact";
 
 test("landing — le bouton de consultation pointe vers la page de réservation", async ({ page }) => {
   await page.goto("/");

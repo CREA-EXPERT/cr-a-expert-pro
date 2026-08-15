@@ -45,7 +45,7 @@ describe("textes de la consultation", () => {
 });
 
 describe("carte de consultation", () => {
-  it("affiche les 3 points de réassurance issus de consultation-textes", () => {
+  it("affiche les points de réassurance issus de consultation-textes", () => {
     render(<ConsultationExpertCard />);
     for (const point of CONSULTATION_REASSURANCE) {
       expect(screen.getByText(point.texte)).toBeInTheDocument();

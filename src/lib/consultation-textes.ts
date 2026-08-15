@@ -36,7 +36,7 @@ export const CONSULTATION_BOUTON_ARIA =
 /** Libellé de prix affiché à proximité immédiate du bouton. */
 export const CONSULTATION_PRIX = `${PRIX_CONSULTATION.ttc} TTC (${PRIX_CONSULTATION.ht} HT, ${PRIX_CONSULTATION.tva}) — 1 heure`;
 
-/** Trois points de réassurance, affichés sous le prix et repris dans les emails. */
+/** Points de réassurance affichés sous le prix et repris dans les emails. */
 export const CONSULTATION_REASSURANCE = [
   {
     cle: "duree",
@@ -45,10 +45,6 @@ export const CONSULTATION_REASSURANCE = [
   {
     cle: "traitement",
     texte: "On traite votre question jusqu'au bout, sans supplément.",
-  },
-  {
-    cle: "remboursement",
-    texte: "Pas de réponse utile ? Intégralement remboursé.",
   },
 ] as const;
 

@@ -14,7 +14,10 @@ export default defineConfig({
   // simultanées, l'hydratation dépasse les délais d'attente.
   workers: 3,
   reporter: [["list"]],
-  use: { baseURL: "http://localhost:8080", trace: "off" },
+  use: {
+    baseURL: process.env["PLAYWRIGHT_BASE_URL"] || "http://localhost:8080",
+    trace: "off",
+  },
   projects: [
     {
       name: "iOS",

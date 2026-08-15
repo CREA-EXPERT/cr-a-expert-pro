@@ -536,3 +536,51 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Mode test automatisé (`EMAILS_TEST_INTERCEPT=1`)
+
+En environnement de test automatisé, les emails ne partent pas chez le prestataire
+d'envoi : ils sont écrits dans la table `emails_test` (boîte de réception de test),
+lisible par étiquette (`tag`) et par dossier. Le mode test manuel (alias `+test` dans
+l'adresse) n'est pas concerné : hors de cette variable, les envois réels préfixés
+`[TEST]` continuent normalement.
+
+### Démarrer le serveur avec interception
+
+```sh
+EMAILS_TEST_INTERCEPT=1 npm run dev            # port 8080
+# variante isolée, pour ne pas perturber le serveur de développement courant
+EMAILS_TEST_INTERCEPT=1 npx vite dev --port 8081
+```
+
+Option : `EMAILS_TEST_INTERCEPT_KEY=<valeur>` exige alors l'en-tête
+`x-test-inbox-key: <valeur>` sur les endpoints de test.
+
+### Endpoints de test
+
+- `GET /api/public/emails-test?dossier=<id>&tag=<étiquette>&destinataire=<email>` —
+  liste les emails interceptés, dans leur ordre d'arrivée.
+- `POST /api/public/emails-test/confirmer` avec `{ "email": "...+test@...", "tag": "..." }` —
+  confirme automatiquement l'adresse d'un compte de test après réception de l'email attendu.
+
+Les deux endpoints renvoient **403** dans tous les cas non autorisés : interception
+désactivée, clé absente ou invalide, méthode non prévue, adresse hors motif `+test`.
+
+### Exécuter les suites
+
+```sh
+npx vitest run                                   # unitaires (l'interception est simulée)
+npx playwright test                              # e2e : les scénarios d'interception sont ignorés
+EMAILS_TEST_INTERCEPT=1 npx playwright test e2e/mode-test.spec.ts   # e2e avec boîte de test
+```
+
+Le serveur visé par Playwright doit lui aussi être démarré avec
+`EMAILS_TEST_INTERCEPT=1` ; utiliser `PLAYWRIGHT_BASE_URL` pour cibler un serveur sur
+un autre port. Le scénario complet « inscription → transmis » se trouve dans
+`e2e/mode-test-parcours.spec.ts`.
+
+### Consultation côté administration
+
+La page `/cabinet/emails-test` (rôle administrateur) affiche les emails interceptés,
+filtrables par dossier, étiquette et destinataire, avec un bouton de re-tentative
+d'envoi réel.
