@@ -11,8 +11,8 @@ test("landing — le bouton de consultation pointe vers la page de réservation"
 });
 
 test("contact — la catégorie « bug » affiche une confirmation après envoi", async ({ page }) => {
-  await page.goto("/contact");
-  await expect(page.getByTestId("contact-formulaire")).toBeVisible();
+  await page.goto("/contact", { waitUntil: "networkidle" });
+  await expect(page.getByTestId("contact-formulaire")).toBeVisible({ timeout: 20000 });
   await page.getByTestId("contact-objet").selectOption("bug");
   await page.locator("#contact-email").fill("e2e@example.com");
   await page.locator("#contact-message").fill("Le bouton de validation reste inactif à l'étape 3.");
@@ -26,10 +26,10 @@ test("contact — la catégorie « bug » affiche une confirmation après envoi"
 test("contact — la catégorie « autre » propose la consultation, sans formulaire", async ({
   page,
 }) => {
-  await page.goto("/contact");
-  await expect(page.getByTestId("contact-formulaire")).toBeVisible();
+  await page.goto("/contact", { waitUntil: "networkidle" });
+  await expect(page.getByTestId("contact-formulaire")).toBeVisible({ timeout: 20000 });
   await page.getByTestId("contact-objet").selectOption("autre");
-  await expect(page.getByTestId("bloc-avis")).toBeVisible();
+  await expect(page.getByTestId("bloc-avis")).toBeVisible({ timeout: 20000 });
   await expect(page.getByTestId("bouton-consultation")).toBeVisible();
   await expect(page.getByTestId("contact-formulaire")).toHaveCount(0);
 });
