@@ -652,6 +652,8 @@ function Creation() {
 
           <h1 className="font-serif text-3xl">{titreEtape}</h1>
 
+          <RecapitulatifErreurs erreurs={erreurs} />
+
           {/* 1 — FORME */}
           {cle === "forme" && (
             <div className="mt-6 space-y-3">
