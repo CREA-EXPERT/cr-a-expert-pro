@@ -15,7 +15,13 @@ export const lireCoulisses = createServerFn({ method: "POST" })
       .select("id, est_test")
       .eq("id", data.dossierId)
       .maybeSingle();
-    if (!dossier) throw new Error("Dossier introuvable.");
+    if (!dossier) throw new Response("Dossier introuvable.", { status: 403 });
+
+    // Garde serveur : les coulisses n'existent que pour les dossiers de test.
+    // Un dossier réel ne doit jamais exposer chemins de stockage ni liens signés.
+    if (dossier.est_test !== true) {
+      throw new Response("Coulisses réservées aux dossiers de test.", { status: 403 });
+    }
 
     const { coulissesDossier } = await import("./coulisses.server");
     return coulissesDossier(data.dossierId);
