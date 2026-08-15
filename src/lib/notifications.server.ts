@@ -22,16 +22,12 @@ function debutDeJournee() {
   return d.toISOString();
 }
 
-/** Adresses des membres du cabinet et de l'administration. */
-async function destinatairesCabinet(): Promise<string[]> {
-  const { data: roles } = await supabaseAdmin
-    .from("user_roles")
-    .select("user_id, role")
-    .in("role", ["cabinet", "admin"]);
-  const ids = [...new Set((roles ?? []).map((r) => r.user_id))];
-  if (ids.length === 0) return [];
-  const { data: profils } = await supabaseAdmin.from("profiles").select("email").in("id", ids);
-  return [...new Set((profils ?? []).map((p) => p.email).filter((e): e is string => !!e))];
+/**
+ * Destinataire unique des notifications internes : la boîte du cabinet.
+ * Les emails des comptes admin ou de démonstration ne sont jamais utilisés.
+ */
+function destinatairesCabinet(): string[] {
+  return [EMAIL_CABINET];
 }
 
 function corps(denomination: string, lien: string, evenements: { message: string }[]) {
