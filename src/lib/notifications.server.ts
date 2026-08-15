@@ -79,7 +79,7 @@ export async function notifierCabinet(evenement: EvenementConformite) {
     .gte("created_at", depuis)
     .order("created_at", { ascending: true });
 
-  const destinataires = await destinatairesCabinet();
+  const destinataires = destinatairesCabinet();
   if (destinataires.length === 0) return { enregistre: true, email: false };
 
   const base = process.env["APP_URL"] ?? "https://crea-expert.lovable.app";
