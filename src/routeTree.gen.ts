@@ -24,6 +24,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedCreationRouteImport } from './routes/_authenticated/creation'
 import { Route as AuthenticatedDocumentsRouteImport } from './routes/_authenticated/documents'
 import { Route as AuthenticatedMonCompteRouteImport } from './routes/_authenticated/mon-compte'
+import { Route as AuthenticatedSimulationsRouteImport } from './routes/_authenticated/simulations'
 import { Route as AuthenticatedTableauDeBordRouteImport } from './routes/_authenticated/tableau-de-bord'
 import { Route as AuthenticatedVerificationFinaleRouteImport } from './routes/_authenticated/verification-finale'
 import { Route as DevApercuStatutsRouteImport } from './routes/dev.apercu-statuts'
@@ -115,6 +116,12 @@ const AuthenticatedMonCompteRoute = AuthenticatedMonCompteRouteImport.update({
   path: '/mon-compte',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSimulationsRoute =
+  AuthenticatedSimulationsRouteImport.update({
+    id: '/simulations',
+    path: '/simulations',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTableauDeBordRoute =
   AuthenticatedTableauDeBordRouteImport.update({
     id: '/tableau-de-bord',
@@ -220,6 +227,7 @@ export interface FileRoutesByFullPath {
   '/creation': typeof AuthenticatedCreationRoute
   '/documents': typeof AuthenticatedDocumentsRoute
   '/mon-compte': typeof AuthenticatedMonCompteRoute
+  '/simulations': typeof AuthenticatedSimulationsRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/verification-finale': typeof AuthenticatedVerificationFinaleRoute
   '/dev/apercu-statuts': typeof DevApercuStatutsRoute
@@ -252,6 +260,7 @@ export interface FileRoutesByTo {
   '/creation': typeof AuthenticatedCreationRoute
   '/documents': typeof AuthenticatedDocumentsRoute
   '/mon-compte': typeof AuthenticatedMonCompteRoute
+  '/simulations': typeof AuthenticatedSimulationsRoute
   '/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/verification-finale': typeof AuthenticatedVerificationFinaleRoute
   '/dev/apercu-statuts': typeof DevApercuStatutsRoute
@@ -286,6 +295,7 @@ export interface FileRoutesById {
   '/_authenticated/creation': typeof AuthenticatedCreationRoute
   '/_authenticated/documents': typeof AuthenticatedDocumentsRoute
   '/_authenticated/mon-compte': typeof AuthenticatedMonCompteRoute
+  '/_authenticated/simulations': typeof AuthenticatedSimulationsRoute
   '/_authenticated/tableau-de-bord': typeof AuthenticatedTableauDeBordRoute
   '/_authenticated/verification-finale': typeof AuthenticatedVerificationFinaleRoute
   '/dev/apercu-statuts': typeof DevApercuStatutsRoute
@@ -320,6 +330,7 @@ export interface FileRouteTypes {
     | '/creation'
     | '/documents'
     | '/mon-compte'
+    | '/simulations'
     | '/tableau-de-bord'
     | '/verification-finale'
     | '/dev/apercu-statuts'
@@ -352,6 +363,7 @@ export interface FileRouteTypes {
     | '/creation'
     | '/documents'
     | '/mon-compte'
+    | '/simulations'
     | '/tableau-de-bord'
     | '/verification-finale'
     | '/dev/apercu-statuts'
@@ -385,6 +397,7 @@ export interface FileRouteTypes {
     | '/_authenticated/creation'
     | '/_authenticated/documents'
     | '/_authenticated/mon-compte'
+    | '/_authenticated/simulations'
     | '/_authenticated/tableau-de-bord'
     | '/_authenticated/verification-finale'
     | '/dev/apercu-statuts'
@@ -533,6 +546,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMonCompteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/simulations': {
+      id: '/_authenticated/simulations'
+      path: '/simulations'
+      fullPath: '/simulations'
+      preLoaderRoute: typeof AuthenticatedSimulationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tableau-de-bord': {
       id: '/_authenticated/tableau-de-bord'
       path: '/tableau-de-bord'
@@ -653,6 +673,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCreationRoute: typeof AuthenticatedCreationRoute
   AuthenticatedDocumentsRoute: typeof AuthenticatedDocumentsRoute
   AuthenticatedMonCompteRoute: typeof AuthenticatedMonCompteRoute
+  AuthenticatedSimulationsRoute: typeof AuthenticatedSimulationsRoute
   AuthenticatedTableauDeBordRoute: typeof AuthenticatedTableauDeBordRoute
   AuthenticatedVerificationFinaleRoute: typeof AuthenticatedVerificationFinaleRoute
   AuthenticatedCabinetIdRoute: typeof AuthenticatedCabinetIdRoute
@@ -667,6 +688,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCreationRoute: AuthenticatedCreationRoute,
   AuthenticatedDocumentsRoute: AuthenticatedDocumentsRoute,
   AuthenticatedMonCompteRoute: AuthenticatedMonCompteRoute,
+  AuthenticatedSimulationsRoute: AuthenticatedSimulationsRoute,
   AuthenticatedTableauDeBordRoute: AuthenticatedTableauDeBordRoute,
   AuthenticatedVerificationFinaleRoute: AuthenticatedVerificationFinaleRoute,
   AuthenticatedCabinetIdRoute: AuthenticatedCabinetIdRoute,

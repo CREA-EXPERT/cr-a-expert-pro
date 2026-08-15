@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,8 +78,6 @@ function libelleReponse(id: string, valeur: string) {
 function champCsv(v: string) {
   return `"${v.replace(/"/g, '""')}"`;
 }
-
-export default function noop() {}
 
 function AdminSimulations() {
   const { user } = useAuth();
@@ -228,8 +226,8 @@ function AdminSimulations() {
                   const { reponses, journal } = extraire(l);
                   const estOuvert = ouvert === l.id;
                   return (
-                    <>
-                      <tr key={l.id} className="border-b border-border align-top">
+                    <React.Fragment key={l.id}>
+                      <tr className="border-b border-border align-top">
                         <td className="p-3 whitespace-nowrap">{horodatageFr(l.created_at)}</td>
                         <td className="p-3">
                           <span className="block">{l.email}</span>
@@ -272,7 +270,7 @@ function AdminSimulations() {
                         </td>
                       </tr>
                       {estOuvert && (
-                        <tr key={`${l.id}-detail`} className="border-b border-border bg-muted/40">
+                        <tr className="border-b border-border bg-muted/40">
                           <td colSpan={7} className="p-4" id={`rep-${l.id}`}>
                             <dl className="grid gap-3 md:grid-cols-2">
                               {Object.entries(reponses).map(([id, v]) => (
@@ -292,7 +290,7 @@ function AdminSimulations() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </React.Fragment>
                   );
                 })}
               </tbody>
