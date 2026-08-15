@@ -8,13 +8,11 @@ async function parcourir(page: Page) {
   await expect(page.getByText(DISCLAIMER_DEBUT).first()).toBeVisible();
 
   // Répond à la première option de chaque question tant qu'il en reste.
-  for (let i = 0; i < 30; i++) {
-    const formulaire = page.getByRole("heading", { name: "Recevoir votre comparatif" });
-    if (await formulaire.isVisible().catch(() => false)) break;
-    const cible = page.getByTestId("option-simulateur").first();
-    if (!(await cible.isVisible().catch(() => false))) break;
-    await cible.click();
-    await page.waitForTimeout(120);
+  for (let i = 0; i < 40; i++) {
+    const options = page.getByTestId("option-simulateur");
+    if ((await options.count()) === 0) break;
+    await options.first().click();
+    await page.waitForTimeout(150);
   }
 
   await expect(page.getByRole("heading", { name: "Recevoir votre comparatif" })).toBeVisible();
