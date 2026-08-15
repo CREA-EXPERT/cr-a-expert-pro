@@ -264,10 +264,6 @@ function Accueil() {
             <ConsultationExpertCard variante="inline" taille="lg" className="max-w-md" />
             <RecommandationDialog variant="outline" size="lg" />
           </div>
-
-          <div className="mt-4">
-            <BoutonApercuImprimable className="-ml-2" />
-          </div>
         </div>
       </section>
     </PageShell>
