@@ -53,13 +53,41 @@ async function journaliser(entree: {
   }
 }
 
+/**
+ * Interception d'envoi en environnement de test automatisé.
+ *
+ * Quand `EMAILS_TEST_INTERCEPT` vaut « 1 », aucun appel n'est fait à Resend :
+ * le message est écrit dans la table `emails_test` (boîte de réception de
+ * test), lisible par les suites Vitest et Playwright par étiquette et par
+ * dossier. Le mode test manuel (alias `+test`) n'est pas concerné : hors de
+ * cet indicateur d'environnement, les envois réels préfixés `[TEST]`
+ * continuent normalement.
+ */
+export function interceptionTestActive(): boolean {
+  return process.env["EMAILS_TEST_INTERCEPT"] === "1";
+}
+
+async function ecrireBoiteTest(entree: {
+  dossier_id: string | null;
+  destinataire: string;
+  sujet: string;
+  corps: string;
+  tag: string;
+  pour_cabinet: boolean;
+}) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  await supabaseAdmin.from("emails_test").insert(entree);
+}
+
 export async function envoyerEmail({
+
   destinataire,
   sujet,
   html,
   expediteur,
   dossierId,
   pourCabinet,
+  tag,
 }: {
   destinataire: string;
   sujet: string;
@@ -70,6 +98,8 @@ export async function envoyerEmail({
   dossierId?: string | null;
   /** Vrai lorsque le message est une copie destinée au cabinet. */
   pourCabinet?: boolean;
+  /** Étiquette de message, utilisée par la boîte de réception de test. */
+  tag?: string;
 }): Promise<ResultatEnvoi> {
   let sujetFinal = sujet;
   let destinataireFinal = destinataire;
@@ -99,6 +129,34 @@ export async function envoyerEmail({
     sujetFinal = prepare.sujet;
     destinataireFinal = prepare.destinataire;
   }
+
+  if (interceptionTestActive()) {
+    try {
+      await ecrireBoiteTest({
+        dossier_id: dossierId ?? null,
+        destinataire: destinataireFinal,
+        sujet: sujetFinal,
+        corps: html,
+        tag: tag ?? "generique",
+        pour_cabinet: pourCabinet === true,
+      });
+    } catch (e) {
+      const detail = e instanceof Error ? e.message : String(e);
+      return { envoye: false, raison: "erreur", detail };
+    }
+    if (dossierId)
+      await journaliser({
+        dossier_id: dossierId,
+        destinataire: destinataireFinal,
+        sujet: sujetFinal,
+        statut: "intercepte_test",
+        detail: tag ?? "generique",
+        test: true,
+      });
+    return { envoye: true };
+  }
+
+
 
   const cleConnexion = process.env["RESEND_API_KEY"];
   const cleLovable = process.env["LOVABLE_API_KEY"];

@@ -41,6 +41,7 @@ import { Route as AuthenticatedCabinetContactsRouteImport } from './routes/_auth
 import { Route as AuthenticatedCabinetDenominationsRouteImport } from './routes/_authenticated/cabinet.denominations'
 import { Route as AuthenticatedCabinetDonneesTestRouteImport } from './routes/_authenticated/cabinet.donnees-test'
 import { Route as AuthenticatedCabinetRappelsRouteImport } from './routes/_authenticated/cabinet.rappels'
+import { Route as ApiPublicEmailsTestRouteImport } from './routes/api/public/emails-test'
 import { Route as ApiPublicHooksPurgeDonneesRouteImport } from './routes/api/public/hooks/purge-donnees'
 import { Route as ApiPublicHooksRelancePiecesRouteImport } from './routes/api/public/hooks/relance-pieces'
 import { Route as ApiPublicHooksRelanceSignaturesRouteImport } from './routes/api/public/hooks/relance-signatures'
@@ -213,6 +214,11 @@ const AuthenticatedCabinetRappelsRoute =
     path: '/cabinet/rappels',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicEmailsTestRoute = ApiPublicEmailsTestRouteImport.update({
+  id: '/api/public/emails-test',
+  path: '/api/public/emails-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksPurgeDonneesRoute =
   ApiPublicHooksPurgeDonneesRouteImport.update({
     id: '/api/public/hooks/purge-donnees',
@@ -263,6 +269,7 @@ export interface FileRoutesByFullPath {
   '/cabinet/denominations': typeof AuthenticatedCabinetDenominationsRoute
   '/cabinet/donnees-test': typeof AuthenticatedCabinetDonneesTestRoute
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
+  '/api/public/emails-test': typeof ApiPublicEmailsTestRoute
   '/cabinet/': typeof AuthenticatedCabinetIndexRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
   '/api/public/hooks/relance-pieces': typeof ApiPublicHooksRelancePiecesRoute
@@ -299,6 +306,7 @@ export interface FileRoutesByTo {
   '/cabinet/denominations': typeof AuthenticatedCabinetDenominationsRoute
   '/cabinet/donnees-test': typeof AuthenticatedCabinetDonneesTestRoute
   '/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
+  '/api/public/emails-test': typeof ApiPublicEmailsTestRoute
   '/cabinet': typeof AuthenticatedCabinetIndexRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
   '/api/public/hooks/relance-pieces': typeof ApiPublicHooksRelancePiecesRoute
@@ -337,6 +345,7 @@ export interface FileRoutesById {
   '/_authenticated/cabinet/denominations': typeof AuthenticatedCabinetDenominationsRoute
   '/_authenticated/cabinet/donnees-test': typeof AuthenticatedCabinetDonneesTestRoute
   '/_authenticated/cabinet/rappels': typeof AuthenticatedCabinetRappelsRoute
+  '/api/public/emails-test': typeof ApiPublicEmailsTestRoute
   '/_authenticated/cabinet/': typeof AuthenticatedCabinetIndexRoute
   '/api/public/hooks/purge-donnees': typeof ApiPublicHooksPurgeDonneesRoute
   '/api/public/hooks/relance-pieces': typeof ApiPublicHooksRelancePiecesRoute
@@ -375,6 +384,7 @@ export interface FileRouteTypes {
     | '/cabinet/denominations'
     | '/cabinet/donnees-test'
     | '/cabinet/rappels'
+    | '/api/public/emails-test'
     | '/cabinet/'
     | '/api/public/hooks/purge-donnees'
     | '/api/public/hooks/relance-pieces'
@@ -411,6 +421,7 @@ export interface FileRouteTypes {
     | '/cabinet/denominations'
     | '/cabinet/donnees-test'
     | '/cabinet/rappels'
+    | '/api/public/emails-test'
     | '/cabinet'
     | '/api/public/hooks/purge-donnees'
     | '/api/public/hooks/relance-pieces'
@@ -448,6 +459,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cabinet/denominations'
     | '/_authenticated/cabinet/donnees-test'
     | '/_authenticated/cabinet/rappels'
+    | '/api/public/emails-test'
     | '/_authenticated/cabinet/'
     | '/api/public/hooks/purge-donnees'
     | '/api/public/hooks/relance-pieces'
@@ -473,6 +485,7 @@ export interface RootRouteChildren {
   DevDenominationRoute: typeof DevDenominationRoute
   DevWordingDenominationRoute: typeof DevWordingDenominationRoute
   SignerJetonRoute: typeof SignerJetonRoute
+  ApiPublicEmailsTestRoute: typeof ApiPublicEmailsTestRoute
   ApiPublicHooksPurgeDonneesRoute: typeof ApiPublicHooksPurgeDonneesRoute
   ApiPublicHooksRelancePiecesRoute: typeof ApiPublicHooksRelancePiecesRoute
   ApiPublicHooksRelanceSignaturesRoute: typeof ApiPublicHooksRelanceSignaturesRoute
@@ -704,6 +717,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCabinetRappelsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/emails-test': {
+      id: '/api/public/emails-test'
+      path: '/api/public/emails-test'
+      fullPath: '/api/public/emails-test'
+      preLoaderRoute: typeof ApiPublicEmailsTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/purge-donnees': {
       id: '/api/public/hooks/purge-donnees'
       path: '/api/public/hooks/purge-donnees'
@@ -785,6 +805,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevDenominationRoute: DevDenominationRoute,
   DevWordingDenominationRoute: DevWordingDenominationRoute,
   SignerJetonRoute: SignerJetonRoute,
+  ApiPublicEmailsTestRoute: ApiPublicEmailsTestRoute,
   ApiPublicHooksPurgeDonneesRoute: ApiPublicHooksPurgeDonneesRoute,
   ApiPublicHooksRelancePiecesRoute: ApiPublicHooksRelancePiecesRoute,
   ApiPublicHooksRelanceSignaturesRoute: ApiPublicHooksRelanceSignaturesRoute,

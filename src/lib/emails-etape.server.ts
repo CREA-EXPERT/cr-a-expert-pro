@@ -66,6 +66,7 @@ export async function emailDossierOuvert(dossierId: string) {
     sujet: "Votre dossier de création est ouvert",
     html,
     dossierId,
+    tag: "dossier_ouvert",
   });
   return { envoye: r.envoye };
 }
@@ -100,6 +101,7 @@ export async function emailDossierTransmis(dossierId: string) {
     sujet: "Votre dossier est complet et transmis au cabinet",
     html,
     dossierId,
+    tag: "dossier_transmis",
   });
   return { envoye: r.envoye };
 }
