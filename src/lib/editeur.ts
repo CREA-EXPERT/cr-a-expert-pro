@@ -27,8 +27,7 @@ export const EDITEUR = {
   },
   cabinetPartenaire: {
     nom: "ODEON (SAS)",
-    inscriptionOrdre:
-      "Inscription en cours au tableau de l'Ordre des experts-comptables de Paris",
+    inscriptionOrdre: "Inscription en cours au tableau de l'Ordre des experts-comptables de Paris",
     adresse: "138 Avenue Victor Hugo, 75016 Paris",
     assuranceRcp: A_COMPLETER,
   },
@@ -56,4 +55,4 @@ export function mentionsLegalesCompletes() {
 }
 
 /** Libellé unique de la mention d'autorité, à réutiliser sur tous les écrans. */
-export const LIBELLE_DIPLOMES = "100 % réalisé par un cabinet d'expertise comptable français";
+export const LIBELLE_DIPLOMES = "Réalisé par un cabinet d'expertise comptable français";
