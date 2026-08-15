@@ -55,7 +55,12 @@ export const enregistrerSimulation = createServerFn({ method: "POST" })
       .insert({
         email: data.email,
         prenom: data.prenom || null,
-        reponses: data.reponses,
+        reponses: {
+          reponses: data.reponses,
+          ...(data.journal
+            ? { journal: { ...data.journal, enregistre_le: new Date().toISOString() } }
+            : {}),
+        },
         resultat: data.resultat,
         corps_email: data.corps_email,
       })

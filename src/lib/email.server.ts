@@ -35,7 +35,7 @@ export async function envoyerEmail({
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        from: expediteur ?? "CREA EXPERT <contact@creaexpert.fr>",
+        from: expediteur ?? "CREA EXPERT <contact@crea-expert.fr>",
         to: [destinataire],
         subject: sujet,
         html,

@@ -244,7 +244,7 @@ export const REGIMES_AVEC_CONTRAT = [
 /** Cabinet d'expertise comptable partenaire. */
 export const CABINET = {
   nom: "ODEON",
-  mention: "ODEON, cabinet inscrit à l'Ordre des experts-comptables du Grand Est",
+  mention: "ODEON, cabinet en cours d'inscription au tableau de l'Ordre des experts-comptables de Paris",
 };
 
 /** Limites de la prestation de relecture par l'expert-comptable. */

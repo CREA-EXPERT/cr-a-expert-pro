@@ -55,4 +55,4 @@ export function mentionsLegalesCompletes() {
 }
 
 /** Libellé unique de la mention d'autorité, à réutiliser sur tous les écrans. */
-export const LIBELLE_DIPLOMES = "100 % réalisé par des diplômés d'expertise comptable";
+export const LIBELLE_DIPLOMES = "100 % réalisé par un cabinet d'expertise comptable français";
