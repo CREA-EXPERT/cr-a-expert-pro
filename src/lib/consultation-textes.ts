@@ -8,13 +8,19 @@ import { EMAIL_CONTACT, LIBELLE_PRIX_CONSULTATION, PRIX_CONSULTATION, URL_CALEND
 export { LIBELLE_PRIX_CONSULTATION, PRIX_CONSULTATION, URL_CALENDLY_CONSULTATION };
 
 /** Version des textes affichés, journalisée à chaque affichage de la carte. */
-export const CONSULTATION_TEXTES_VERSION = "2026-08-15.1";
+export const CONSULTATION_TEXTES_VERSION = "2026-08-15.2";
 
 export const CONSULTATION_TITRE = "Besoin d'un avis sur votre situation ?";
 
 /** Durée indicative — jamais exprimée en minutes. */
 export const CONSULTATION_DUREE =
   "Consultation d'1 heure avec un expert-comptable (durée indicative).";
+
+/** Texte affiché sous le bouton de réservation, quand le libellé est placé sous le bouton. */
+export const CONSULTATION_SOUS_BOUTON =
+  `Consultation d' 1h avec un expert-comptable (durée indicative). ${PRIX_CONSULTATION.ttc} TTC ( ${PRIX_CONSULTATION.tva}). La durée est indicative, on traite le problème jusqu'au bout.`;
+
+
 
 export const CONSULTATION_ENGAGEMENT =
   "Si votre question demande plus de temps, l'expert-comptable poursuit la consultation sans supplément, jusqu'à la traiter complètement.";

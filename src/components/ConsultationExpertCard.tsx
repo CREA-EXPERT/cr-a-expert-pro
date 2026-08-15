@@ -5,14 +5,13 @@ import { journaliser } from "@/lib/journal";
 import {
   CONSULTATION_BOUTON,
   CONSULTATION_BOUTON_ARIA,
-  CONSULTATION_CANAL,
   CONSULTATION_DUREE,
   CONSULTATION_ENGAGEMENT,
   CONSULTATION_GARANTIE,
-  CONSULTATION_INTRO,
   CONSULTATION_MENTION,
   CONSULTATION_PRIX,
   CONSULTATION_REASSURANCE,
+  CONSULTATION_SOUS_BOUTON,
   CONSULTATION_TEXTES_VERSION,
   CONSULTATION_TITRE,
   URL_CALENDLY_CONSULTATION,
@@ -81,7 +80,7 @@ export function ConsultationExpertCard({ variante = "card", className, taille, d
       <div className={className} data-textes-version={CONSULTATION_TEXTES_VERSION}>
         <BoutonReserver taille={taille ?? "sm"} />
         <p className="mt-3 text-sm leading-relaxed text-justify text-muted-foreground">
-          {CONSULTATION_DUREE} {CONSULTATION_PRIX}.
+          {CONSULTATION_SOUS_BOUTON}
         </p>
         <Reassurance className="mt-2" />
       </div>
@@ -99,7 +98,7 @@ export function ConsultationExpertCard({ variante = "card", className, taille, d
         <BoutonReserver taille={taille ?? "lg"} />
       </div>
       <p className="mt-4 text-base leading-relaxed text-justify">
-        {CONSULTATION_INTRO} {CONSULTATION_DUREE} {CONSULTATION_CANAL}
+        {CONSULTATION_SOUS_BOUTON}
       </p>
       <p className="mt-3 text-base leading-relaxed text-justify">{CONSULTATION_ENGAGEMENT}</p>
       <p className="mt-3 text-base leading-relaxed text-justify">{CONSULTATION_GARANTIE}</p>
