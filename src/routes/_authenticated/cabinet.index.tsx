@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_authenticated/cabinet/")({
 
 function CabinetListe() {
   const { user } = useAuth();
-  const { isCabinet, loading: rolesLoading } = useRoles(user);
+  const { isCabinet, isAdmin, loading: rolesLoading } = useRoles(user);
   const [statut, setStatut] = useState<string>("tous");
   const [recherche, setRecherche] = useState("");
 
