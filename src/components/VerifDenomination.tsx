@@ -121,11 +121,12 @@ export function VerifDenomination({
       className="space-y-3 rounded-md border border-border bg-surface p-4 text-sm leading-relaxed"
       data-testid="verif-denomination"
     >
-      <p className="font-medium">Ce nom est-il déjà porté par une autre entreprise ?</p>
-      <p className="text-muted-foreground">
-        Nous interrogeons l'annuaire public des entreprises. Ce contrôle est purement informatif :
-        le choix de la dénomination est libre et une homonymie n'empêche pas l'immatriculation.
-      </p>
+      <EncadrePliable titre="Ce nom est-il déjà porté par une autre entreprise ?" badge={null}>
+        <p>
+          Nous interrogeons l'annuaire public des entreprises. Ce contrôle est purement informatif :
+          le choix de la dénomination est libre et une homonymie n'empêche pas l'immatriculation.
+        </p>
+      </EncadrePliable>
       <Button
         type="button"
         variant="outline"
