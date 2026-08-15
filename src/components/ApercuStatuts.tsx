@@ -7,6 +7,7 @@ import type { Associe, Dossier } from "@/lib/documents";
 import { horodatageFr, lireEvenements, type EvenementJournal } from "@/lib/journal";
 import { extraireMeta, journaliserConformite, TYPE_BLOQUEE, TYPE_REUSSIE } from "@/lib/conformite";
 import { notifierConformite } from "@/lib/notifications.functions";
+import { supabase } from "@/integrations/supabase/client";
 import {
   alertesStatuts,
   champsManquantsStatuts,
@@ -72,9 +73,18 @@ export function ApercuStatuts({ dossier, associes }: { dossier: Dossier; associe
       // Notification interne : refus, ou réussite faisant suite à un refus.
       const suiteARefus = journal.some((e) => e.type_event === TYPE_BLOQUEE);
       if (type === TYPE_BLOQUEE || (type === TYPE_REUSSIE && suiteARefus)) {
-        void notifierConformite({
-          data: { dossierId: dossier.id, typeEvent: type, motifPrincipal, message },
-        }).catch(() => undefined);
+        // La notification interne exige une session : hors connexion (aperçu de
+        // démonstration), on se contente du journal local.
+        void supabase.auth
+          .getSession()
+          .then(({ data }) =>
+            data.session
+              ? notifierConformite({
+                  data: { dossierId: dossier.id, typeEvent: type, motifPrincipal, message },
+                })
+              : undefined,
+          )
+          .catch(() => undefined);
       }
     },
     [dossier.id, gabarit, journal],
