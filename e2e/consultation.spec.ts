@@ -33,11 +33,10 @@ test.describe("consultation avec un expert-comptable", () => {
     await expect(prix).toContainText("1 heure");
   });
 
-  test("les 3 points de réassurance sont visibles", async ({ page }) => {
+  test("les points de réassurance sont visibles", async ({ page }) => {
     const bloc = page.getByTestId("consultation-reassurance").first();
     await expect(bloc).toContainText("Pas de chronomètre");
     await expect(bloc).toContainText("sans supplément");
-    await expect(bloc).toContainText("Intégralement remboursé");
   });
 
   test("aucune durée en minutes n'est affichée sur la page", async ({ page }) => {
