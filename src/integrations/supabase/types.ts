@@ -74,7 +74,10 @@ export type Database = {
           conjoint_statut: string | null
           conjoint_travaille: boolean
           contrat_mariage: boolean
+          contrat_mariage_date: string | null
           contrat_mariage_detail: string | null
+          contrat_mariage_etude: string | null
+          contrat_mariage_notaire: string | null
           created_at: string
           date_mariage: string | null
           date_naissance: string | null
@@ -125,7 +128,10 @@ export type Database = {
           conjoint_statut?: string | null
           conjoint_travaille?: boolean
           contrat_mariage?: boolean
+          contrat_mariage_date?: string | null
           contrat_mariage_detail?: string | null
+          contrat_mariage_etude?: string | null
+          contrat_mariage_notaire?: string | null
           created_at?: string
           date_mariage?: string | null
           date_naissance?: string | null
@@ -176,7 +182,10 @@ export type Database = {
           conjoint_statut?: string | null
           conjoint_travaille?: boolean
           contrat_mariage?: boolean
+          contrat_mariage_date?: string | null
           contrat_mariage_detail?: string | null
+          contrat_mariage_etude?: string | null
+          contrat_mariage_notaire?: string | null
           created_at?: string
           date_mariage?: string | null
           date_naissance?: string | null

@@ -50,6 +50,7 @@ import {
   type Dossier,
 } from "@/lib/documents";
 import { EncadrePliable } from "@/components/EncadrePliable";
+import { ContratMariageChamps } from "@/components/ContratMariageChamps";
 import { VerifDenomination } from "@/components/VerifDenomination";
 import { MentionObligatoire, Requis } from "@/components/Obligatoire";
 import { analyserChecklist, estMineur, piecesEnDrafts } from "@/lib/checklist";
@@ -848,9 +849,8 @@ function Creation() {
           {/* 4 — OBJET */}
           {cle === "objet" && (
             <div className="mt-6 space-y-5">
-              <div className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed">
-                <p className="font-medium">Qu'est-ce que l'objet social ?</p>
-                <p className="mt-2">
+              <EncadrePliable titre="Qu'est-ce que l'objet social ?">
+                <p>
                   L'objet social décrit l'ensemble des activités que votre structure est autorisée à
                   exercer. Il est inscrit dans les statuts et publié : tout ce qui n'y figure pas
                   sort du cadre autorisé et suppose une modification statutaire, avec les frais
@@ -860,7 +860,7 @@ function Creation() {
                   également votre code d'activité (APE) et, dans une large mesure, votre convention
                   collective.
                 </p>
-              </div>
+              </EncadrePliable>
 
               <div className="rounded-md border border-border bg-surface p-4">
                 <Label htmlFor="descr" className="text-sm font-medium">
@@ -973,9 +973,8 @@ function Creation() {
           {/* 5 — CAPITAL */}
           {cle === "capital" && (
             <div className="mt-6 space-y-5">
-              <div className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed">
-                <p className="font-medium">À quoi sert le capital social ?</p>
-                <p className="mt-2">
+              <EncadrePliable titre="À quoi sert le capital social ?">
+                <p>
                   Le capital social correspond à la somme des apports des associés. Il constitue les
                   premières ressources de la société, détermine la répartition des droits de vote et
                   des dividendes, et sert de repère aux banques, aux bailleurs et aux clients. La
@@ -986,7 +985,7 @@ function Creation() {
                   elles sont libérées sur le compte de la société dès l'immatriculation et servent à
                   financer l'activité.
                 </p>
-              </div>
+              </EncadrePliable>
               <div className="space-y-2">
                 <Label htmlFor="cap">
                   Montant du capital social (minimum 1 €)
@@ -1047,9 +1046,8 @@ function Creation() {
                       ? "en SCI, la libération des apports est fixée librement par les statuts ; le solde reste dû selon les modalités qu'ils prévoient."
                       : "en SARL et EURL, au moins 20 % des apports en numéraire doivent être libérés à la constitution, le solde dans les 5 ans suivant l'immatriculation."}
                 </p>
-                <div className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
-                  <p className="font-medium">Ce qu'implique une libération partielle</p>
-                  <ul className="mt-2 space-y-1 pl-5 [&>li]:list-disc">
+                <EncadrePliable titre="Ce qu'implique une libération partielle">
+                  <ul className="space-y-1 pl-5 [&>li]:list-disc">
                     <li>
                       Le solde non libéré reste une dette exigible : le dirigeant peut l'appeler à
                       tout moment, et un liquidateur ou un créancier le réclamera en cas de
@@ -1068,7 +1066,7 @@ function Creation() {
                       crédibilité financière de la société.
                     </li>
                   </ul>
-                </div>
+                </EncadrePliable>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="banque">
@@ -1088,11 +1086,10 @@ function Creation() {
                   Martin). Cette mention figure dans les statuts.
                 </p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="mention-depot">
-                  En cas de dépôt du capital en ligne, veuillez coller ici la mention à ajouter au
-                  statut relative au dépôt du capital social
-                </Label>
+              <EncadrePliable
+                badge={null}
+                titre="En cas de dépôt du capital en ligne, veuillez coller ici la mention à ajouter au statut relative au dépôt du capital social"
+              >
                 <Textarea
                   id="mention-depot"
                   rows={4}
@@ -1105,11 +1102,9 @@ function Creation() {
                   Les plateformes de dépôt en ligne fournissent une formulation précise à reprendre
                   dans les statuts. Recopiez-la telle quelle : elle sera insérée sans modification.
                 </p>
-              </div>
-              <div className="rounded-md border border-border bg-surface p-4 text-sm leading-relaxed">
-
-                <p className="font-medium">Apports en nature et apports en industrie</p>
-                <p className="mt-2">
+              </EncadrePliable>
+              <EncadrePliable titre="Apports en nature et apports en industrie">
+                <p>
                   Le parcours en ligne traite les apports en numéraire (sommes d'argent). Un apport
                   en nature (bien, matériel, fonds de commerce, titres) suppose une évaluation et,
                   au-delà de certains seuils, l'intervention d'un commissaire aux apports. Un apport
@@ -1120,7 +1115,7 @@ function Creation() {
                 <div className="mt-3">
                   <ConsultationExpertCard variante="inline" />
                 </div>
-              </div>
+              </EncadrePliable>
               <div className="flex items-start gap-3">
                 <Checkbox
                   id="nature"
@@ -1395,17 +1390,9 @@ function Creation() {
                               </Label>
                             </div>
                             {a.contrat_mariage && (
-                              <Input
-                                maxLength={200}
-                                placeholder={
-                                  a.situation_matrimoniale === "pacse"
-                                    ? "Date de la convention et, le cas échéant, notaire"
-                                    : "Date du contrat et nom du notaire"
-                                }
-                                value={a.contrat_mariage_detail ?? ""}
-                                onChange={(e) =>
-                                  majAssocie(a.id, { contrat_mariage_detail: e.target.value })
-                                }
+                              <ContratMariageChamps
+                                associe={a}
+                                maj={(v) => majAssocie(a.id, v)}
                               />
                             )}
                             <p className="text-sm text-muted-foreground text-justify">
