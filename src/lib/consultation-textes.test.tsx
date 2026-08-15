@@ -9,6 +9,7 @@ import {
   CONSULTATION_PRIX,
   CONSULTATION_REASSURANCE,
   CONSULTATION_TEXTES_VERSION,
+  PRIX_CONSULTATION,
   URL_CALENDLY_CONSULTATION,
 } from "./consultation-textes";
 import { piecesFacultatives } from "./test-mode";
@@ -53,7 +54,7 @@ describe("carte de consultation", () => {
 
   it("affiche le prix et la durée à proximité du bouton, qui ouvre un nouvel onglet", () => {
     render(<ConsultationExpertCard />);
-    expect(screen.getByTestId("consultation-prix")).toHaveTextContent("148,80 € TTC");
+    expect(screen.getByTestId("consultation-prix")).toHaveTextContent(PRIX_CONSULTATION.ttc);
     expect(screen.getByTestId("consultation-prix")).toHaveTextContent("1 heure");
     const lien = screen.getByTestId("bouton-consultation");
     expect(lien).toHaveAttribute("href", URL_CALENDLY_CONSULTATION);
