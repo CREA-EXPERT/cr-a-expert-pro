@@ -11,11 +11,10 @@ async function parcourir(page: Page) {
   for (let i = 0; i < 30; i++) {
     const formulaire = page.getByRole("heading", { name: "Recevoir votre comparatif" });
     if (await formulaire.isVisible().catch(() => false)) break;
-    const options = page.locator("button", { hasText: /.+/ });
-    const cible = page.locator("div.grid > button").first();
+    const cible = page.getByTestId("option-simulateur").first();
     if (!(await cible.isVisible().catch(() => false))) break;
     await cible.click();
-    await options.first().waitFor({ state: "attached" });
+    await page.waitForTimeout(120);
   }
 
   await expect(page.getByRole("heading", { name: "Recevoir votre comparatif" })).toBeVisible();

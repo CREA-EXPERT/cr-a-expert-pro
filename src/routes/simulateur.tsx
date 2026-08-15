@@ -207,6 +207,7 @@ function Simulateur() {
                 <button
                   key={o.v}
                   type="button"
+                  data-testid="option-simulateur"
                   onClick={() => repondre(question.id, o.v)}
                   className={`rounded-lg border px-5 py-4 text-left text-base transition-colors hover:border-accent hover:bg-accent/5 ${
                     reponses[question.id] === o.v
