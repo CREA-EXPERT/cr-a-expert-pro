@@ -39,7 +39,7 @@ export async function genererPdfComparatif({
 }: {
   restitution: Restitution2;
   colonnes: { sas: string; sarl: string };
-  prenom?: string;
+  prenom?: string | undefined;
 }): Promise<Blob> {
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const pdf = await PDFDocument.create();
