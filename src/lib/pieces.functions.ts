@@ -144,6 +144,7 @@ export const deciderPiece = createServerFn({ method: "POST" })
           )}</strong> — ${titre.toLowerCase()}.</p><p>Motif indiqué par le cabinet : ${echapper(
             motif,
           )}</p><p>Connectez-vous à votre espace « Mes documents » pour déposer une nouvelle version.</p><p>CREA EXPERT</p>`,
+          dossierId: doc.dossier_id,
         });
         emailEnvoye = resultat.envoye;
       }

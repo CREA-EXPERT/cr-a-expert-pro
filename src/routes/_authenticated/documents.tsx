@@ -3,6 +3,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PageShell } from "@/components/layout/PageShell";
+import { BanniereTest } from "@/components/BanniereTest";
+import { CoulissesTest } from "@/components/CoulissesTest";
+import { Checkbox } from "@/components/ui/checkbox";
+import { estDossierTest, LIBELLE_DOCUMENTS_PLUS_TARD } from "@/lib/test-mode";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -404,6 +408,7 @@ function Documents() {
 
   return (
     <PageShell>
+      <BanniereTest actif={dossier.est_test} />
       <div className="container-page max-w-4xl space-y-12 px-4 py-10">
         <header className="space-y-3">
           <h1 className="font-serif text-3xl">Mes documents</h1>
@@ -417,6 +422,35 @@ function Documents() {
         <FriseAvancement dossier={dossier} docs={docs} signatures={signatures} />
 
         <AvertissementRejet />
+
+        {estDossierTest(dossier) && (
+          <section className="space-y-4">
+            <div className="flex items-start gap-3 rounded-lg border border-amber-300/70 bg-amber-50/60 p-4">
+              <Checkbox
+                id="documents-plus-tard"
+                data-testid="documents-plus-tard"
+                checked={dossier.documents_plus_tard === true}
+                onCheckedChange={async (v) => {
+                  const valeur = v === true;
+                  setDossier({ ...dossier, documents_plus_tard: valeur });
+                  await supabase
+                    .from("dossiers")
+                    .update({ documents_plus_tard: valeur })
+                    .eq("id", dossier.id);
+                }}
+                className="mt-0.5"
+              />
+              <Label htmlFor="documents-plus-tard" className="text-sm font-normal">
+                {LIBELLE_DOCUMENTS_PLUS_TARD}
+                <span className="mt-1 block text-muted-foreground">
+                  Les pièces manquantes restent listées comme manquantes ; seul le verrou de
+                  complétude est levé pour poursuivre le parcours de test.
+                </span>
+              </Label>
+            </div>
+            <CoulissesTest dossierId={dossier.id} />
+          </section>
+        )}
 
         <div className="space-y-6">
           <ApercuChecklist dossier={dossier} associes={associes} />

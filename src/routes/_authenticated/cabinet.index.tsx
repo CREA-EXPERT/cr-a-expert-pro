@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useRoles } from "@/hooks/useAuth";
 import { PageShell } from "@/components/layout/PageShell";
 import { Badge } from "@/components/ui/badge";
+import { BADGE_TEST, estDossierTest, exclureDossiersTest } from "@/lib/test-mode";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/_authenticated/cabinet/")({
 
 function CabinetListe() {
   const { user } = useAuth();
-  const { isCabinet, loading: rolesLoading } = useRoles(user);
+  const { isCabinet, isAdmin, loading: rolesLoading } = useRoles(user);
   const [statut, setStatut] = useState<string>("tous");
   const [recherche, setRecherche] = useState("");
 
@@ -99,7 +100,8 @@ function CabinetListe() {
           <div>
             <h1 className="font-serif text-3xl">Dossiers clients</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              {dossiers.length} dossier(s) affiché(s) sur {data?.dossiers.length ?? 0}. Les dossiers signalés
+              {dossiers.length} dossier(s) affiché(s) sur{" "}
+              {exclureDossiersTest(data?.dossiers ?? []).length} dossier(s) réel(s). Les dossiers signalés
               « accompagnement requis » sont à traiter en priorité.
             </p>
           </div>
@@ -110,6 +112,14 @@ function CabinetListe() {
             <Button asChild variant="outline">
               <Link to="/cabinet/denominations">Suivi des dénominations</Link>
             </Button>
+            <Button asChild variant="outline">
+              <Link to="/cabinet/contacts">Demandes de contact</Link>
+            </Button>
+            {isAdmin && (
+              <Button asChild variant="outline">
+                <Link to="/cabinet/donnees-test">Données de test</Link>
+              </Button>
+            )}
             <Button asChild variant="outline">
               <Link to="/cabinet/rappels">
                 Demandes de rappel{data?.rappels ? ` (${data.rappels})` : ""}
@@ -168,6 +178,11 @@ function CabinetListe() {
                   <tr key={d.id} className="border-b border-border/60 last:border-0">
                     <td className="p-3">
                       <span className="font-medium">{d.denomination || "Sans dénomination"}</span>
+                      {estDossierTest(d) && (
+                        <Badge className="ml-2" variant="secondary">
+                          {BADGE_TEST}
+                        </Badge>
+                      )}
                       {d.routage_cabinet && (
                         <Badge className="ml-2" variant="default">
                           Accompagnement requis

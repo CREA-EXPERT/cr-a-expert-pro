@@ -4,6 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PageShell } from "@/components/layout/PageShell";
+import { BanniereTest } from "@/components/BanniereTest";
+import { estEmailTest } from "@/lib/test-mode";
+import { envoyerEmailEtape } from "@/lib/emails-etape.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -174,7 +177,7 @@ function Creation() {
       if (!d) {
         const { data: cree, error } = await supabase
           .from("dossiers")
-          .insert({ user_id: sess.user.id })
+          .insert({ user_id: sess.user.id, est_test: estEmailTest(sess.user.email) })
           .select("*")
           .single();
         if (error) {
@@ -573,6 +576,11 @@ function Creation() {
       type_event: "checklist_generee",
       message: `Checklist documentaire générée : ${drafts.filter((d) => d.origine === "a_fournir").length} justificatif(s) à fournir et ${signatures.length} document(s) à signer électroniquement.`,
     });
+    try {
+      await envoyerEmailEtape({ data: { dossierId: dossier.id, etape: "ouvert" } });
+    } catch {
+      // L'email d'ouverture ne doit jamais bloquer la validation du dossier.
+    }
     setBusy(false);
     toast.success("Dossier validé. Votre checklist de documents est prête.");
     navigate({ to: "/documents" });
@@ -609,6 +617,7 @@ function Creation() {
 
   return (
     <PageShell withFooter={false}>
+      <BanniereTest actif={dossier.est_test} />
       <div className="container-page grid gap-8 py-8 lg:grid-cols-[1.6fr_1fr]">
         <div>
           <div className="mb-6">

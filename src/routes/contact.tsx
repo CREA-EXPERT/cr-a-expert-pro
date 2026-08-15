@@ -48,6 +48,14 @@ function Contact() {
   const [piege, setPiege] = useState("");
   const [envoi, setEnvoi] = useState(false);
   const [confirme, setConfirme] = useState(false);
+  const [recap, setRecap] = useState<{
+    reference: string;
+    categorie: string;
+    email: string;
+    dossier_id: string | null;
+    message: string;
+    horodatage: string;
+  } | null>(null);
   const [dossierId, setDossierId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -101,6 +109,7 @@ function Contact() {
         );
         return;
       }
+      setRecap(reponse.recapitulatif ?? null);
       setMessage("");
       setConfirme(true);
     } catch {
@@ -167,7 +176,56 @@ function Contact() {
               Votre message a bien été transmis au cabinet. Une réponse vous parviendra à l'adresse
               indiquée.
             </p>
-            <Button className="mt-4" variant="outline" onClick={() => setConfirme(false)}>
+            {recap && (
+              <>
+                <p className="mt-4 text-base">
+                  Numéro de demande :{" "}
+                  <span className="font-mono font-semibold" data-testid="contact-reference">
+                    {recap.reference}
+                  </span>
+                </p>
+                <dl className="mt-4 divide-y divide-border rounded-md border border-border">
+                  <div className="grid gap-1 p-3 sm:grid-cols-[12rem_1fr]">
+                    <dt className="text-sm text-muted-foreground">Objet</dt>
+                    <dd className="text-sm">
+                      {CATEGORIES_CONTACT.find((c) => c.cle === recap.categorie)?.libelle ??
+                        recap.categorie}
+                    </dd>
+                  </div>
+                  <div className="grid gap-1 p-3 sm:grid-cols-[12rem_1fr]">
+                    <dt className="text-sm text-muted-foreground">Adresse indiquée</dt>
+                    <dd className="text-sm">{recap.email}</dd>
+                  </div>
+                  {recap.dossier_id && (
+                    <div className="grid gap-1 p-3 sm:grid-cols-[12rem_1fr]">
+                      <dt className="text-sm text-muted-foreground">Dossier joint</dt>
+                      <dd className="font-mono text-sm">{recap.dossier_id}</dd>
+                    </div>
+                  )}
+                  <div className="grid gap-1 p-3 sm:grid-cols-[12rem_1fr]">
+                    <dt className="text-sm text-muted-foreground">Envoyé le</dt>
+                    <dd className="text-sm">
+                      {new Date(recap.horodatage).toLocaleString("fr-FR")}
+                    </dd>
+                  </div>
+                  <div className="grid gap-1 p-3 sm:grid-cols-[12rem_1fr]">
+                    <dt className="text-sm text-muted-foreground">Message</dt>
+                    <dd className="whitespace-pre-wrap text-sm">{recap.message}</dd>
+                  </div>
+                </dl>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Conservez ce numéro : il identifie votre demande dans nos échanges.
+                </p>
+              </>
+            )}
+            <Button
+              className="mt-4"
+              variant="outline"
+              onClick={() => {
+                setConfirme(false);
+                setRecap(null);
+              }}
+            >
               Envoyer un autre message
             </Button>
           </section>

@@ -212,6 +212,7 @@ export async function envoyerLiensSignature(
       sujet: `Signature à effectuer — ${lien.libelle}`,
       html,
       expediteur: EXPEDITEUR_SIGNATURE,
+      dossierId: lien.dossierId,
     });
 
     const { data: ligne } = await sb

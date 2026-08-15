@@ -3,6 +3,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PageShell } from "@/components/layout/PageShell";
+import { BanniereTest } from "@/components/BanniereTest";
+import { piecesFacultatives } from "@/lib/test-mode";
+import { envoyerEmailEtape } from "@/lib/emails-etape.functions";
 import { HistoriqueDenomination } from "@/components/HistoriqueDenomination";
 import { Button } from "@/components/ui/button";
 import { AvertissementRejet } from "@/components/AvertissementsPieces";
@@ -256,7 +259,14 @@ function VerificationFinale() {
   const chronologie = controlerChronologie(dossier, associes);
   const revues = revuesHumaines(dossier, associes);
   const be = analyserBeneficiaires(dossier, associes);
-  const bloquants = [...personnes, ...societe, ...pieces].filter((l) => l.etat === "manquant");
+  const bloquantsBruts = [...personnes, ...societe, ...pieces].filter(
+    (l) => l.etat === "manquant",
+  );
+  // Sur un dossier de test avec « documents plus tard », les pièces restent
+  // listées manquantes mais ne verrouillent pas la transmission.
+  const bloquants = piecesFacultatives(dossier)
+    ? bloquantsBruts.filter((l) => !pieces.includes(l))
+    : bloquantsBruts;
   const dejaTransmis = [
     "en_revue_cabinet",
     "valide_cabinet",
@@ -275,6 +285,11 @@ function VerificationFinale() {
       message:
         "Dossier transmis au cabinet après vérification finale par le client : identités, siège, capital, objet social et pièces contrôlés.",
     });
+    try {
+      await envoyerEmailEtape({ data: { dossierId: dossier.id, etape: "transmis" } });
+    } catch {
+      // L'email de transmission ne doit jamais bloquer la transmission.
+    }
     setBusy(false);
     toast.success("Votre dossier est transmis au cabinet.");
     navigate({ to: "/tableau-de-bord" });
@@ -282,6 +297,7 @@ function VerificationFinale() {
 
   return (
     <PageShell>
+      <BanniereTest actif={dossier.est_test} />
       <div className="container-page max-w-3xl space-y-8 px-4 py-10">
         <header className="space-y-3">
           <h1 className="font-serif text-3xl">Vérification finale de votre dossier</h1>
