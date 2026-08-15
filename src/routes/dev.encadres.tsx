@@ -45,9 +45,12 @@ const ASSOCIE_BASE = {
 
 function BancEncadres() {
   const [associe, setAssocie] = useState<Associe>(ASSOCIE_BASE);
+  const [pret, setPret] = useState(false);
+  useEffect(() => setPret(true), []);
 
   return (
-    <main data-hydrated="1" className="mx-auto max-w-2xl space-y-4 p-6">
+    <main data-hydrated={pret ? "1" : "0"} className="mx-auto max-w-2xl space-y-4 p-6">
+
       <h1 className="text-xl font-semibold">Encadrés pédagogiques</h1>
       {TITRES.map((t) => (
         <EncadrePliable key={t} titre={t}>
