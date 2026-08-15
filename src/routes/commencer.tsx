@@ -79,6 +79,11 @@ function Commencer() {
                   >
                     <span className="font-medium">{f.label}</span>
                     <span className="mt-0.5 block text-xs text-muted-foreground">{f.desc}</span>
+                    {f.value === "SCI" && (
+                      <span className="mt-0.5 block text-xs font-medium text-muted-foreground">
+                        Au moins deux associés.
+                      </span>
+                    )}
                   </Link>
                 </li>
               ))}
