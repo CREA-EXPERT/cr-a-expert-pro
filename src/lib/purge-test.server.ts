@@ -53,8 +53,10 @@ export async function purgerDossierTest(dossierId: string) {
   }
 
   for (const table of TABLES_LIEES) {
-    // @ts-expect-error - table name résolue dynamiquement sur un ensemble fermé
-    await supabaseAdmin.from(table).delete().eq("dossier_id", dossierId);
+    await supabaseAdmin
+      .from(table as "documents")
+      .delete()
+      .eq("dossier_id", dossierId);
   }
 
   const { error: errDossier } = await supabaseAdmin.from("dossiers").delete().eq("id", dossierId);
