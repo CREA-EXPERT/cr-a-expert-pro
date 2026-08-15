@@ -113,6 +113,14 @@ function CabinetListe() {
               <Link to="/cabinet/denominations">Suivi des dénominations</Link>
             </Button>
             <Button asChild variant="outline">
+              <Link to="/cabinet/contacts">Demandes de contact</Link>
+            </Button>
+            {isAdmin && (
+              <Button asChild variant="outline">
+                <Link to="/cabinet/donnees-test">Données de test</Link>
+              </Button>
+            )}
+            <Button asChild variant="outline">
               <Link to="/cabinet/rappels">
                 Demandes de rappel{data?.rappels ? ` (${data.rappels})` : ""}
               </Link>
