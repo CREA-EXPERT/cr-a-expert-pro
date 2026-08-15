@@ -28,16 +28,17 @@ test.describe("Parcours du mode test", () => {
 
     // 1. Inscription
     await page.goto("/auth");
-    await page.getByLabel("Prénom").fill("Recette");
-    await page.getByLabel("Nom", { exact: true }).fill("Automatisée");
-    await page.getByLabel("Adresse électronique").first().fill(email);
-    await page.getByLabel("Mot de passe").first().fill(MOT_DE_PASSE);
-    // La case n'est cliquable qu'une fois la page hydratée.
+    // La case ne bascule qu'une fois la page hydratée : elle sert de repère
+    // avant de saisir le formulaire, sinon l'hydratation efface la saisie.
     const rgpd = page.locator("#rgpd");
     await expect(async () => {
       await rgpd.click();
       await expect(rgpd).toHaveAttribute("data-state", "checked");
     }).toPass({ timeout: 30_000 });
+    await page.getByLabel("Prénom").fill("Recette");
+    await page.getByLabel("Nom", { exact: true }).fill("Automatisée");
+    await page.getByLabel("Adresse électronique").first().fill(email);
+    await page.getByLabel("Mot de passe").first().fill(MOT_DE_PASSE);
     await page.getByRole("button", { name: "Créer mon compte" }).click();
     await page.waitForTimeout(2000);
 
