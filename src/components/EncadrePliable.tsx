@@ -2,32 +2,26 @@ import { useEffect, useId, useState, type ReactNode } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
-
-/** Préfixe des clés de mémorisation locale de l'état des encadrés. */
-const PREFIXE = "crea-encadre:";
+import {
+  chargerPreferences,
+  enregistrerPreference,
+  lirePreference,
+  sabonnerPreferences,
+} from "@/lib/preferences-encadres";
 
 /** Clé stable dérivée du titre, ou de l'identifiant fourni. */
 function cleMemoire(id: string | undefined, titre: string) {
-  return `${PREFIXE}${id ?? titre.toLowerCase().replace(/\s+/g, "-").slice(0, 80)}`;
-}
-
-function lireEtat(cle: string): boolean | null {
-  try {
-    const v = window.localStorage.getItem(cle);
-    return v === "1" ? true : v === "0" ? false : null;
-  } catch {
-    return null;
-  }
+  return id ?? titre.toLowerCase().replace(/\s+/g, "-").slice(0, 80);
 }
 
 /**
- * Encadré pédagogique replié par défaut : l'utilisateur choisit de lire.
+ * Encadré replié par défaut : l'utilisateur choisit de lire.
  * En-tête entièrement cliquable, navigable au clavier, avec aria-expanded/controls.
- * L'état replié/déplié est mémorisé localement et restauré au rechargement.
+ * L'état replié/déplié est conservé pour la personne connectée, sur tous ses appareils.
  */
 export function EncadrePliable({
   titre,
-  badge = "Encadré pédagogique",
+  badge = null,
   ton = "neutre",
   defaultOuvert = false,
   memoireId,
@@ -49,18 +43,23 @@ export function EncadrePliable({
 
   // Lecture après hydratation : évite toute divergence serveur / navigateur.
   useEffect(() => {
-    const memorise = lireEtat(cle);
-    if (memorise !== null) setOuvert(memorise);
+    const appliquer = () => {
+      const memorise = lirePreference(cle);
+      if (memorise !== null) setOuvert(memorise);
+    };
+    appliquer();
+    const retirer = sabonnerPreferences(appliquer);
+    void chargerPreferences().then(appliquer);
+    return () => {
+      retirer();
+    };
   }, [cle]);
 
   function changer(v: boolean) {
     setOuvert(v);
-    try {
-      window.localStorage.setItem(cle, v ? "1" : "0");
-    } catch {
-      /* stockage indisponible : l'encadré reste utilisable */
-    }
+    void enregistrerPreference(cle, v);
   }
+
 
   return (
     <Collapsible
