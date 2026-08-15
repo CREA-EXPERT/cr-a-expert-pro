@@ -203,7 +203,7 @@ export function EncadreCompositionForme({ forme }: { forme: string }) {
     EI: "Entreprise individuelle : ni associé, ni dirigeant au sens sociétaire — vous exercez en votre nom propre.",
   };
   return (
-    <p className="rounded-md border border-border bg-surface p-3 text-sm leading-relaxed">
+    <p className="rounded-md border border-border bg-surface p-3 text-sm leading-relaxed text-justify">
       {texte[forme] ?? texte["SAS"]}
     </p>
   );
@@ -212,7 +212,7 @@ export function EncadreCompositionForme({ forme }: { forme: string }) {
 /** Démembrement, usufruit, transmission : orientation vers un professionnel. */
 export function EncadreDemembrement() {
   return (
-    <div className="rounded-md border border-warning/50 bg-warning/10 p-4 text-sm leading-relaxed">
+    <div className="rounded-md border border-warning/50 bg-warning/10 p-4 text-sm leading-relaxed text-justify">
       <p className="font-medium">Usufruit, nue-propriété, transmission : demandez à être rappelé</p>
       <p className="mt-2">
         Répartir les titres entre usufruitier et nu-propriétaire, faire entrer des enfants au

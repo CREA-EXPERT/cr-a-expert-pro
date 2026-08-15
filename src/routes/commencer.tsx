@@ -20,7 +20,7 @@ export const Route = createFileRoute("/commencer")({
       },
       {
         property: "og:description",
-        content: "Faites le test d'orientation, ou choisissez directement votre forme juridique.",
+        content: "Comparez les formes juridiques critère par critère, ou choisissez directement la forme que vous souhaitez créer.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

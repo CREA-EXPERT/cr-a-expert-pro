@@ -47,8 +47,8 @@ const BADGES = [
 const ETAPES = [
   {
     n: 1,
-    t: "Simulez votre forme juridique (facultatif)",
-    d: "Cinq questions, une restitution comparative et neutre. Cette étape est optionnelle : si vous savez déjà quelle forme créer, passez directement au dossier.",
+    t: "Comparer les formes juridiques (facultatif)",
+    d: "Un comparatif pédagogique, critère par critère. Cette étape est optionnelle : si vous savez déjà quelle forme créer, passez directement au dossier.",
   },
   {
     n: 2,
