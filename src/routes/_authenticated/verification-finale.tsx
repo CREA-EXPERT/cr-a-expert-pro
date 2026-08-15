@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PageShell } from "@/components/layout/PageShell";
 import { BanniereTest } from "@/components/BanniereTest";
 import { piecesFacultatives } from "@/lib/test-mode";
 import { envoyerEmailEtape } from "@/lib/emails-etape.functions";
+import { transmettreDossier } from "@/lib/dossier-validation.functions";
+import { RecapitulatifErreurs } from "@/components/RecapitulatifErreurs";
 import { HistoriqueDenomination } from "@/components/HistoriqueDenomination";
 import { Button } from "@/components/ui/button";
 import { AvertissementRejet } from "@/components/AvertissementsPieces";
@@ -112,6 +115,8 @@ function VerificationFinale() {
   const [docs, setDocs] = useState<DocumentRow[]>([]);
   const [chargement, setChargement] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [erreursServeur, setErreursServeur] = useState<string[]>([]);
+  const transmettreDossierFn = useServerFn(transmettreDossier);
 
   useEffect(() => {
     (async () => {
@@ -310,6 +315,10 @@ function VerificationFinale() {
             corriger.
           </p>
         </header>
+
+        <RecapitulatifErreurs
+          erreurs={Object.fromEntries(erreursServeur.map((m, i) => [`serveur-${i}`, m]))}
+        />
 
         <AvertissementRejet />
 
