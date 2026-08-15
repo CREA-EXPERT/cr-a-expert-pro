@@ -223,9 +223,11 @@ export function EncadreCompositionForme({ forme }: { forme: string }) {
 /** Démembrement, usufruit, transmission : orientation vers un professionnel. */
 export function EncadreDemembrement() {
   return (
-    <div className="rounded-md border border-warning/50 bg-warning/10 p-4 text-sm leading-relaxed text-justify">
-      <p className="font-medium">Usufruit, nue-propriété, transmission : faites le point avec un expert-comptable</p>
-      <p className="mt-2">
+    <EncadrePliable
+      ton="accent"
+      titre="Usufruit, nue-propriété, transmission : faites le point avec un expert-comptable"
+    >
+      <p>
         Répartir les titres entre usufruitier et nu-propriétaire, faire entrer des enfants au
         capital, préparer une donation ou une transmission familiale sont des schémas parfaitement
         légaux et souvent pertinents, mais techniques : la rédaction des statuts, la répartition des
@@ -241,7 +243,7 @@ export function EncadreDemembrement() {
       <div className="mt-3">
         <ConsultationExpertCard variante="inline" />
       </div>
-    </div>
+    </EncadrePliable>
   );
 }
 
