@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -8,26 +8,38 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
-import { Disclaimer } from "@/components/Disclaimer";
+import { EncadrePliable } from "@/components/EncadrePliable";
 import { CallbackDialog } from "@/components/CallbackDialog";
-import { corpsEmail, restitution, NOTE_REMBOURSEMENT, type Restitution } from "@/lib/restitution";
+import {
+  DISCLAIMER_SIMULATEUR,
+  LIBELLE_BOUTON_RELECTURE,
+  MENTION_LEGITIMITE,
+  QUESTIONS,
+  SECTIONS,
+  SIMULATEUR_SOUS_TITRE,
+  SIMULATEUR_TEXTES_VERSION,
+  SIMULATEUR_TITRE,
+  PASTILLES,
+  emailRestitutionHtml,
+} from "@/lib/simulateur-textes";
+import {
+  colonnes,
+  construireRestitution,
+  legendePastilles,
+  lignesPourEmail,
+} from "@/lib/simulateur-moteur";
+import { construireJournalSimulation } from "@/lib/simulateur-journal";
+import { NOTE_REMBOURSEMENT } from "@/lib/restitution";
 import { enregistrerSimulation } from "@/lib/public-forms.functions";
 import { ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/simulateur")({
   head: () => ({
     meta: [
-      { title: "Test d'orientation — quelle forme juridique ? — CREA EXPERT" },
-      {
-        name: "description",
-        content:
-          "Test gratuit et optionnel de 2 minutes : cinq questions pour comparer les formes juridiques adaptées à votre projet. Information générale, sans conseil personnalisé.",
-      },
-      { property: "og:title", content: "Test d'orientation — CREA EXPERT" },
-      {
-        property: "og:description",
-        content: "Comparez SASU/EURL ou SAS/SARL de façon neutre, à partir de vos réponses.",
-      },
+      { title: "Comparer les formes juridiques — CREA EXPERT" },
+      { name: "description", content: SIMULATEUR_SOUS_TITRE },
+      { property: "og:title", content: "Comparer les formes juridiques — CREA EXPERT" },
+      { property: "og:description", content: SIMULATEUR_SOUS_TITRE },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -40,90 +52,52 @@ type Reponses = Record<string, string>;
 
 const TURNSTILE_SITE_KEY = import.meta.env["VITE_TURNSTILE_SITE_KEY"] as string | undefined;
 
-const QUESTIONS = [
-  {
-    id: "seul",
-    intitule: "Serez-vous seul(e) ou à plusieurs ?",
-    options: [
-      { v: "seul", l: "Seul(e)" },
-      { v: "plusieurs", l: "À plusieurs" },
-    ],
-  },
-  {
-    id: "activite",
-    intitule: "Quelle sera votre activité ?",
-    options: [
-      { v: "services", l: "Prestation de services" },
-      { v: "commerce", l: "Commerce" },
-      { v: "immobilier", l: "Activité immobilière patrimoniale" },
-      { v: "autre", l: "Autre" },
-    ],
-  },
-  {
-    id: "remuneration",
-    intitule: "Prévoyez-vous de vous verser une rémunération dès le début ?",
-    options: [
-      { v: "oui", l: "Oui" },
-      { v: "non", l: "Non" },
-      { v: "nsp", l: "Je ne sais pas" },
-    ],
-  },
-  {
-    id: "priorite",
-    intitule: "Quelle est votre priorité ?",
-    options: [
-      { v: "protection", l: "Protection sociale du dirigeant" },
-      { v: "cotisations", l: "Cotisations réduites" },
-      { v: "flexibilite", l: "Flexibilité des statuts" },
-      { v: "nsp", l: "Je ne sais pas" },
-    ],
-  },
-  {
-    id: "investisseurs",
-    intitule: "Prévoyez-vous de faire entrer des investisseurs ?",
-    options: [
-      { v: "oui", l: "Oui" },
-      { v: "non", l: "Non" },
-      { v: "peutetre", l: "Peut-être" },
-    ],
-  },
-] as const;
-
-function immobilierSolo(r: Reponses): boolean {
-  return r["activite"] === "immobilier" && r["seul"] === "seul";
-}
-
-function tendance(r: Reponses, res: Restitution): string {
-  if (r["activite"] === "immobilier") {
-    return r["seul"] === "seul" ? "immobilier_solo" : "SCI";
-  }
-  const versSas =
-    r["priorite"] === "protection" ||
-    r["priorite"] === "flexibilite" ||
-    r["investisseurs"] === "oui" ||
-    r["investisseurs"] === "peutetre";
-  return versSas ? res.a : res.b;
+function BlocDisclaimer({ compact = false }: { compact?: boolean }) {
+  return (
+    <div
+      className={`rounded-lg border border-border bg-muted/50 p-4 ${compact ? "text-xs" : "text-sm"} leading-relaxed`}
+    >
+      <p className="text-justify">{DISCLAIMER_SIMULATEUR}</p>
+      <p className="mt-2 text-xs">
+        <Link to="/tarifs" className="underline underline-offset-2">
+          Offre de relecture par un expert-comptable
+        </Link>
+        {" · "}
+        <Link to="/cgu" className="underline underline-offset-2">
+          CGU
+        </Link>
+      </p>
+    </div>
+  );
 }
 
 function Simulateur() {
-  const [etape, setEtape] = useState(0);
   const [reponses, setReponses] = useState<Reponses>({});
+  const [index, setIndex] = useState(0);
   const [prenom, setPrenom] = useState("");
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const [societeWeb, setSocieteWeb] = useState("");
-  const [resultat, setResultat] = useState<string | null>(null);
+  const [affiche, setAffiche] = useState(false);
   const [emailEnvoye, setEmailEnvoye] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const total = QUESTIONS.length + 1;
-  const res = restitution(reponses["seul"] !== "plusieurs");
-  const immobilier = reponses["activite"] === "immobilier";
-  const solo = immobilierSolo(reponses);
+  const visibles = useMemo(
+    () => QUESTIONS.filter((q) => (q.visibleSi ? q.visibleSi(reponses) : true)),
+    [reponses],
+  );
+  const total = visibles.length + 1;
+  const question = visibles[Math.min(index, visibles.length)];
+  const restit = useMemo(() => construireRestitution(reponses), [reponses]);
+  const col = colonnes(reponses);
+
+  const section = question ? SECTIONS.find((s) => s.id === question.section) : undefined;
+  const premiereDeSection =
+    question && visibles.findIndex((q) => q.section === question.section) === index;
 
   function repondre(id: string, v: string) {
     setReponses((r) => ({ ...r, [id]: v }));
-    setEtape((e) => e + 1);
+    setIndex((i) => i + 1);
   }
 
   async function envoyer(e: React.FormEvent) {
@@ -134,67 +108,101 @@ function Simulateur() {
       return;
     }
     if (!consent) {
-      toast.error("Votre consentement est nécessaire pour recevoir le résultat.");
+      toast.error("Votre consentement est nécessaire pour recevoir votre comparatif.");
       return;
     }
     setBusy(true);
-    const t = tendance(reponses, res);
+    const html = emailRestitutionHtml({
+      prenom: prenom.trim(),
+      lignes: lignesPourEmail(restit),
+      synthese: restit.synthese,
+    });
+    const journal = construireJournalSimulation({
+      email: parsed.data,
+      reponses,
+      formeRetenue: restit.formeRetenue,
+      restitutionTexte: html,
+    });
+
     try {
       const reponseServeur = await enregistrerSimulation({
         data: {
           email: parsed.data,
           prenom: prenom.trim() || undefined,
           reponses,
-          resultat: t,
-          corps_email: corpsEmail(prenom.trim(), res),
+          resultat: restit.formeRetenue ?? "comparatif",
+          corps_email: html,
+          journal,
           piege: societeWeb || undefined,
         },
       });
       setBusy(false);
       if (!reponseServeur.ok) {
-        if (reponseServeur.raison === "trop_de_demandes") {
-          toast.error("Trop de demandes envoyées depuis cet appareil. Réessayez dans une heure.");
-        } else {
-          toast.error("L'enregistrement de la simulation a échoué.");
-        }
+        toast.error(
+          reponseServeur.raison === "trop_de_demandes"
+            ? "Trop de demandes envoyées depuis cet appareil. Réessayez dans une heure."
+            : "L'enregistrement de votre comparatif a échoué.",
+        );
         return;
       }
       setEmailEnvoye(Boolean(reponseServeur.emailEnvoye));
-      setResultat(t);
+      setAffiche(true);
     } catch {
       setBusy(false);
-      toast.error("L'enregistrement de la simulation a échoué.");
+      toast.error("L'enregistrement de votre comparatif a échoué.");
     }
   }
 
-  const question = QUESTIONS[etape];
-
   return (
     <PageShell>
-      <div className="container-page max-w-3xl py-10">
-        <div className="mb-8">
-          <Progress value={((Math.min(etape, total) + (resultat ? 1 : 0)) / total) * 100} />
+      <div className="container-page max-w-4xl py-10">
+        <div className="mb-6">
+          <Progress
+            value={((affiche ? total : Math.min(index, visibles.length)) / total) * 100}
+          />
           <p className="mt-2 text-sm text-muted-foreground">
-            {resultat
-              ? "Résultat"
-              : `Test gratuit de 2 minutes — optionnel · Question ${Math.min(etape + 1, total)} sur ${total}`}
+            {affiche
+              ? "Votre comparatif"
+              : question
+                ? `Section ${section?.id} — ${section?.titre} · Question ${index + 1} sur ${total}`
+                : `Dernière étape sur ${total}`}
           </p>
         </div>
 
-        {!resultat && question && (
-          <div>
-            {etape > 0 && (
+        {!affiche && (
+          <>
+            <h1 className="font-serif text-3xl">{SIMULATEUR_TITRE}</h1>
+            <p className="mt-2 max-w-2xl text-base leading-relaxed text-muted-foreground text-justify">
+              {SIMULATEUR_SOUS_TITRE}
+            </p>
+            <div className="mt-5">
+              <BlocDisclaimer />
+            </div>
+          </>
+        )}
+
+        {!affiche && question && (
+          <div className="mt-8">
+            {index > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="mb-4 -ml-2"
-                onClick={() => setEtape((e) => e - 1)}
+                onClick={() => setIndex((i) => Math.max(0, i - 1))}
               >
                 <ArrowLeft strokeWidth={1.5} /> Retour
               </Button>
             )}
-            <h1 className="font-serif text-3xl">{question.intitule}</h1>
-            <div className="mt-6 grid gap-3">
+
+            {premiereDeSection && section?.intro && (
+              <p className="mb-5 rounded-lg border border-border bg-surface p-4 text-sm leading-relaxed text-justify">
+                {section.intro}
+              </p>
+            )}
+
+            <h2 className="font-serif text-2xl leading-snug">{question.intitule}</h2>
+
+            <div className="mt-5 grid gap-3">
               {question.options.map((o) => (
                 <button
                   key={o.v}
@@ -210,24 +218,41 @@ function Simulateur() {
                 </button>
               ))}
             </div>
+
+            {!question.obligatoire && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-3 -ml-2"
+                onClick={() => setIndex((i) => i + 1)}
+              >
+                Passer cette question
+              </Button>
+            )}
+
+            {question.pourquoi && (
+              <EncadrePliable titre="Pourquoi cette question ?" className="mt-5">
+                <p className="text-justify">{question.pourquoi}</p>
+              </EncadrePliable>
+            )}
           </div>
         )}
 
-        {!resultat && !question && (
-          <form onSubmit={envoyer} className="space-y-5">
+        {!affiche && !question && (
+          <form onSubmit={envoyer} className="mt-8 space-y-5">
             <Button
               variant="ghost"
               size="sm"
               className="-ml-2"
-              onClick={() => setEtape((e) => e - 1)}
+              onClick={() => setIndex((i) => Math.max(0, i - 1))}
               type="button"
             >
               <ArrowLeft strokeWidth={1.5} /> Retour
             </Button>
-            <h1 className="font-serif text-3xl">Recevoir votre restitution</h1>
-            <p className="text-base">
-              Indiquez votre adresse électronique pour afficher et recevoir la comparaison des
-              formes juridiques correspondant à vos réponses.
+            <h2 className="font-serif text-2xl">Recevoir votre comparatif</h2>
+            <p className="text-base leading-relaxed text-justify">
+              Indiquez votre adresse électronique pour afficher et recevoir le comparatif, critère
+              par critère, des formes juridiques au regard des priorités que vous avez déclarées.
             </p>
             <div className="space-y-2">
               <Label htmlFor="sim-prenom">Prénom</Label>
@@ -270,8 +295,8 @@ function Simulateur() {
                 className="mt-0.5"
               />
               <Label htmlFor="sim-consent" className="text-sm font-normal leading-relaxed">
-                J'accepte le traitement de mon adresse électronique pour recevoir le résultat de
-                cette simulation, dans les conditions de la{" "}
+                J'accepte le traitement de mon adresse électronique pour recevoir ce comparatif,
+                dans les conditions de la{" "}
                 <Link to="/confidentialite" className="underline underline-offset-2">
                   politique de confidentialité
                 </Link>
@@ -279,101 +304,30 @@ function Simulateur() {
               </Label>
             </div>
             <Button type="submit" size="lg" disabled={busy}>
-              {busy ? "Enregistrement…" : "Afficher ma restitution"}
+              {busy ? "Enregistrement…" : "Afficher mon comparatif"}
             </Button>
           </form>
         )}
 
-        {resultat && solo && (
+        {affiche && (
           <div className="space-y-6">
             <p className="rounded-md border border-success/40 bg-success/8 px-3 py-2 text-sm">
               {emailEnvoye
-                ? "Résultat envoyé à votre adresse email."
-                : "Votre résultat s'affiche ci-dessous ; l'envoi par email sera activé prochainement."}
+                ? "Comparatif envoyé à votre adresse électronique."
+                : "Votre comparatif s'affiche ci-dessous ; l'envoi par email peut prendre quelques minutes."}
             </p>
 
-            <h1 className="font-serif text-3xl leading-snug">Immobilier en solo</h1>
+            <h1 className="font-serif text-3xl leading-snug">{SIMULATEUR_TITRE}</h1>
+            <p className="text-base leading-relaxed text-justify">{SIMULATEUR_SOUS_TITRE}</p>
 
-            <p className="rounded-md border border-border bg-muted/50 p-4 text-base leading-relaxed">
-              La société civile immobilière (SCI) n'est pas possible seul(e) : elle exige au moins
-              deux associés (article 1832 du code civil).
-            </p>
+            <BlocDisclaimer />
 
-            <p className="text-base leading-relaxed">
-              Pour porter un projet immobilier seul(e), trois voies existent, à égalité :
-            </p>
-
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="rounded-lg border border-border bg-surface p-4">
-                <h2 className="font-serif text-lg">Détention en direct</h2>
-                <p className="mt-2 text-sm leading-relaxed">
-                  Location meublée ou nue en nom propre, le cas échéant sous forme d'entreprise
-                  individuelle.
-                </p>
-              </div>
-              <div className="rounded-lg border border-border bg-surface p-4">
-                <h2 className="font-serif text-lg">SASU ou EURL à l'IS</h2>
-                <p className="mt-2 text-sm leading-relaxed">
-                  Pour une activité immobilière à caractère commercial, exercée à l'impôt sur les
-                  sociétés.
-                </p>
-              </div>
-              <div className="rounded-lg border border-border bg-surface p-4">
-                <h2 className="font-serif text-lg">SCI à plusieurs</h2>
-                <p className="mt-2 text-sm leading-relaxed">
-                  En s'associant avec un proche, même très minoritaire, pour réunir les deux
-                  associés requis.
-                </p>
-              </div>
-            </div>
-
-            <p className="rounded-md border border-accent/40 bg-accent/8 p-3 text-base font-medium">
-              Le choix dépend de votre situation ; un expert-comptable peut en discuter avec vous.
-            </p>
-            <CallbackDialog size="lg" />
-
-            <p className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed">
-              {NOTE_REMBOURSEMENT}
-            </p>
-
-            <Disclaimer />
-
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button asChild size="lg">
-                <Link to="/auth" search={{ redirect: "/creation" }}>
-                  Créer ma société maintenant
-                </Link>
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {resultat && !solo && (
-          <div className="space-y-6">
-            <p className="rounded-md border border-success/40 bg-success/8 px-3 py-2 text-sm">
-              {emailEnvoye
-                ? "Résultat envoyé à votre adresse email."
-                : "Votre résultat s'affiche ci-dessous ; l'envoi par email sera activé prochainement."}
-            </p>
-
-            {immobilier && (
-              <p className="rounded-md border border-border bg-muted/50 p-3 text-sm leading-relaxed">
-                Votre activité étant immobilière et patrimoniale, la société civile immobilière
-                (SCI) est la structure la plus couramment utilisée. La comparaison ci-dessous reste
-                utile si vous hésitez avec une société commerciale.
-              </p>
-            )}
-
-            <h1 className="font-serif text-3xl leading-snug">{res.titre}</h1>
-            <p className="text-lg leading-relaxed">{res.sousTitre}</p>
-            <p className="rounded-md border border-accent/40 bg-accent/8 p-3 text-base font-medium">
-              {res.mention}
-            </p>
+            <p className="text-sm text-muted-foreground">{MENTION_LEGITIMITE}</p>
 
             <div className="overflow-x-auto rounded-lg border border-border bg-surface">
-              <table className="w-full min-w-[38rem] text-left text-sm">
+              <table className="w-full min-w-[44rem] text-left text-sm">
                 <caption className="sr-only">
-                  Comparaison entre {res.a} et {res.b}
+                  Comparaison par critère entre {col.sas} et {col.sarl}
                 </caption>
                 <thead>
                   <tr className="border-b border-border">
@@ -381,58 +335,66 @@ function Simulateur() {
                       Critère
                     </th>
                     <th scope="col" className="p-3 font-medium">
-                      {res.a}
+                      {col.sas}
                     </th>
                     <th scope="col" className="p-3 font-medium">
-                      {res.b}
+                      {col.sarl}
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {res.lignes.map((l) => (
-                    <tr key={l.critere} className="border-b border-border align-top last:border-0">
+                  {restit.lignes.map((l) => (
+                    <tr key={l.id} className="border-b border-border align-top last:border-0">
                       <th scope="row" className="p-3 font-medium">
-                        {l.critere}
+                        {l.libelle}
                       </th>
-                      <td className="p-3">{l.a}</td>
-                      <td className="p-3">{l.b}</td>
+                      {[l.sas, l.sarl].map((c, i) => (
+                        <td key={i} className="p-3 text-justify">
+                          <span className="mb-1 block font-medium">
+                            <span aria-hidden>{PASTILLES[c.niveau].signe}</span>{" "}
+                            {PASTILLES[c.niveau].libelle}
+                          </span>
+                          {c.texte}
+                        </td>
+                      ))}
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            <div className="rounded-lg border border-border bg-surface p-5">
-              <h2 className="font-serif text-xl">{res.encadreTitre}</h2>
-              <p className="mt-2 text-base leading-relaxed">{res.encadreTexte}</p>
-            </div>
-
-            <p className="text-base">
-              Au regard de vos réponses, les créateurs dans votre situation s'orientent le plus
-              souvent vers la <strong>{resultat}</strong>.
+            <p className="text-xs text-muted-foreground">
+              {legendePastilles()
+                .map((p) => `${p.signe} ${p.libelle}`)
+                .join(" · ")}
             </p>
 
-            <p className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed">
-              {NOTE_REMBOURSEMENT}
+            <p className="rounded-lg border border-border bg-muted/50 p-4 text-base leading-relaxed text-justify">
+              {restit.synthese}
             </p>
-
-            <Disclaimer />
-
-            <div className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed">
-              <strong>À noter pour la suite :</strong> si vous êtes marié(e) sous un régime de
-              communauté et que votre apport provient de fonds communs, l'information ou l'accord de
-              votre conjoint peut être requis en SARL, EURL et SCI. Cette formalité n'existe pas en
-              SAS et en SASU. La question vous sera posée lors de la constitution du dossier.
-            </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg">
+                <Link to="/tarifs">{LIBELLE_BOUTON_RELECTURE}</Link>
+              </Button>
+              <CallbackDialog size="lg" />
+            </div>
+
+            <BlocDisclaimer />
+
+            <p className="rounded-md border border-border bg-muted/50 p-4 text-sm leading-relaxed text-justify">
+              {NOTE_REMBOURSEMENT}
+            </p>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button asChild size="lg" variant="outline">
                 <Link to="/auth" search={{ redirect: "/creation" }}>
                   Créer ma société maintenant
                 </Link>
               </Button>
-              <CallbackDialog size="lg" />
             </div>
+
+            <p className="text-xs text-muted-foreground">Textes v{SIMULATEUR_TEXTES_VERSION}</p>
           </div>
         )}
       </div>
