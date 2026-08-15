@@ -13,6 +13,7 @@ import { SyntheseImmobilier } from "@/components/SyntheseImmobilier";
 import { Disclaimer } from "@/components/Disclaimer";
 import { ConsultationExpertCard } from "@/components/ConsultationExpertCard";
 import { BandeauAutorite } from "@/components/BandeauAutorite";
+import { RecommandationDialog } from "@/components/RecommandationDialog";
 import { LIBELLE_DIPLOMES } from "@/lib/editeur";
 
 export const Route = createFileRoute("/")({
@@ -159,7 +160,7 @@ function Accueil() {
             ))}
           </ul>
 
-          <p className="mt-6 text-base leading-relaxed text-foreground">
+          <p className="mt-6 text-base leading-relaxed text-justify text-foreground">
             *Vous n'avez aucun honoraire à payer au cabinet pour la création. Restent à votre charge
             les frais légaux obligatoires (annonce légale, greffe, bénéficiaires effectifs), fixés
             par la loi et intégralement reversés aux organismes concernés : le cabinet n'en perçoit
@@ -168,11 +169,12 @@ function Accueil() {
             premier mois de tenue comptable est dû à l'issue du processus de création.
           </p>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-8 flex flex-col items-start gap-6 sm:flex-row sm:items-start">
             <Button asChild size="lg">
               <Link to="/commencer">Créer ma société</Link>
             </Button>
-            <ConsultationExpertCard variante="inline" taille="lg" />
+            <ConsultationExpertCard variante="inline" taille="lg" className="max-w-md" />
+            <RecommandationDialog variant="outline" size="lg" />
           </div>
         </div>
       </section>
@@ -250,11 +252,12 @@ function Accueil() {
             ))}
           </Accordion>
 
-          <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-10 flex flex-col items-start gap-6 sm:flex-row sm:items-start">
             <Button asChild size="lg">
               <Link to="/commencer">Créer ma société</Link>
             </Button>
-            <ConsultationExpertCard variante="inline" taille="lg" />
+            <ConsultationExpertCard variante="inline" taille="lg" className="max-w-md" />
+            <RecommandationDialog variant="outline" size="lg" />
           </div>
         </div>
       </section>
