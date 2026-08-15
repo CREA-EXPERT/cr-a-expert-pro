@@ -33,10 +33,21 @@ test.describe("consultation avec un expert-comptable", () => {
     await expect(prix).toContainText("1 heure");
   });
 
-  test("les points de réassurance sont visibles", async ({ page }) => {
-    const bloc = page.getByTestId("consultation-reassurance").first();
-    await expect(bloc).toContainText("Pas de chronomètre");
-    await expect(bloc).toContainText("sans supplément");
+  test("le libellé exact est affiché sous le bouton et le bloc réassurance a disparu", async ({ page }) => {
+    const bloc = page.getByTestId("consultation-sous-bouton").first();
+    await expect(bloc).toHaveText(
+      "Consultation d' 1h avec un expert-comptable. 148,80 € TTC ( TVA 20 %). La durée est indicative, on traite le problème jusqu'au bout.",
+    );
+    await expect(page.getByTestId("consultation-reassurance")).toHaveCount(0);
+    const texte = (await page.locator("body").innerText()).toLowerCase();
+    expect(texte.includes("pas de chronomètre")).toBe(false);
+    expect(texte.includes("(durée indicative)")).toBe(false);
+  });
+
+  test("le bouton est décrit par son libellé pour les lecteurs d'écran", async ({ page }) => {
+    const bouton = page.getByTestId("bouton-consultation").first();
+    const id = await page.getByTestId("consultation-sous-bouton").first().getAttribute("id");
+    await expect(bouton).toHaveAttribute("aria-describedby", id ?? "");
   });
 
   test("aucune durée en minutes n'est affichée sur la page", async ({ page }) => {
@@ -53,4 +64,41 @@ test("les coulisses de test ne sont pas exposées publiquement", async ({ reques
     failOnStatusCode: false,
   });
   expect(reponse.ok()).toBe(false);
+});
+
+test.describe("landing : justification et aperçu imprimable", () => {
+  for (const [nom, viewport] of [
+    ["mobile", { width: 390, height: 844 }],
+    ["tablette", { width: 820, height: 1180 }],
+    ["desktop", { width: 1280, height: 900 }],
+  ] as const) {
+    test(`les paragraphes restent justifiés en ${nom}`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await page.goto("/", { waitUntil: "networkidle" });
+      const alignements = await page
+        .locator("main p")
+        .evaluateAll((els) =>
+          els
+            .filter(
+              (el) =>
+                (el.textContent ?? "").trim().length > 80 &&
+                !el.className.includes("text-left") &&
+                !el.className.includes("text-center"),
+            )
+            .map((el) => getComputedStyle(el).textAlign),
+        );
+      expect(alignements.length).toBeGreaterThan(0);
+      expect(alignements.every((a) => a === "justify")).toBe(true);
+    });
+  }
+
+  test("l'aperçu imprimable est disponible et conserve la justification", async ({ page }) => {
+    await page.goto("/", { waitUntil: "networkidle" });
+    await expect(page.getByTestId("apercu-imprimable")).toBeVisible();
+    await page.emulateMedia({ media: "print" });
+    const bloc = page.getByTestId("consultation-sous-bouton").first();
+    const style = await bloc.evaluate((el) => getComputedStyle(el).textAlign);
+    expect(style).toBe("justify");
+    await page.emulateMedia({ media: "screen" });
+  });
 });

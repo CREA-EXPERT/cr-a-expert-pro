@@ -7,7 +7,7 @@ import {
   CONSULTATION_ENGAGEMENT,
   CONSULTATION_GARANTIE,
   CONSULTATION_PRIX,
-  CONSULTATION_REASSURANCE,
+  CONSULTATION_SOUS_BOUTON,
   CONSULTATION_TEXTES_VERSION,
   PRIX_CONSULTATION,
   URL_CALENDLY_CONSULTATION,
@@ -37,7 +37,7 @@ describe("textes de la consultation", () => {
 
   it("expose une durée d'1 heure, l'engagement et la garantie", () => {
     expect(CONSULTATION_DUREE).toContain("1 heure");
-    expect(CONSULTATION_DUREE).toContain("durée indicative");
+    expect(CONSULTATION_DUREE).not.toContain("durée indicative");
     expect(CONSULTATION_ENGAGEMENT).toContain("sans supplément");
     expect(CONSULTATION_GARANTIE).toContain("intégralement remboursée");
     expect(CONSULTATION_TEXTES_VERSION).toMatch(/^\d{4}-\d{2}-\d{2}\.\d+$/);
@@ -45,11 +45,35 @@ describe("textes de la consultation", () => {
 });
 
 describe("carte de consultation", () => {
-  it("affiche les points de réassurance issus de consultation-textes", () => {
+  it("affiche sous le bouton le libellé centralisé, à l'identique", () => {
     render(<ConsultationExpertCard />);
-    for (const point of CONSULTATION_REASSURANCE) {
-      expect(screen.getByText(point.texte)).toBeInTheDocument();
+    const bloc = screen.getByTestId("consultation-sous-bouton");
+    expect(bloc.textContent).toBe(CONSULTATION_SOUS_BOUTON);
+    expect(CONSULTATION_SOUS_BOUTON).toBe(
+      "Consultation d' 1h avec un expert-comptable. 148,80 € TTC ( TVA 20 %). La durée est indicative, on traite le problème jusqu'au bout.",
+    );
+  });
+
+  it("relie le bouton à son libellé (aria-describedby) et n'affiche plus le bloc réassurance", () => {
+    render(<ConsultationExpertCard />);
+    const lien = screen.getByTestId("bouton-consultation");
+    expect(lien.getAttribute("aria-describedby")).toBe(
+      screen.getByTestId("consultation-sous-bouton").id,
+    );
+    expect(screen.queryByTestId("consultation-reassurance")).toBeNull();
+  });
+
+  it("ne contient plus les mentions supprimées", () => {
+    const sources = FICHIERS_CONSULTATION.map((f) => readFileSync(f, "utf8")).join("\n");
+    for (const interdit of ["Pas de chronomètre", "sans supplément.", "(durée indicative)"]) {
+      expect(`${interdit}:${sources.includes(interdit)}`).toBe(`${interdit}:false`);
     }
+  });
+
+  it("justifie les paragraphes par défaut dans la feuille de style", () => {
+    const css = readFileSync("src/styles.css", "utf8");
+    expect(css).toMatch(/p\s*\{[^}]*text-align:\s*justify/);
+    expect(css).toContain("@media print");
   });
 
   it("affiche le prix et la durée à proximité du bouton, qui ouvre un nouvel onglet", () => {

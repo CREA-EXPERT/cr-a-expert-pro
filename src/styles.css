@@ -168,6 +168,58 @@
      (text-center, text-left, text-right) restent prioritaires. */
   p {
     text-align: justify;
+    text-justify: inter-word;
+    hyphens: auto;
+    overflow-wrap: break-word;
+  }
+}
+
+/* Aperçu imprimable / export PDF (navigateur) : conserve la justification,
+   masque les éléments interactifs non imprimables et évite les coupures. */
+@media print {
+  :root {
+    --color-background: white;
+  }
+
+  body {
+    background: white;
+    color: black;
+    font-size: 11pt;
+  }
+
+  p {
+    text-align: justify;
+    hyphens: auto;
+    orphans: 3;
+    widows: 3;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+
+  section,
+  li {
+    break-inside: avoid;
+  }
+
+  [data-testid="consultation-sous-bouton"] {
+    display: block;
+    color: black;
+  }
+
+  [data-print="hide"],
+  header nav,
+  button:not([data-print="keep"]) {
+    display: none !important;
+  }
+
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    word-break: break-all;
   }
 }
 
