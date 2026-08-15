@@ -47,8 +47,8 @@ const BADGES = [
 const ETAPES = [
   {
     n: 1,
-    t: "Simulez votre forme juridique (facultatif)",
-    d: "Cinq questions, une restitution comparative et neutre. Cette étape est optionnelle : si vous savez déjà quelle forme créer, passez directement au dossier.",
+    t: "Comparer les formes juridiques (facultatif)",
+    d: "Un comparatif pédagogique, critère par critère. Cette étape est optionnelle : si vous savez déjà quelle forme créer, passez directement au dossier.",
   },
   {
     n: 2,
@@ -65,7 +65,11 @@ const ETAPES = [
     t: "Vous validez vos documents",
     d: "Vous validez vous-même vos documents pour aller plus vite, ou demandez leur relecture par un expert-comptable (en option).",
   },
-  { n: 5, t: "Votre société est immatriculée", d: "Vous suivez l'avancement depuis votre espace." },
+  {
+    n: 5,
+    t: "Votre société est immatriculée",
+    d: "Vous suivez l'avancement depuis votre espace. Le greffe du tribunal peut prendre plusieurs jours, voire plusieurs semaines, pour immatriculer une entreprise, et demander des documents complémentaires en cours d'examen.",
+  },
 ];
 
 const FAQ = [
@@ -75,7 +79,7 @@ const FAQ = [
   },
   {
     q: "Que se passe-t-il après les 3 mois ?",
-    r: "Vous êtes libre. L'engagement porte sur 3 mois ; à leur terme, vous décidez de poursuivre la mission comptable ou d'y mettre fin, sans reconduction forcée et sans pénalité.",
+    r: "Vous êtes libre. L'engagement porte sur 3 mois ; à leur terme, vous décidez de poursuivre la mission comptable (rien à faire de votre part), ou d'y mettre fin, sans reconduction forcée et sans pénalité.",
   },
   {
     q: "Qui rédige mes statuts ?",
@@ -160,7 +164,8 @@ function Accueil() {
             les frais légaux obligatoires (annonce légale, greffe, bénéficiaires effectifs), fixés
             par la loi et intégralement reversés aux organismes concernés : le cabinet n'en perçoit
             pas un centime et n'y prend aucune marge. En contrepartie, vous vous engagez sur une
-            mission comptable de 3 mois (199 € HT/mois).
+            mission comptable pour un minimum de 3 mois (199 € HT/mois) avec reconduction tacite. Le
+            premier mois de tenue comptable est dû à l'issue du processus de création.
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">

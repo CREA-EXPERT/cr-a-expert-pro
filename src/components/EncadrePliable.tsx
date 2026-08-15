@@ -56,7 +56,7 @@ export function EncadrePliable({
         id={idContenu}
         className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down"
       >
-        <div className="max-w-prose space-y-2 px-4 pb-4 text-sm leading-relaxed text-left">
+        <div className="max-w-prose space-y-2 px-4 pb-4 text-sm leading-relaxed text-justify">
           {children}
         </div>
       </CollapsibleContent>

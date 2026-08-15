@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { OBJET_EMAIL_SIMULATEUR } from "./simulateur-textes";
 
 const Entree = z.object({ simulationId: z.string().uuid() });
 
@@ -39,8 +40,10 @@ export const envoyerResultatSimulation = createServerFn({ method: "POST" })
 
     const resultat = await envoyerEmail({
       destinataire: simulation.email,
-      sujet: "Votre résultat — quelle forme juridique pour votre projet ?",
-      html: texteVersHtml(simulation.corps_email),
+      sujet: OBJET_EMAIL_SIMULATEUR,
+      html: simulation.corps_email.trimStart().startsWith("<")
+        ? simulation.corps_email
+        : texteVersHtml(simulation.corps_email),
     });
 
     if (resultat.envoye) {

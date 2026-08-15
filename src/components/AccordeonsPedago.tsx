@@ -46,7 +46,7 @@ export function AccordeonsPedago({
       {cles.map((c) => (
         <AccordionItem key={c} value={c}>
           <AccordionTrigger className="text-left text-sm">{PEDAGO[c].q}</AccordionTrigger>
-          <AccordionContent className="text-sm leading-relaxed text-foreground">
+          <AccordionContent className="text-sm leading-relaxed text-foreground text-justify">
             {PEDAGO[c].r}
           </AccordionContent>
         </AccordionItem>

@@ -7,7 +7,18 @@ const EntreeSimulation = z.object({
   prenom: z.string().trim().max(80).optional(),
   reponses: z.record(z.string(), z.string()),
   resultat: z.string().max(60),
-  corps_email: z.string().max(20000),
+  corps_email: z.string().max(80000),
+  /** Journal probatoire : version des textes, empreinte de la restitution servie. */
+  journal: z
+    .object({
+      version_textes: z.string().max(20),
+      horodatage: z.string().max(40),
+      email: z.string().max(255),
+      reponses: z.record(z.string(), z.string()),
+      forme_retenue: z.string().max(60),
+      empreinte_restitution: z.string().max(64),
+    })
+    .optional(),
   piege: z.string().max(200).optional(),
 });
 
@@ -44,7 +55,12 @@ export const enregistrerSimulation = createServerFn({ method: "POST" })
       .insert({
         email: data.email,
         prenom: data.prenom || null,
-        reponses: data.reponses,
+        reponses: {
+          reponses: data.reponses,
+          ...(data.journal
+            ? { journal: { ...data.journal, enregistre_le: new Date().toISOString() } }
+            : {}),
+        },
         resultat: data.resultat,
         corps_email: data.corps_email,
       })
