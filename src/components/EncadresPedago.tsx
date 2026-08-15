@@ -138,7 +138,7 @@ export function EncadreRelectureLimites() {
 function MentionPro() {
   return (
     <p className="mt-3 text-xs text-muted-foreground">
-      Encadré pédagogique — information générale et non exhaustive, qui ne constitue pas un conseil.
+      Information générale et non exhaustive, qui ne constitue pas un conseil.
       Pour toute précision adaptée à votre situation, parlez-en à un professionnel, notamment à
       notre expert-comptable partenaire.
     </p>

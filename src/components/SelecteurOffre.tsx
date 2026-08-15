@@ -65,8 +65,8 @@ export function SelecteurOffre({
           <div>
             <Label htmlFor="interrupteur-compta" className="text-base font-medium leading-relaxed">
               {avecCompta
-                ? "✓ Je confie aussi ma comptabilité au cabinet — ma création coûte moins cher."
-                : "Je confie aussi ma comptabilité au cabinet — ma création coûte moins cher."}
+                ? "✓ Je confie aussi ma comptabilité au cabinet — ma création est gratuite."
+                : "Je confie aussi ma comptabilité au cabinet — ma création est gratuite."}
             </Label>
             <p id="interrupteur-compta-aide" className="mt-2 text-sm leading-relaxed text-justify">
               Comptabilité : {euro(prixCompta)} HT/mois. Engagement {duree} mois, puis résiliation

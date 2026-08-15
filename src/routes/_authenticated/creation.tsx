@@ -51,6 +51,7 @@ import {
 } from "@/lib/documents";
 import { EncadrePliable } from "@/components/EncadrePliable";
 import { ContratMariageChamps } from "@/components/ContratMariageChamps";
+import { RecapitulatifErreurs } from "@/components/RecapitulatifErreurs";
 import { validerContratMariage } from "@/lib/contrat-mariage";
 import { VerifDenomination } from "@/components/VerifDenomination";
 import { MentionObligatoire, Requis } from "@/components/Obligatoire";
@@ -651,6 +652,8 @@ function Creation() {
           )}
 
           <h1 className="font-serif text-3xl">{titreEtape}</h1>
+
+          <RecapitulatifErreurs erreurs={erreurs} />
 
           {/* 1 — FORME */}
           {cle === "forme" && (

@@ -11,7 +11,6 @@ import { FriseCouts } from "@/components/FriseCouts";
 import { FormesDetail } from "@/components/FormesDetail";
 import { SyntheseImmobilier } from "@/components/SyntheseImmobilier";
 import { Disclaimer } from "@/components/Disclaimer";
-import { BoutonApercuImprimable } from "@/components/BoutonApercuImprimable";
 import { ConsultationExpertCard } from "@/components/ConsultationExpertCard";
 import { BandeauAutorite } from "@/components/BandeauAutorite";
 import { RecommandationDialog } from "@/components/RecommandationDialog";
@@ -179,7 +178,6 @@ function Accueil() {
           </div>
 
           <div className="mt-4">
-            <BoutonApercuImprimable className="-ml-2" />
           </div>
         </div>
       </section>
